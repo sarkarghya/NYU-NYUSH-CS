@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
 def main():
-    print("Googling.....")
+    print("Googling...")
     url = "https://www.google.com/search?q=" + " ".join(sys.argv[1:])
     res = requests.get(url, headers={"UserAgent": UserAgent().random})
     # res.raise_for_status()
