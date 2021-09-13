@@ -18,7 +18,7 @@ def convert_to_Roman_numeral(A):
         if ln <= 3:
             res += (rome_dict[div*5]*k + rome_dict[div] * ln)
         else:
-            res += (rome_dict[div] + rome_dict[div*5*k])
+            res += (rome_dict[div] + rome_dict[div*5*(k+1)])
     return res
     
 ##test
