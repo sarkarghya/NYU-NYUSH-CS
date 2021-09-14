@@ -8,11 +8,12 @@ Created on Tue Jul  7 11:09:16 2020
 
 def int_to_hexa(int_code):
     ##modified the following to the tests
+    hex = "0123456789ABCDEF"
     result = ""
-      
+    while int_code:
+        result = hex[int_code % 16] + result
+        int_code //= 16
     return result
-
-
 
 
 ##---test of your code, don't change the followings---##
