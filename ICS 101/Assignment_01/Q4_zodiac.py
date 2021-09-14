@@ -20,7 +20,7 @@ while True:
             "Horse",
             "Sheep"
             ]
-        print(year, "is the year of", zod_list[year % 12])
+        print(year, f"is the year of {zod_list[year % 12]}. ")
         break
     except:
         print("Input should be a non-negative integer")
