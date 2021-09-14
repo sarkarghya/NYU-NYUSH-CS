@@ -1,0 +1,16 @@
+#Category 1- 4, Date, Meaning Percent, Name, Importance percent
+1,20/01,0.57, JEE Main Qualified,0.25
+1, 19/11, 0.30, SAT,0.85
+1, 20/02, 0.25, Graduate HS,0.70
+1, 18/05, 0.32, Graduate Jr HS,0.73
+1, 18/06, 0.57, NTSE,0.25
+1, 18/01, 0.72, Class Prefect,0.85
+2, 20/11, 0.89, GCA ,0.95
+2, 20/03, 0.95, PROMYS,0.80
+2, 20/02, 0.63, IYPT,0.30
+2, 20/04, 0.27, VCFC,0.45
+2, 20/01, 0.72, IRIS,0.73
+2, 18/08, 0.56, Technothlon, 0.61
+2, 20/11, 0.45, INSEF,0.37
+3, 17/05, 0.86, IAYP Bronze,0.92
+3, 21/03, 0.89, FFI Volunteer,0.80
