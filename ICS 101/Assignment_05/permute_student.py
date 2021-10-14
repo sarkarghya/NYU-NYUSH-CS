@@ -7,10 +7,25 @@ Created on Wed Mar 10 15:20:57 2021
 """
 
 def permute(nums):
-    ## put your code here
-    
-    pass
-
+    #end case
+    if len(nums) == 1:
+        return [nums]
+ 
+    ls = []
+ 
+    # Iterate the input(nums) and calculate the permutation
+    for i in range(len(nums)):
+       m = nums[i]
+ 
+       # Extract nums[i] or m from the list.  remnums is
+       # remaining list
+       remnums = nums[:i] + nums[i+1:] ### please note ###
+ 
+       # Generating all permutations where m is first
+       # element
+       for p in permute(remnums): ### recursion borrows from future
+           ls.append([m] + p)
+    return ls
     
 ##tests
 
