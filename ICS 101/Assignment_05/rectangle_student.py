@@ -77,9 +77,9 @@ if __name__ == "__main__":
     p1.add_point(0, 3)
     p1.add_point(4, 0)
     #p1.add_point(4, 3)
-    p1.plot()
+    #p1.plot()
     
-    rect = Rectangle(5, 5, Point(0, 0)) # Try Rectangle(5, 5)
+    rect = Rectangle(5, 4, Point(1, 0)) # Try Rectangle(5, 5)
     rect.plot()
             
         
