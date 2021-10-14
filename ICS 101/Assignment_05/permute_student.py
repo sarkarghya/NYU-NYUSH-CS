@@ -12,19 +12,12 @@ def permute(nums):
         return [nums]
  
     ls = []
- 
     # Iterate the input(nums) and calculate the permutation
     for i in range(len(nums)):
-       m = nums[i]
- 
-       # Extract nums[i] or m from the list.  remnums is
-       # remaining list
-       remnums = nums[:i] + nums[i+1:] ### please note ###
- 
-       # Generating all permutations where m is first
-       # element
-       for p in permute(remnums): ### recursion borrows from future
-           ls.append([m] + p)
+        remnums = nums[:]
+        m = remnums.pop(i)
+        ls.extend([ [m] + p for p in permute(remnums) ])
+        ### recursion borrows from future
     return ls
     
 ##tests
