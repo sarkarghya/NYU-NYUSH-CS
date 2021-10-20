@@ -62,13 +62,10 @@ class Rectangle(Polygon):
             self.ll_point = p
         else:
             self.ll_point = Point()
-        
-    def plot(self):
         self.points.append(self.ll_point)
-        self.points.append(Point(self.ll_point.x, self.ll_point.y + self.height))
-        self.points.append(Point(self.ll_point.x + self.width, self.ll_point.y + self.height))
         self.points.append(Point(self.ll_point.x + self.width, self.ll_point.y))
-        super().plot()
+        self.points.append(Point(self.ll_point.x + self.width, self.ll_point.y + self.height))
+        self.points.append(Point(self.ll_point.x, self.ll_point.y + self.height))
 
 ## test  
 if __name__ == "__main__":
