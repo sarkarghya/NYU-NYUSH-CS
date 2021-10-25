@@ -6,10 +6,9 @@ Created on Sat Mar 19 16:14:38 2016
 """
 #import dice_student
 import math
-import random
 import matplotlib.pyplot as plt
 
-# import montecalo_helper
+import montecalo_helper
 
 # compute the Eucliear distance of two vectors
 def comp_dist(a, b):
@@ -21,7 +20,7 @@ def comp_dist(a, b):
 
 def estimate_pi(num_points):
 # replace the following line with your code
-# use random.uniform(-1, 1) twice to get cordinate of a random dot
+# use math.uniform(-1, 1) twice to get cordinate of a random dot
 # record how many times dots are within unit circle
 # should return:
 # - an estimate of pi
@@ -29,19 +28,13 @@ def estimate_pi(num_points):
 # - the y-axis cordinates list for those within the unit circle
 # - the x-axis cordinates list for those outside the unit circle
 # - the y-axis cordinates list for those outside the unit circle
-    est_pi = 0
-    in_x = 0
-    in_y = 0
-    out_x = 0
-    out_y = 0
-    return est_pi, in_x, in_y, out_x, out_y
-    # return montecalo_helper.estimate_pi(num_points)
+    return montecalo_helper.estimate_pi(num_points)
 
 results = []
 # total number of random dots per trial
 num_points_per_estimate = 1000
 # perform multiple trails
-num_trials = 1000
+num_trials = 100
 for i in range(num_trials):
     est_pi, in_x, in_y, out_x, out_y = \
         estimate_pi(num_points_per_estimate)
