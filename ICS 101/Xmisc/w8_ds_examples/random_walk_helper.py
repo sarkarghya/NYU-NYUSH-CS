@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """
 Created on Sat Mar 19 16:14:38 2016
-
 @author: zhengzhang
 """
 

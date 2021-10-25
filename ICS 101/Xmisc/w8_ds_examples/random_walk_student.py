@@ -8,7 +8,7 @@ import dice_student
 import math
 import matplotlib.pyplot as plt
 
-# import random_walk_helper
+import random_walk_helper
 
 class Walker:
     def __init__(self, directions=4, num_steps=10):
@@ -27,18 +27,7 @@ class Walker:
 # - go right one step (x += 1)
 # - go north one step (y += 1)
 # - go south one step (y -= 1)
-        # pass
-        for _ in range(self.num_steps):
-            d = self.dice.roll()
-            if d == 0:
-                self.x_pos -= 1
-            if d == 1:
-                self.x_pos += 1
-            if d == 2:
-                self.x_pos += 1
-            else:
-                self.x_pos -= 1
-        # random_walk_helper.run(self)
+        random_walk_helper.run(self)
     
     def get_position(self):
         return self.x_pos, self.y_pos
