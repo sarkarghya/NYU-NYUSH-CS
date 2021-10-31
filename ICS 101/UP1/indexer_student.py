@@ -80,7 +80,19 @@ class Index:
                 self.total_words += 1 
             else:
                 self.index[word].append(l)
-
+    '''
+    def indexing(self, m, l):
+        """
+        updates self.total_words and self.index
+        m: message, l: current line number
+        """
+        for word in m.split():
+            #Avoid if the word is the roman number
+            if not (word[-1] == '.' and word[-2].isupper()):
+                word = word.strip(string.punctuation) #else remove puncs
+            self.total_words += 1 
+            self.index.setdefault(word, []).append(l)
+    '''
     # implement: query interface
 
 #    def search(self, term):
