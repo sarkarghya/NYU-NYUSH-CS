@@ -28,24 +28,12 @@ class Group:
         return
 
     def is_member(self, name):
-
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-        return False
-        # ---- end of your code --- #
+        return name in self.memebers.keys()
 
     # implement
     def leave(self, name):
-        """
-        leave the system, and the group
-        """
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-        # ---- end of your code --- #
+        self.disconnect(name)
+        del self.members[name]
         return
 
     def find_group(self, name):
@@ -57,11 +45,10 @@ class Group:
 
         found = False
         group_key = 0
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-        # ---- end of your code --- #
+        for key in self.chat_grps.keys():
+            if name in self.chat_grps[key]:
+                found, group_key = True, key
+                return found, group_key
         return found, group_key
 
     def connect(self, me, peer):
@@ -72,11 +59,16 @@ class Group:
         """
         peer_in_group, group_key = self.find_group(peer)
 
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-        # ---- end of your code --- #
+        if peer_in_group:
+            self.chat_grps[group_key].append(me)
+            self.members[me] = S_TALKING
+            print(f"{peer} is in the group {str(group_key)} you joined")
+        else:
+            self.grp_ever += 1
+            self.chat_grps[self.grp_ever] = [me, peer]
+            self.members[me], self.members[peer] = S_TALKING, S_TALKING
+            print(f"{peer} alone, form new group {str(self.grp_ever)}")
+        print(self.list_me(me))
         return
 
     # implement
@@ -84,11 +76,14 @@ class Group:
         """
         find myself in the group, quit, but stay in the system
         """
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-        # ---- end of your code --- #
+        me_in_group, group_key = self.find_group(me)
+        if me_in_group:
+            self.chat_grps[group_key].remove(me)
+            self.members[me] = S_ALONE
+            if len(self.chat_grps[group_key]) == 1:
+                peer = self.chat_grps[group_key][0]
+                self.members[peer] = S_ALONE
+                del self.chat_grps[group_key]
         return
 
     def list_all(self):
@@ -105,13 +100,19 @@ class Group:
         return a list, "me" followed by other peers in my group
         """
         my_list = []
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-        # ---- end of your code --- #
+        me_in_group, group_key = self.find_group(me)
+        if me_in_group:
+            my_list.extend([me] + [m for m in self.chat_grps[group_key] if m != me])          
         return my_list
+    
+    def loners(self):
+        return sum([1 for v in self.chat_grps.values() if len(v) == 1])
 
+    def biggest_group(self):
+        return self.chat_grps[max(self.chat_grps, key = lambda x: len(self.chat_grps[x]))]
+
+    def two_mem_grps(self):
+        return [x for x in self.chat_grps.values() if len(x) == 2]
 
 if __name__ == "__main__":
     g = Group()
