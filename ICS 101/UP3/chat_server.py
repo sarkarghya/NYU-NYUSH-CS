@@ -128,8 +128,8 @@ class Server:
                 """
                 # IMPLEMENTATION
                 # ---- start your code ---- #
-                pass
-
+                reci = text_proc(msg["message"], from_name)
+                self.indices[from_name].add_msg_and_index(reci)
                 # ---- end of your code --- #
 
                 the_guys = self.group.list_me(from_name)[1:]
@@ -138,9 +138,8 @@ class Server:
 
                     # IMPLEMENTATION
                     # ---- start your code ---- #
-                    pass
-                    mysend(
-                        to_sock, "...Remember to index the messages before sending, or search won't work")
+                    self.indices[g].add_msg_and_index(reci)
+                    mysend(to_sock, json.dumps({"action":"exchange", "from":msg["from"], "message":msg["message"]}))
 
                     # ---- end of your code --- #
 
@@ -164,9 +163,8 @@ class Server:
 
                 # IMPLEMENTATION
                 # ---- start your code ---- #
-                pass
-                msg = "...needs to use self.group functions to work"
-
+                from_name = self.logged_sock2name[from_sock]
+                msg = self.group.list_all(from_name)
                 # ---- end of your code --- #
                 mysend(from_sock, json.dumps(
                     {"action": "list", "results": msg}))
@@ -177,9 +175,12 @@ class Server:
 
                 # IMPLEMENTATION
                 # ---- start your code ---- #
-                pass
-                poem = "...needs to use self.sonnet functions to work"
-                print('here:\n', poem)
+                from_name = self.logged_sock2name[from_sock]
+                idx = int( msg["target"] )
+
+                print(f'{from_name} requested for poem index {idx}')
+                poem = '\n' + '\n'.join(self.sonnet.get_poem(idx)).strip()
+                print(poem)
 
                 # ---- end of your code --- #
 
@@ -199,8 +200,11 @@ class Server:
 
                 # IMPLEMENTATION
                 # ---- start your code ---- #
-                pass
-                search_rslt = "needs to use self.indices search to work"
+                from_name = self.logged_sock2name[from_sock]
+                search = msg["target"]
+                
+                print(f'Searching {from_name} for {search}')
+                search_rslt = '\n'.join([x[-1] for x in self.indices[from_name].search(search)])
                 print('server side search: ' + search_rslt)
 
                 # ---- end of your code --- #
