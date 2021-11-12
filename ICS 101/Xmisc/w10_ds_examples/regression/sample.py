@@ -5,13 +5,6 @@ Created on Sat Mar 26 13:16:01 2016
 @author: zhengzhang
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 29 16:36:11 2015
-
-@author: zhengzhang
-"""
-
 class Sample(object):
     
     def __init__(self, name, features, label=None):
@@ -69,9 +62,7 @@ class Sample(object):
         return Sample(self.name + '-' + other.name, f)   
     
     def __str__(self):
-        return self.name +': ' \
-            + str(self.features) + ': ' \
-            + str(self.label)
+        return f"{self.name}: {self.features}: {self.label}"
 
 if __name__ == "__main__":
     x = Sample('x', [1, 2])

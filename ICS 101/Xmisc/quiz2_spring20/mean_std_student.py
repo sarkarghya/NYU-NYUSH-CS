@@ -8,29 +8,16 @@ def compute_mean(data):
     dim = data[0].dimensionality()
     mean = sample.Sample('mean', [0.0]*dim)
     for d in data:
-        # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-
-
-
-        # ---- end of your code --- #
+        mean += d
     return mean/len(data)
 
 def compute_std(data, mean):
     dim = data[0].dimensionality()
     std = sample.Sample('std', [0.0]*dim)
     for d in data:
-        # IMPLEMENTATION
-        # ---- start your code ---- #
         # you only need to sum the square of the
         # difference between d and the mean
-        pass
-
-
-
-        # ---- end of your code --- #
+        std += (d - mean).power(2)
     # we've done the square root and averaging for you
     return std.power(0.5)/(len(data)**0.5)
 
@@ -43,13 +30,8 @@ def normalization(data):
     data_std = compute_std(data, data_mean)
     for d in data:
         # IMPLEMENTATION
-        # ---- start your code ---- #
-        pass
-
-
-
-
-        # ---- end of your code --- #
+        d -= data_mean
+        new_data.append(d.vec_div(data_std))
     return new_data
 
 if __name__ == "__main__":

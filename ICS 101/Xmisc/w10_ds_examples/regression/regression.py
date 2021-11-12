@@ -8,7 +8,6 @@ import random
 import matplotlib.pyplot as plt
 import sample
 import util
-import regression_helper
 
 VERBOSE = True
 
@@ -25,14 +24,19 @@ def compute_error(pred, truth):
     """ mean square error:
         sum of (pred[i] - truth[i])^2, divided by 2*length
     """
-    
-    return regression_helper.compute_error(pred, truth)
+    error = 0
+    n = len(pred)
+    for i in range(n):
+        error += (pred[i] - truth[i]) ** 2
+    error /= 2*n
+    return error
 
 def compute_grad(pred, truth, x):
     """ gradient is mean of (pred[i] - truth[i]) * x[i]
     """
-    
-    return regression_helper.compute_grad(pred, truth, x)
+    n = len(pred)
+    grad = sum([(pred[i] - truth[i]) * x[i] for i in range(n)])/n
+    return grad
     
 if __name__ == "__main__":
 

@@ -5,7 +5,6 @@ Created on Sat Mar 19 15:23:36 2016
 @author: zhengzhang
 """
 import random
-import dice_helper
 
 class Dice:
     def __init__(self, sides=2):
@@ -22,11 +21,17 @@ class Dice:
     def get_bounds(self):
         return self.bounds
                 
-    def roll(self):
 # replace the following line with you code
 # it should set self.point as a random var in [0, 1]
 # return which side the dice lands on
-        return dice_helper.roll(self)
+    def roll(self):
+        self.point = random.uniform(0, 1)
+        for i in range(self.n_sides):
+            if self.point > self.bounds[i] \
+            and self.point <= self.bounds[i+1]:
+                break
+        self.lands = i
+        return self.lands
 
 if __name__ == "__main__":       
     d = Dice()
