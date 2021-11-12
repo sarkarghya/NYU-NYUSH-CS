@@ -6,12 +6,6 @@ Created on Sat Oct 29 13:31:43 2016
 """
 import sample_student as sample
 
-#### the __sub__ function in sample.py
-def __sub__(self, other):
-    f = []
-    for i in range(self.dimensionality()):
-        f.append(self.getFeatures()[i] - other.getFeatures()[i])
-    return sample.Sample(self.name + '-' + other.name, f)  
 
 #### the centroid computing function in cluster.py
 def computeCentroid(self):
