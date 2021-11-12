@@ -67,7 +67,8 @@ def kmeansTest(k=2, n=20, verbose=False):
     d1Samples = util.genDistribution(xMean, xSD, yMean, ySD, n, '1.')
     d2Samples = util.genDistribution(xMean+3, xSD, yMean+1, ySD, n, '2.')
     allSamples = d1Samples + d2Samples
-    
+    print(allSamples)
+
     print("before clustering")
     util.plot_cluster([cluster.Cluster(allSamples)])
     
