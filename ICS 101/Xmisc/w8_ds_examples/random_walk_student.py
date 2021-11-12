@@ -8,8 +8,6 @@ import dice_student
 import math
 import matplotlib.pyplot as plt
 
-import random_walk_helper
-
 class Walker:
     def __init__(self, directions=4, num_steps=10):
         self.dice = dice_student.Dice(directions)
@@ -20,14 +18,22 @@ class Walker:
     def set_bounds(self, r):
         self.dice.set_bounds(r)
         
-    def run(self):
-# replace the following line with you code
 # roll the dice, according to the outcome:
 # - go left one step (x -= 1)
 # - go right one step (x += 1)
 # - go north one step (y += 1)
 # - go south one step (y -= 1)
-        random_walk_helper.run(self)
+    def run(self):
+        for i in range(self.num_steps):
+            direction = self.dice.roll()
+            if direction == 0:
+                self.x_pos += 1
+            elif direction == 1:
+                self.x_pos -= 1
+            elif direction == 2:
+                self.y_pos += 1
+            elif direction == 3:
+                self.y_pos -= 1
     
     def get_position(self):
         return self.x_pos, self.y_pos

@@ -6,7 +6,6 @@ Created on Sat Mar 19 16:14:38 2016
 """
 import dice_student
 import matplotlib.pyplot as plt
-import coin_helper
 
 class Block_trial:
     def __init__(self, sides=2, block_size=10):
@@ -16,17 +15,21 @@ class Block_trial:
         for i in range(sides):
             self.outcomes[i] = 0
         
-    def run(self):
 # replace the following line with your code
 # roll the dice block_size number of times, recode in 
 # the outcome dictionary
-        coin_helper.run(self)
-    
-    def get_run_stats(self):
+    def run(self):
+        for _ in range(self.block_size):
+            self.outcomes[self.dice.roll()] += 1
+        
 # report the statistics in a list
 # the i-th entry of the list is frequency/percentage 
 # the coin lands on the i-th side
-        return coin_helper.get_run_stats(self)
+    def get_run_stats(self):
+        stats = []
+        for k in sorted(self.outcomes):
+            stats.append(self.outcomes[k]/float(self.block_size))
+        return stats
         
 if __name__ == "__main__":
     a_trial = Block_trial()
