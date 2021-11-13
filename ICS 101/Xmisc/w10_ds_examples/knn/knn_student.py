@@ -28,10 +28,7 @@ def knn(p, data, k):
     # Calculating the distances b/w p & every pt. in data
     distances = {}
     for d in data:
-        if d.distance(p) not in distances.keys():
-            distances[ d.distance(p) ] = [ d ]
-        else:
-            distances[ d.distance(p) ].append(d)
+        distances.setdefault(d.distance(p), []).append(d)
 
     # Sorting the k nearest neighbours
     result = []        
@@ -44,7 +41,7 @@ def knn(p, data, k):
     label_votes = { l:0 for l in util.LABELS }
     for x in k_nearest_neighbours:
         label_votes[x.getLabel()] += 1
-    max_label = sorted(label_votes, key = label_votes.get, reverse = True)[0]
+    max_label = max(label_votes, key = label_votes.get)
     
 #    max_vote = 0
 #    for k , v in label_votes.items():

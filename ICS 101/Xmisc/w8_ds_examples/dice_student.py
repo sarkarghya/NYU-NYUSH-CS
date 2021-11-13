@@ -9,8 +9,7 @@ import random
 class Dice:
     def __init__(self, sides=2):
         self.n_sides = sides
-        self.bounds = [x/float(sides) for x in range(0, sides)]
-        self.bounds.append(1.0)
+        self.bounds = [x/float(sides) for x in range(0, sides + 1)]
         self.point = None
         self.lands = 0
    
@@ -27,11 +26,9 @@ class Dice:
     def roll(self):
         self.point = random.uniform(0, 1)
         for i in range(self.n_sides):
-            if self.point > self.bounds[i] \
-            and self.point <= self.bounds[i+1]:
-                break
-        self.lands = i
-        return self.lands
+            if self.bounds[i] < self.point <= self.bounds[i+1]:
+                self.lands = i
+                return self.lands
 
 if __name__ == "__main__":       
     d = Dice()
