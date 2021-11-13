@@ -24,19 +24,12 @@ def compute_error(pred, truth):
     """ mean square error:
         sum of (pred[i] - truth[i])^2, divided by 2*length
     """
-    error = 0
-    n = len(pred)
-    for i in range(n):
-        error += (pred[i] - truth[i]) ** 2
-    error /= 2*n
-    return error
+    return sum((pred[i]- truth[i])**2 for i in range(n))/(2*len(pred))
 
 def compute_grad(pred, truth, x):
     """ gradient is mean of (pred[i] - truth[i]) * x[i]
     """
-    n = len(pred)
-    grad = sum([(pred[i] - truth[i]) * x[i] for i in range(n)])/n
-    return grad
+    return sum((pred[i] - truth[i]) * x[i] for i in range(n))/len(pred)
     
 if __name__ == "__main__":
 
