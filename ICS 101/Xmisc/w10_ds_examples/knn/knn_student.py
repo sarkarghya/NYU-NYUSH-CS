@@ -5,7 +5,7 @@ import util
 import matplotlib.pylab as pylab
 import cluster as cl
 
-def knn(p, data, k):
+def knn(p, data, k): 
     """ Compute the distance between p to every sample in data,
         set p's label to the label of the maximum of samples
         within the k nearest neighbors
@@ -25,32 +25,29 @@ def knn(p, data, k):
            in each label among the top-k nearest samples
         4. Assign p the most popular label
     """
-    distances = {} #dict of distance
-    ##--below, input your code for computeing the distance--##
-    
-    
-    ##--end of your code--##
-    
-    sorted_samples = [] #the sorted list of samples in data
-    ##--below, input your code for sortig the samples--##
-    
-    
-    ##--end of your code--##
-     
-    label_votes = { l:0 for l in util.LABELS } #dict of votes per label
-    ##--below, input your code for finding the max label--##
-    
+    # Calculating the distances b/w p & every pt. in data
+    distances = {}
+    for d in data:
+        distances.setdefault(d.distance(p), []).append(d)
 
+    # Sorting the k nearest neighbours
+    result = []        
+    for key in sorted(distances.keys()):
+        result.extend( distances[key] )
 
-    max_label = util.LABELS[0] #modify it to a correct expression
-    ## above forces a fixed label: remove them
-    ##--end of your code--##
+    k_nearest_neighbours = result[:k]
+
+    # Assigning a label to the new point based on the k neighbours
+    label_votes = { l:0 for l in util.LABELS }
+    for x in k_nearest_neighbours:
+        label_votes[x.getLabel()] += 1
+    max_label = max(label_votes, key = label_votes.get)
+    
+#    max_vote = 0
+#    for k , v in label_votes.items():
+#        if v > max_vote:
+#            max_label = k
     p.setLabel(max_label)
-    
-    # replace knn_helper.knn(p, data, k) with your own logic
-    # knn_helper.knn(p, data, k)
-
-    pass
 
 if __name__ == "__main__":
 
