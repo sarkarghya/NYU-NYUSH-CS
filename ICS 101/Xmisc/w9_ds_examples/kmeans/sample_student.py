@@ -48,6 +48,10 @@ class Sample(object):
         ''' replace the line below with you code
             refer to the __add__ for ideas '''
         #return helper.__sub__(self, other)
+        f = []
+        for i in range(self.dimensionality()):
+            f.append(self.getFeatures()[i] - other.getFeatures()[i])
+        return Sample(self.name + '-' + other.name, f) 
     
     def __mul__(self, other):
         ''' bonus: can you do vector multiplication?

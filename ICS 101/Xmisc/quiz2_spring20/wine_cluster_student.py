@@ -13,13 +13,14 @@ if __name__ == "__main__":
     allSamples = []
     # IMPLEMENTATION: Read the data from "wine_data.txt"
     # ---- start your code ---- #
-    pass
+    with open('.\quiz2_spring20\wine_data.txt', 'r') as f:
+        raw_lines = map(lambda line: line.strip().split(','), f.readlines()[1:])
 
     """
     1. fill the array allSamples to hold the samples
     2. each sample is corresponding to a type of wine and takes two attributes of the wine
     """
-    allSamples = [sample.Sample('', [0.0, 0.0])] # replace this line
+    allSamples = [sample.Sample('', [ float(x[0]), float(x[4]) ] ) for x in raw_lines]
 
     # ---- end of your code --- #
 
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     clusters = unclustered
     # IMPLEMENTATION: apply k means to cluster the samples
     # ---- start your code ---- #
-    pass
+    clusters = kmeans.kmeans(allSamples, 3, verbose)
     # ---- end of your code --- #
     print("after clustering")
     util.plot_cluster(clusters, verbose)
@@ -48,7 +49,8 @@ if __name__ == "__main__":
     normalized_clusters = clusters
     # IMPLEMENTATION: normalizing the data
     # ---- start your code ---- #
-    pass
+    normalized_allSamples = mean_std.normalization(allSamples)
+    normalized_clusters = kmeans.kmeans(normalized_allSamples, 3, verbose)
     # ---- end of your code --- #
     print("after normalizing")
     util.plot_cluster(normalized_clusters, verbose)
