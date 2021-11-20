@@ -11,3 +11,5 @@ To run the code you need to get the pytorch VGG19-Model from [Simonyan and Zisse
 Everything else is in the IPythonNotebook `NeuralStyleTransfer.ipynb`
 
 Have fun :-)
+
+[PERMALINK](https://drive.google.com/file/d/1HI1bv2PPFAvCRgoDDb7bVc8q5cs-ZU19/view?usp=sharing) to Model (download it to the Models folder in the unzipped code)
