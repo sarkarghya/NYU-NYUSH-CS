@@ -1,0 +1,16 @@
+body {
+    font-size: 3em;
+    font-family: monospace;
+}
+
+h1 {
+    color:Red;
+}
+
+#my_choice {
+    color: red;
+}
+
+.veggies{
+    color:blue;
+}
