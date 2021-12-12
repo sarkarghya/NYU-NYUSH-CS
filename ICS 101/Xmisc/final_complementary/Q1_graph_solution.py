@@ -6,7 +6,7 @@ Created on Fri May  8 21:53:24 2020
 @author: xg7
 """
 
-##---Q1(a)----##
+
 
 class Graph:
     
@@ -16,147 +16,112 @@ class Graph:
         self._graph_dict = graph_dict
         
     def vertices(self):
-        """
-        This method returns a list of vertices.
-        """
-        ##---start your code here---##
-        return self._graph_dict.keys()
-        ##---end of your code---##
-        
+        return list(self._graph_dict.keys())
+    
+    def edges(self):
+        edges = []
+        for vertex in self._graph_dict:
+            for neighbour in self._graph_dict[vertex]:
+                if {neighbour, vertex} not in edges:
+                    edges.append({vertex, neighbour})
+        return edges
+    
     def neighbors(self, v):
-        """
-        This method returns a list of vertices that 
-        connect with v by one edge.
-        """
-        ##---start your code here---##
-        if v in self._graph_dict:
+        if v in self._graph_dict.keys():
             return self._graph_dict[v]
         else:
-            print('the vertex is not in the graph')
-        
-        ##---end of your code---##
-        
-    def edges(self):
-        """
-        This method returns a list of edges.
-        """
-        ##---start your code here---##
-        edge_set = []
-        for k in self._graph_dict:
-            for v in self._graph_dict[k]:
-                if {k,v} not in edge_set:
-                    edge_set.append({k,v}) 
-        return edge_set
-        ##---end of your code---##
-        
+            print(v +" is not in the graph.")
+    
     
     def add_vertex(self, vertex):
-        """
-        This method adds the vertex into the graph.
-        """
-        ##---start your code here---##
-        if vertex in self._graph_dict:
-            print("the vertex has already been in the graph")
-        else:
+        if vertex not in self._graph_dict:
             self._graph_dict[vertex] = []
-    
-        ##---end of your code---##
-        
+        else:
+            print(vertex + " has already been in the graph.")
+            
+            
+#    def remove_vertex(self, vertex):
+#        if vertex in self._graph_dict:
+#            edges = self._graph_dict.pop(vertex)
+#            for v in edges:
+#                self._graph_dict[v].remove(vertex)
+#        else:
+#            print(vertex + "is not in the graph.")
+            
+    def remove_vertex(self, vertex):
+        if vertex in self._graph_dict:
+            edges = self._graph_dict[vertex][:]
+            for v in edges:
+                self.remove_edge(vertex, v)
+            del(self._graph_dict[vertex])
+     
             
     def add_edge(self, vertex1, vertex2):
-        """
-        This method adds the edge {vertex1, vertex2} 
-        into the graph.
-        """
-        ##---start your code here---##
-        if {vertex1, vertex2} not in self.edges():
-            self._graph_dict.setdefault(vertex1,[]).append(vertex2)
-            self._graph_dict.setdefault(vertex2,[]).append(vertex1)
-        ##---end of your code---##
+        if vertex1 in self._graph_dict:
+            self._graph_dict[vertex1].append(vertex2)
+        else:
+            self._graph_dict[vertex1] = [vertex2]
+        if vertex2 in self._graph_dict:
+            self._graph_dict[vertex2].append(vertex1)
+        else:
+            self._graph_dict[vertex2] = [vertex1]
+            
     
     def remove_edge(self, vertex1, vertex2):
-        """
-        This method reomves the edge {vertex1, vertex2} 
-        in the graph.
-        """
-        ##---start your code here---##
-        if {vertex1, vertex2} in self.edges():
-            self._graph_dict[vertex1].remove(vertex2)
-            self._graph_dict[vertex2].remove(vertex1)
-        ##---end of your code---##
-        
-    def remove_vertex(self, vertex):
-        """
-        This method reomves the vertex and 
-        the edges containing it from the graph.
-        """
-        ##---start your code here---##
-        for edge in self.edges():
-            if vertex in edge:
-                self.remove_edge(*edge)  
-        ##---end of your code---##
+        if vertex1 in self._graph_dict.keys():
+           if vertex2 in self._graph_dict[vertex1]:
+                self._graph_dict[vertex1].remove(vertex2)
+                self._graph_dict[vertex2].remove(vertex1)
+                
     
-    
+
     def __str__(self):
-         return "{}".format(self._graph_dict)
+        return "{}".format(self._graph_dict)
 
 
 
-##------Q1(b)------##
-    
 def load_graph(file_name):
-    """
-    This function loads the file of contacts and 
-    returns an instance of Graph class
-    """
-    ##---start your code here---##
-    with open(file_name, 'r') as f:
-        return Graph(dict(
-            map(lambda line: ( line[0], list(line[1:len(line)-1]) ), f.readlines())
-            ))
-   ##---end of your code---##
+    graph = {}
+    f = open(file_name, "r")
+    records = f.readlines()
+    for r in records:
+        r = r.strip()
+        graph[r[0]] = [c for c in r[1:]]
+    g = Graph(graph)
+    return g
     
 
-def trace_contact(g, v, component=[]):
-    """
-    This function returns the largest component of v in the graph.
-    """
-    ##---start your code here---##
-    comp_set = set(v)
-    change = 1
-    while change > 0:
-        l = len(comp_set)
-        cont_list = []
-        for vertex in comp_set:
-            cont_list.extend(g.neighbors(vertex))
-        comp_set.update(*cont_list)
-        change = len(comp_set) - l
-    
-    component.extend(comp_set)
-    ##---end of your code---##
+def trace_contact(graph, v, component=[]):
+    if v not in component:
+        component.append(v)
+    neighbors = graph.neighbors(v) 
+    for n in neighbors:
+        if n not in component:
+            trace_contact(graph, n, component)
     return component
     
-
-##---Tests of your code.----##
-##---NOTE:---##  
-##---DO_ALL_TESTS is a swith which allows you 
-##---to test your code one by one in the console.---##
-
+#def dfs(graph, v, component=[]):
+#    neighbors = graph.neighbors(v)
+#    for n in neighbors:
+#        if n not in component:
+#            component.append(n)
+#            dfs(graph, n, component)
+#    return component
+            
 if __name__ == "__main__":
     fig1 = {"a":["b", "c", "d"],
                 "b":["a", "d"],
                 "c":["a", "d"],
-                "d":["a", "b", "c"],
+                "d":["a", "b","c"],
                 "e":["f"],
                 "f":["e"]}
-
+    
 ##---When DO_ALL_TEST = False, You can manually test your code 
 ##---in the console one by one,like the given examples.
 ##---If you want to run all the tests together,
-##---Please set DO_ALL_TEST = True ---##
-    
-    DO_ALL_TESTS = True 
-    if DO_ALL_TESTS:
+##---Please set DO_TEST = True ---##
+    DO_ALL_TEST = True
+    if DO_ALL_TEST:
         graph_fig1 = Graph(fig1)
         print("--------Tests of Q2(a)--------")
         print()
@@ -187,13 +152,13 @@ if __name__ == "__main__":
         print(" graph_fig1.edges()")
         print(graph_fig1.edges())
         print()   
-        print("---Testing:---\n graph_fig1.remove_edge('d', 'e')\n")
-        graph_fig1.remove_edge("d", "e")
+        print("---Testing:---\n graph_fig1.remove_edge('f', 'g')\n")
+        graph_fig1.remove_edge("f", "g")
         print(" graph_fig1.edges()")
         print(graph_fig1.edges())
         print()
-        print("---Testing:---\n graph_fig1.remove_edge('f', 'g')\n")
-        graph_fig1.remove_edge("f", "g")
+        print("---Testing:---\n graph_fig1.remove_edge('d', 'e')\n")
+        graph_fig1.remove_edge("d", "e")
         print(" graph_fig1.edges()")
         print(graph_fig1.edges())
         print()
@@ -234,7 +199,7 @@ if __name__ == "__main__":
             graph_fig2.add_edge("d", "e")
         component = []
         print("The contacts of node a:\n", trace_contact(graph_fig2, "a", component))
-    
+        
     
     
     
