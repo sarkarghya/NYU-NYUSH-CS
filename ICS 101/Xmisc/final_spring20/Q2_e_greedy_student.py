@@ -65,8 +65,11 @@ def pick_neighbor(greedy_dice, neighbor_data):
     # pick-ups/drop-offs gives the estimated degree of interest
 
     # COMMENT OUT the following 2 lines and implement e-greedy
-    pick = 0
-    pass
+    if greedy_dice.roll():
+        lis = [float(list(v.values())[0])/float(list(v.values())[1]) for v in neighbor_data.values()]
+        pick = lis.index(max(lis))
+    else:
+        pick = random.randrange(5)
     #----------your code below----------#
     return pick
 
