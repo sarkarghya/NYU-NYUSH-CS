@@ -66,7 +66,7 @@ def pick_neighbor(greedy_dice, neighbor_data):
 
     # COMMENT OUT the following 2 lines and implement e-greedy
     if greedy_dice.roll():
-        lis = [float(list(v.values())[0])/float(list(v.values())[1]) for v in neighbor_data.values()]
+        lis = [float(v['pick-up'])/float(v['drop-off']) for v in neighbor_data.values()]
         pick = lis.index(max(lis))
     else:
         pick = random.randrange(5)
