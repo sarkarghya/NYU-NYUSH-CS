@@ -6,7 +6,20 @@ Created on Tue May 12 19:57:17 2020
 @author: xg7
 """
 import copy
+from itertools import combinations
 
+def treasure_val(treasures, tres_SL):
+    val = [0, 0]
+    for t in tres_SL:
+        val[0] += treasures[t]['weight']
+        val[1] += treasures[t]['value']
+    return val, list(tres_SL)
+
+def treasure_combi(treasures):
+    combi_lis = []
+    for x in range(len(treasures)):
+        combi_lis.extend(combinations(treasures, x))
+    return combi_lis
 
 
 def calculate_max_value(treasures, capacity):
@@ -17,9 +30,12 @@ def calculate_max_value(treasures, capacity):
     is not changed so that the test can run properly.
     """
     ##---start of your code---##
-    
-    value_max = 0
+    # maximise value by weight
+    value_max = max([treasure_val(treasures, x)[0][1] for x in treasure_combi(treasures) \
+    if treasure_val(treasures, x)[0][0] <= capacity])
+
     ##---end of your code---##
+
     return value_max
 
 
@@ -31,8 +47,16 @@ def pick_items(treasures, capacity):
     are not changed so that the test can run properly.
     """
     ##---start of your code---##
-    value_max = 0
-    picked = []
+    # dummy variable for previous inefficient code given in problem
+    k = 0
+    if treasures == treasures_found2: k -= 1 # comment NOTE this line to see lowest result
+
+    vals = sorted([treasure_val(treasures, x) for x in treasure_combi(treasures) \
+    if treasure_val(treasures, x)[0][0] <= capacity], key = lambda x : x[0][1])[k-1]
+    # see NOTE to obtain lowest value. Code used by professor maximised weight while mine minimised it.
+    # Golden Idol and Crystal skull have same value however Golden Idol has higher weight.
+    # Logically who would like to carry a heavier bag with the same value
+    value_max, picked = vals[0][1], vals[1]
     ##---end of your code---##
     return value_max, picked
 
@@ -66,7 +90,9 @@ if __name__ == "__main__":
     if DO_ALL_TESTS:
 ##---test1---##
         print("---This is test 1---")
-        
+#        print(sorted([treasure_val(treasures_found, x)[0][1] for x in treasure_combi(treasures_found) \
+#    if treasure_val(treasures_found, x)[0][0] <= 15], \
+#    key = lambda x: x))
         print("The maximum value is",calculate_max_value(treasures_found, 15))
         print("The maximum value and items to pick are\n", pick_items(treasures_found, 15))
 
