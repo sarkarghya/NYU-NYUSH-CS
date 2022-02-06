@@ -20,7 +20,7 @@ def block_palindrome(n):
     while n > 0:
         rem = n & (2**2 -1) # reminder of power of 2
         n = (n >> 2) # 2 (power of 2 for mod) - 1
-        new = (new << 2) | rem # xor is addition mod 2
+        new = (new << 2) ^ rem # xor is addition mod 2
     return old==new
 
 
