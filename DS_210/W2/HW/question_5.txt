@@ -1,0 +1,6 @@
+Big-O notation doesn’t imply that , O(n^2) 
+must be greater than O(nlogn).  
+Given input infinitely big only then, O(n^2) will 
+be greater value than O(nlogn)
+Forexample in simplex algorithms more complex programs
+fare better in real world
