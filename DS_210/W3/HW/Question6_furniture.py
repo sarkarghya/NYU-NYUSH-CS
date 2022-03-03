@@ -3,14 +3,14 @@ def mirari(num, idy, dic): #takes number and index and adds them to dictionary
         return {(idy,):[num]}
     k, v = list(dic.items())[0]
     del dic[k]
-    return {(*k,idy): [*v,num]} | mirari(num, idy, dic)
+    return {**{(*k,idy): [*v,num]}, **mirari(num, idy, dic)}
 
 def lis_itr(ls, idy, dic): #takes  list and adds it to dictionary using mirari
     first = ls.pop(0)
     idy += 1
     if len(ls) == 0:
         return mirari(first, idy, dic)
-    return mirari(first, idy, dic.copy()) | lis_itr(ls, idy, dic.copy())
+    return {**mirari(first, idy, dic.copy()), **lis_itr(ls, idy, dic.copy())}
 
 def supl_itr(ls, idy, dic): #takes  lists and adds it to dictionary
     first = ls.pop(0)
