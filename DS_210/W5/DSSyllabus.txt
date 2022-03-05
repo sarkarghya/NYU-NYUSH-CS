@@ -1,0 +1,8 @@
+Graphs
+Maps
+Dictionary
+Tree
+LinkedList
+Stack and Queue
+Midterm1 is done
+Data Structures Class 
