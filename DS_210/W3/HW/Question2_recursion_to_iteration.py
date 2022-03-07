@@ -15,6 +15,28 @@ def iterative(n):
     k = list(map(int,str(abs(n))))
     return max(k), min(k)
 
+"""
+#max and min can be easily created using iteration
+def max(ls):
+    max_value = None
+
+    for num in ls:
+        if (max_value is None or num > max_value):
+            max_value = num
+    return max_value
+
+def min(ls):
+    min_value = None
+
+    for num in ls:
+        if (min_value is None or num < min_value):
+            min_value = num
+    return min_value
+
+#similarly can the for loop of map
+#we can avoid casting into string by using % 10 (mod 10)
+# but I used it since we have not been explicitly restrained from doing that
+"""
 
 def main():
     print(recur(21512))
