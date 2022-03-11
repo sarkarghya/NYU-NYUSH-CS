@@ -3,7 +3,7 @@ def mirari(num, idy, dic): #takes number and index and adds them to dictionary
         return {(idy,):[num]}
     k, v = list(dic.items())[0]
     del dic[k]
-    return {**{(*k,idy): [*v,num]}, **mirari(num, idy, dic)}
+    return {**{(idy,*k): [*v,num]}, **mirari(num, idy, dic)}
 
 def lis_itr(ls, idy, dic): #takes  list and adds it to dictionary using mirari
     first = ls.pop(0)
