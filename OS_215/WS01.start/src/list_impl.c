@@ -23,7 +23,19 @@ void insert_head(struct list_type *l, void* element) {
 
 
 void* extract_head(struct list_type *l) {
-	/* TODO */
+    if (l->head == NULL)
+		return NULL;
+
+    cell* extracted_cell = l->head;
+    void* extracted_element = extracted_cell->content;
+
+    l->head = l->head->next;
+    if (l->head != NULL)
+        l->head->previous = NULL;
+
+    free(extracted_cell);
+
+    return extracted_element;
 }
 
 
