@@ -40,7 +40,19 @@ void* extract_head(struct list_type *l) {
 
 
 void* extract_tail(struct list_type *l) {
-	/* TODO */
+    if (l->tail == NULL) 
+		return NULL;
+
+    cell* extracted_cell = l->tail;
+    void* extracted_element = extracted_cell->content;
+
+    l->tail = l->tail->previous;
+    if (l->tail != NULL)
+        l->tail->next = NULL;
+
+    free(extracted_cell);
+
+    return extracted_element;
 }
 
 
