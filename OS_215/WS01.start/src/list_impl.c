@@ -57,6 +57,12 @@ void* extract_tail(struct list_type *l) {
 
 
 int list_size(struct list_type *l) {
-	/* TODO */
+    int size = 0;
+    cell* current = l->head;
+    while (current != NULL) {
+        size++;
+        current = current->next;
+    }
+    return size;
 }
 	
