@@ -51,18 +51,29 @@ runstack: ${BIN}/stack_test
 	echo "Testing Stack"
 	${BIN}/stack_test
 
+## Q4
 
-${LIB}/libstack.a: ${OBJ}/stack_list.o ${OBJ}/list_impl.o
-	ar rcv ${LIB}/libstack.a ${OBJ}/stack_list.o ${OBJ}/list_impl.o
+${LIB}/libstack.a: ${OBJ}/list_impl.o ${OBJ}/fifo_list.o
+	ar rcv ${LIB}/libstack.a ${OBJ}/list_impl.o ${OBJ}/fifo_list.o
 	ranlib ${LIB}/libstack.a
 
-${BIN}/libstack_test: ${OBJ}/stack_test.o ${LIB}/libstack.a
-	${CC} -o ${BIN}/stack_test ${OBJ}/stack_test.o -L${LIB} -lstack
+${OBJ}/list_impl.o: ${INC}/list.h ${SRC}/list_impl.c
+	${CC} -c -o ${OBJ}/list_impl.o ${SRC}/list_impl.c -I${INC}
+
+${OBJ}/fifo_list.o: ${INC}/list.h ${INC}/fifo.h ${SRC}/fifo_list.c
+	${CC} -c -o ${OBJ}/fifo_list.o ${SRC}/fifo_list.c -I${INC}
+
+${OBJ}/fifo_test.o: ${INC}/fifo.h ${SRC}/fifo_test.c
+	${CC} -c -o ${OBJ}/fifo_test.o ${SRC}/fifo_test.c -I${INC}
+
+${BIN}/fifo_test: ${OBJ}/fifo_test.o ${LIB}/libstack.a
+	${CC} -o ${BIN}/fifo_test ${OBJ}/fifo_test.o -L${LIB} -lstack
 
 
-runlibstack: ${BIN}/libstack_test
-	echo "Testing Stack"
-	${BIN}/stack_test
+runlibfifo:  ${BIN}/fifo_test
+	echo "Testing Fifo"
+	${BIN}/fifo_test
+
 
 
 clean:
