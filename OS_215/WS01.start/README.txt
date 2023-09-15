@@ -1,25 +1,25 @@
 
-First Name:
+First Name: Arghya
 
-Last Name:
+Last Name: Sarkar
 
-NYU ID:
+NYU ID: abs9425
 
 =======================================================================================
 Files submitted:
 
 src:
-	fifo_list.c: Question 6
-	fifo_test.c: Question 6
-	list_impl.c: Question 4, Question 5, Question 6
+	fifo_list.c: Question 4
+	fifo_test.c: Question 4
+	list_impl.c: Question 2, Question 3, Question 4
 	stack_array.c: Question 1
-	stack_list.c: Question 5
-	stack_test.c: Question 1, Question2, Question 3, Question 5
+	stack_list.c: Question 3
+	stack_test.c: Question 1, Question2, Question 3
 
 include:
-	fifo.h: Question 6
-	list.h: Question 4, Question 5, Question 6
-	stack.h: Question 1, Question 2, Question 3 and Question 5
+	fifo.h: Question 4
+	list.h: Question 2, Question 3, Question 4
+	stack.h: Question 1, Question 2, Question 3 and Question 3
 
 
 =======================================================================================
