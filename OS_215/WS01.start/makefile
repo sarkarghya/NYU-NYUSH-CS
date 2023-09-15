@@ -47,9 +47,6 @@ all: runstack
 # 	echo "Testing Lib Stack"
 # 	${BIN}/stack_test
 
-runstack: ${BIN}/stack_test
-	echo "Testing Stack"
-	${BIN}/stack_test
 
 ## Q4
 
