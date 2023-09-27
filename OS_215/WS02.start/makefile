@@ -5,23 +5,34 @@ LIB=lib
 OBJ=obj
 SRC=src
 
-Q1: ${SRC}/1.c
-	${CC} -o ${OBJ}/1.o $^
+
+${BIN}/decoder: ${SRC}/decoder.c ${INC}/decoder.h
+	${CC} -o ${BIN}/decoder ${SRC}/decoder.c ${INC}/decoder.h -I${INC}
+
+Q2: ${BIN}/decoder
 	@echo "##################################################"
-	@${OBJ}/1.o
+	${BIN}/decoder
 	@echo "##################################################"
 
-Q2: ${SRC}/2.c
-	${CC} -o ${OBJ}/2.o $^
+
+${LIB}/libstack.a: ${OBJ}/converters.o
+	ar rcv ${LIB}/libstack.a ${OBJ}/converters.o
+	ranlib ${LIB}/libstack.a
+
+${OBJ}/converters.o: ${INC}/converters.h ${SRC}/converters.c
+	${CC} -c -o ${OBJ}/converters.o ${SRC}/converters.c -I${INC}
+
+${OBJ}/multi-converter.o: ${INC}/converters.h ${SRC}/multi-converter.c
+	${CC} -c -o ${OBJ}/multi-converter.o ${SRC}/multi-converter.c -I${INC}
+
+${BIN}/multi-converter: ${OBJ}/multi-converter.o ${LIB}/libstack.a
+	${CC} -o ${BIN}/multi-converter ${OBJ}/multi-converter.o -L${LIB} -lstack
+
+Q3: ${BIN}/multi-converter
 	@echo "##################################################"
-	@${OBJ}/2.o
+	${BIN}/multi-converter EUR "100.0"
 	@echo "##################################################"
 
-Q3: ${SRC}/3.c
-	${CC} -o ${OBJ}/3.o $^
-	@echo "##################################################"
-	@${OBJ}/3.o USD 256
-	@echo "##################################################"
 
 clean:
 	rm -f ${LIB}/* ${OBJ}/* ${BIN}/*
