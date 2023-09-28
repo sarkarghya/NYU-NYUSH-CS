@@ -1,29 +1,50 @@
 
-First Name:
+First Name: Arghya
 
-Last Name:
+Last Name: Sarkar
 
-NYU ID:
+NYU ID: abs9425
 
 =======================================================================================
 Files submitted:
+
+.
+├── bin
+│   ├── decoder
+│   └── multi-converter
+├── include
+│   ├── converters.h
+│   └── decoder.h
+├── lib
+│   └── libstack.a
+├── makefile
+├── obj
+│   ├── converters.o
+│   └── multi-converter.o
+├── README
+└── src
+    ├── converters.c
+    ├── decoder.c
+    └── multi-converter.c
 
 
 =======================================================================================
 Targets in the Makefile:
 
-
-
-
+`make Q2`: Q2.
+`make Q3`: Q3.
+`make clean`: remove all files in bin/, src/ and lib/ for a fresh restart
 
 =======================================================================================
 Comments:
 
+# Q3
 
+This question uses sync computing for childern thus not maintaining the order of the example.
 
 =======================================================================================
 Textual answers: 
-	
+
 # Q1
 
 The total number of child processes created is 6.
@@ -88,6 +109,8 @@ The total number of child processes created is 6.
             // ## Addition 2 ##
             else {
                 wait(NULL); // Parent waits for child process to exit before continuing
+                // I am well aware that this does not make use of parallelization since we are waiting for the child to finish execution but it does not say in the question that we must make use of syncronization so I would much rather stick to a safer approach.
+                // If we want to parralelize, we must add a loop to create 3 wait statements for the parent after the for loop and remove this else statement.
                 printf( "Parent free to exit or loop\n");
             }
             // ################
