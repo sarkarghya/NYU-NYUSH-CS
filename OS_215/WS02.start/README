@@ -24,3 +24,74 @@ Comments:
 =======================================================================================
 Textual answers: 
 	
+# Q1
+
+The total number of child processes created is 6.
+
+
+	Family tree:
+
+		  Parent
+		 /   |  \	
+		/	 |   \
+		C1	C2	 C3
+			 |	  |
+			 |	  |
+			GC1	 GC2
+				  |
+				  |
+				GGC1
+
+
+    Output:
+
+        Parent: N/A
+        C1:		i = 0
+                j = 0
+        C2:		i = 1
+        GC1:	j = 1
+        C3:		i = 2
+        GC2:	N/A
+        GGC1:	j = 2
+
+
+    Code Modification:
+
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <unistd.h>
+        #include <sys/wait.h>
+
+        int main (int arg, char * argv []) {
+        int i, j, p;
+        for (i = 0; i <3; i ++) {
+            if ((p = fork ()) == 0){ 
+                // #C1 (i = 0, p = 0) #C2 (i = 1, p = 0) #C3 (i = 2, p = 0)
+                printf( "i =% d \n", i);
+                j = 0;
+                // #C1 (i = 0, j = 0, p = 0) #C2 (i = 1, j = 0, p = 0) #C3 (i = 2, j = 0, p = 0)
+                while ((j < i) && ((p = fork ()) == 0)) // #GC1 #GC2 #GCC1
+                    j ++;
+                // #C1  (i = 0, j = 0, p = 0) #C2  (i = 1, j = 0, p = id) #C3  (i = 2, j = 0, p = id) 
+                // #GC1 (i = 1, j = 1, p = 0) #GC2 (i = 2, j = 1, p = id) #GCC1 (i = 2, j = 2, p = 0)
+                if (p == 0) 
+                    printf ( "j =% d \n", j);
+
+                // ## Addition 1 ##
+                else
+					wait(NULL); // Child waits for grandchild process(es) to exit before continuing
+                // ################
+
+                exit(j);
+            } / * if * /
+
+            // ## Addition 2 ##
+            else {
+                wait(NULL); // Parent waits for child process to exit before continuing
+                printf( "Parent free to exit or loop\n");
+            }
+            // ################
+
+        }
+        return (0);
+    }
