@@ -70,21 +70,21 @@ void display_result(int target_currency, double conversion_result) {
     printf("\t %s %.3f\n", determine_currency(target_currency), conversion_result);
 }
 
-/*
-int main(int argc, char **argv)
-{
-	int i;
-	char src_currency[4], target_currency[4];
-	float src_amount;
+// /*
+// int main(int argc, char **argv)
+// {
+// 	int i;
+// 	char src_currency[4], target_currency[4];
+// 	float src_amount;
 	
-	strcpy(src_currency, "JPY");
-	strcpy(target_currency, "EUR");
-	src_amount = 12.0;
-	printf("test 1> %d %.3f -> %d =  %.3f\n", src_currency, 
-				src_amount, 
-				target_currency, 
-				convert(src_currency, target_currency, src_amount));
+// 	strcpy(src_currency, "JPY");
+// 	strcpy(target_currency, "EUR");
+// 	src_amount = 12.0;
+// 	printf("test 1> %s %.3f -> %s =  %.3f\n", src_currency, 
+// 				src_amount, 
+// 				target_currency, 
+// 				convert(src_currency, target_currency, src_amount));
 
-	return 0;
-}
-*/
+// 	return 0;
+// }
+// */
