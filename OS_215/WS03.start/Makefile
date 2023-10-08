@@ -1,12 +1,12 @@
 CFLAGS=-Iinclude -Wall
 FILE=tasks
-POLICY=FCFS
+POLICY=MFQ
 #POLICY values
 #	FCFS
 #	SJF
 #	SRTF
 #	RR 4
-#	MLF 3
+#	MFQ 3
 #	IORR 4
 
 all: build run
@@ -19,7 +19,7 @@ build: clean
 	gcc $(CFLAGS) -o bin/sched-simulator obj/simulator.o obj/policies.o
 
 run:
-	bin/sched-simulator $(FILE) $(POLICY) 1>sched-run.txt
+	bin/sched-simulator $(FILE) $(POLICY) 3 >sched-run.txt
 	cat *.txt
 
 clean:
