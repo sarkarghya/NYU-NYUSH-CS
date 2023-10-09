@@ -1,0 +1,33 @@
+
+First Name: Arghya
+
+Last Name: Sarkar
+
+NYU ID: abs9425
+
+=======================================================================================
+Files submitted:
+
+
+=======================================================================================
+Targets in the Makefile:
+
+`make`: Q1. // change parameters in the Makefile
+`make clean`: remove all files in bin/, src/ and lib/ for a fresh restart
+
+=======================================================================================
+Comments:
+
+# Q3
+
+attempt:
+
+Extended task structure with I/O fields
+Check if current running task needs I/O
+Re-enqueue tasks that require I/O
+Skip non-ready tasks when electing next task
+Update cyclesToNextIo counter
+
+=======================================================================================
+Textual answers: 
+
