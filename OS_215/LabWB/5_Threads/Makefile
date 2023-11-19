@@ -1,0 +1,2 @@
+CFLAGS =-Iinclude -Wall -lpthread
+

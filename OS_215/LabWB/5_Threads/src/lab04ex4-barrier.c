@@ -22,6 +22,8 @@ void wait_barrier(int n) {
     countup++;
     while (countup < n)
         pthread_cond_wait(&cond, &mutex);
+        // While waiting, it releases the mutex (&mutex) 
+        // and waits on the condition variable (&cond)
     if (first == 0) {
         first = 1;
         pthread_cond_broadcast(&cond);
