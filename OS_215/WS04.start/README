@@ -1,0 +1,63 @@
+#######################
+# DINING PHILOSOPHERS #
+#######################
+
+This canvas contains the following files:
+a. README
+b. makefile
+c. include/philosophers.h
+d. src/dp_simulator.c
+e. src/philosophers-no-concurrency.c
+f. src/philosophers-bad.c
+g. src/philosophers.c
+
+(a) is the file you're reading right now.
+It contains explanations about how to work with this canvas.
+
+(b) is the file that regroups all of your compilation/run commands.
+        NB_PHILS    => sets the number of philosophers in the simulation
+        NB_MEALS    => sets the number of meals per philosopher in the simulation
+        build   => compiles your solution
+        run     => runs your solution
+                    You can terminate the execution of your program at any point with ctrl-C
+                    ctrl-C will kill all running processes, and trigger the cleanup function
+        clean   => deletes all the temporary files, including the log of the last execution
+        demos   => compiles two
+
+(c) and (d) provide the backbone of the simulation.
+(c) declares the constants, structures, and functions to build a simulation.
+Set the number of philosophers and the number of meals by modifying NPHIL and MEALS.
+(d) implements the simulator.
+
+(e) and (f) show bad examples of how to code a synchronization among philosophers.
+(e) forces philosophers to eat one at a time.
+(f) does something uncool that you have to explain below.
+NOTE: the default number of meals and philosophers for these examples is different; you can change these values in philosophers.h
+
+(g) is the canvas for your solution.
+
+
+#######################
+#       ANSWER        #
+#######################
+Write your explanation about what may happen when all philosophers are hungry simultaneously, and each of them picks up the chopstick to their left before picking up the chopstick to the right.
+
+If all philosophers pick up the left chopstick before trying to pick up the right chopstick, a deadlock can occur where each philosopher is holding their left chopstick while waiting to acquire the right chopstick from their neighbor. Since no philosopher ever puts down their left chopstick, none of the chopsticks are ever released and the philosophers wait forever.
+
+
+#######################
+#      SOLUTION       #
+#######################
+Write a detailed explanation of your solution to the dining philosophers problem.
+
+The provided solution does maximize concurrency for the dining philosophers problem.
+
+- An array of N semaphores (one per chopstick) is used instead of a single global lock. This allows independent access to chopsticks.
+- The order of acquisition is based on philosopher rank - odd ranks acquire right then left, even acquire left then right. This prevents deadlock.
+- No other synchronization primitives are used. The semaphores on the chopsticks fully serialize access.
+- A philosopher only blocks their immediate neighbors from eating, other philosophers can still access their chopsticks.
+- So this solution allows the maximum amount of parallelism - any philosopher can eat if their required chopsticks are available. The order of acquisition prevents deadlocks. It is an optimal solution for the problem.
+- One ways to further improve:
+
+Use timed lock attempts on chopsticks to prevent indefinite blocking.
+Add a "hunger" concept and only try to acquire when hungry.
