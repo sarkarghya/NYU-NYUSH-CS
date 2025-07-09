@@ -1,0 +1,55 @@
+# # Clean up if the files exist
+# if "default" in listfiles():
+#   removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# # Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# # Close default
+default.close()
+# try:
+#     default.writeat("TEMPLATE", 0)
+# except FileClosedError:
+#     log("caught correct expression, from the attack side")
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+
+# if "default" in listfiles():
+#   removefile("default")
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close the file
+myfile.close()
+# log("before the try\n")
+
+# try:
+#     assert myfile.readat(None, 0) == "TEMPLATE"
+# except Exception as e:
+#     log("A devious error occured:", type(e), "\n")
+#     if type(e) == FileClosedError:
+#         log("Reference Monitor rs8057 raised the correct error\n")
+#     else:
+#         log("Reference Monitor rs8057 raised the incorrect error\n")
+
+# # assert myfile.readat(None, 0) == "TEMPLATE"
+
+# try:
+#     default.writeat("TEMPLATE", 0)
+# except Exception as e:
+#     log("A devious error occured:", type(e), "\n")
+#     if type(e) == FileClosedError:
+#         log("Reference Monitor rs8057 raised the correct error\n")
+#     else:
+#         log("Reference Monitor rs8057 raised the incorrect error\n")
+# # if "default" in listfiles():
+# #   removefile("default")
+# # if "testfile.txt" in listfiles():
+# #     removefile("testfile.txt")

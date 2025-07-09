@@ -1,0 +1,23 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+###
+# Test for closing a file that is already closed
+# should raise FileClosedError
+###
+
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", True)
+
+# Close the file
+myfile.close()
+try:
+   myfile.close()
+except FileClosedError:
+   pass
+else:
+   log("failed FileClosedError")
+   

@@ -1,0 +1,154 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        if 'opened_files' not in mycontext:
+            mycontext['opened_files'] = {}
+        # locals
+        self.closed = False
+        self.lock = createlock()
+
+        # Check if filename is valid
+        if create != False and create != True:
+            raise RepyArgumentError
+        
+        if len(filename) == 0 or len(filename) > 120:
+            raise RepyArgumentError
+        
+        if filename in ['', '.', ".."] or filename[0] == '.':
+            raise RepyArgumentError
+        
+        ok_chars = "abcdefghijklmnopqrstuvwxyz0123456789-_." 
+        for char in filename:
+            if char not in ok_chars:
+                raise RepyArgumentError
+
+        self.lock.acquire(True)
+        # if valid filename, create file
+        try:
+            if create == False and 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)  # Read from the file using sandbox's readat
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                default_file.close()
+            elif create == False and 'default' not in listfiles():
+                raise FileNotFoundError
+            else:
+                self.LPfile = openfile(filename, create)
+                if filename == "default": # if new file is 'default', delete closed files
+                    for filename, lpfile in mycontext['opened_files'].items():
+                        if lpfile.closed and filename != "default":
+                            removefile(filename)
+            
+            self.filename = filename # store valid filename, use to check if filename == 'default
+            mycontext['opened_files'][filename] = self # store LPFile object in dict, used for specification 3
+        finally:
+            self.lock.release()
+
+    def readat(self, num_bytes, offset):
+        self.lock.acquire(True)
+        try:
+            if offset < 0:
+                raise RepyArgumentError
+            if self.filename not in listfiles():
+                raise FileNotFoundError
+            if self.closed:
+                raise FileClosedError
+            if num_bytes > len(self.LPfile.readat(None, 0)) or offset > len(self.LPfile.readat(None, 0)):
+                raise SeekPastEndOfFileError
+            if num_bytes != None:
+                if (num_bytes + offset) > len(self.LPfile.readat(None, 0)):
+                    raise SeekPastEndOfFileError
+                if num_bytes < 0:
+                    raise RepyArgumentError
+
+            return self.LPfile.readat(num_bytes, offset)
+        finally:
+            self.lock.release()
+
+    def writeat(self, data, offset):
+        self.lock.acquire(True)
+        if type(data) is not str:
+            raise RepyArgumentError
+            # self.lock.release()
+        elif self.closed == True:
+            raise FileClosedError
+            # self.lock.release()
+
+        try:
+            self.LPfile.writeat(data, offset)
+
+            if self.filename == "default": # if new file is 'default', delete closed files
+                for filename, lpfile in mycontext['opened_files'].items():
+                    if lpfile.closed and filename != "default":
+                        removefile(filename)
+            
+        finally:
+            self.lock.release()
+
+    def close(self):
+        self.lock.acquire(True)
+        if self.closed:
+            raise FileClosedError
+        try:
+            self.LPfile.close()
+            self.closed = True
+        finally:
+            self.lock.release()
+
+        
+# Function to open a file
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+# Function to remove a file
+def LPremovefile(filename):
+    removefile(filename)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

@@ -1,0 +1,40 @@
+# attack by modifying open files after default triggers closed file deletion
+
+def tamper_with_open_files_attack():
+    try:
+        open_file1 = openfile("open_file1.txt", True)
+        closed_file1 = openfile("closed_file1.txt", True)
+        closed_file2 = openfile("closed_file2.txt", True)
+
+        open_file1.writeat("This file will stay open", 0)
+        closed_file1.writeat("This file will be closed", 0)
+        closed_file2.writeat("This file will also be closed", 0)
+
+        closed_file1.close()
+        closed_file2.close()
+
+        if "default" in listfiles():
+            removefile("default")  
+
+        default_file = openfile("default", True)
+        default_file.writeat("Trigger file deletion", 0)
+        default_file.close()
+
+        if "closed_file1.txt" in listfiles() or "closed_file2.txt" in listfiles():
+            raise Exception("Closed files were not deleted as expected.")
+        
+        open_file1.writeat("This file is still open", 0)
+
+        try:
+            reopen_file = openfile("closed_file1.txt", False)
+            raise Exception("Closed file was not deleted correctly.")
+        except Exception:
+            pass 
+
+        open_file1.close()
+
+    except Exception:
+        pass  
+
+# Execute the attack
+tamper_with_open_files_attack()

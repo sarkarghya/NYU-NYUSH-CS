@@ -1,0 +1,31 @@
+def open_and_close_file(filename):
+    try:
+        # Open a file (RepyV2-safe)
+        file_obj = openfile(filename, True)
+        # Write data to the file
+        file_obj.writeat("Some data", 0)
+        # Read data back for verification
+        data = file_obj.readat(10, 0)
+        if data != "Some data":
+            # Log any data inconsistency
+            log("Data inconsistency detected in {}: {}".format(filename, data))
+        # Close the file
+        file_obj.close()
+    except Exception as e:
+        # Log any exceptions to detect issues
+        log("Exception occurred: {}".format(str(e)))
+
+# Wrapper function that calls open_and_close_file with "default" argument
+def open_default_file():
+    open_and_close_file("default")
+
+# Create multiple threads using the wrapper function
+for _ in range(10):
+    createthread(open_default_file)
+
+
+
+
+
+
+

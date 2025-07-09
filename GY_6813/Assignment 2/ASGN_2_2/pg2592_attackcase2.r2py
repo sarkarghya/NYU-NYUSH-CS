@@ -1,0 +1,35 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+testfile = openfile("testfile.txt", False)
+
+# Remove default
+removefile("default")
+
+# Write to testfile
+testfile.writeat("TEMPLATE", 0)
+
+# Close testfile
+testfile.close()
+
+testfile = openfile("testfile.txt", False)
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+assert testfile.readat(None, 0) == "TEMPLATE", "Expected testfile.txt content to be updated after modification."
+
+# Close the file
+testfile.close()

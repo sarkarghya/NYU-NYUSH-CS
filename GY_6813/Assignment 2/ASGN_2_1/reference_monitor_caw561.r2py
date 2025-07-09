@@ -1,0 +1,155 @@
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+defaultlist = []
+
+class LPFile():
+
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.filename = filename
+
+        if create == False:
+            try:
+                default_file = openfile('default', False)
+            except:
+                if filename in listfiles():
+                    raise FileInUseError
+                else:
+                    raise FileNotFoundError
+            
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            
+            try:
+                self.LPfile = openfile(filename, True)
+            except:
+                if filename in listfiles():
+                    raise FileInUseError
+                else:
+                    raise FileNotFoundError
+                
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+            if filename == 'default':
+                Deletedefaultlist()
+
+        else:
+            try:
+                self.LPfile = openfile(filename, create)
+            except:
+                raise FileInUseError
+            
+            if 'default' not in listfiles() and filename == 'default':
+                Deletedefaultlist()
+        
+        if filename != 'default' and filename not in defaultlist:
+            defaultlist.append(filename)
+
+    def readat(self, num_bytes, offset):
+        try:
+            returnvalue = self.LPfile.readat(num_bytes, offset)
+        except FileClosedError:
+            raise FileClosedError
+        except:
+            if num_bytes!=None and num_bytes < 0:
+                raise RepyArgumentError
+            else:
+                raise SeekPastEndOfFileError
+        return returnvalue
+
+
+    def writeat(self, data, offset):
+        if self.filename == 'default':
+            Deletedefaultlist()
+
+        try:
+            self.LPfile.writeat(data, offset)
+        except:
+            if offset < 0:
+                raise RepyArgumentError
+            try:
+                openfile(self.filename, true)
+                raise FileClosedError
+            except:
+                raise SeekPastEndOfFileError
+
+    def close(self):
+        try:
+            self.LPfile.close()
+        except:
+            raise FileClosedError
+        
+def LPopenfile(filename, create):
+    try:
+        returnvalue = LPFile(filename, create)
+    except RepyArgumentError:
+        raise RepyArgumentError 
+    except:
+        LPFile(filename, create)
+    return returnvalue
+        
+
+def LPremovefile(filename):
+    try:
+        removefile(filename)
+        if filename == 'default':
+            Deletedefaultlist()
+    except RepyArgumentError:
+        raise RepyArgumentError
+    except:
+        if filename not in listfiles():
+            raise FileNotFoundError
+        try:
+            openfile(filename,true)
+        except:
+            raise FileInUseError
+    
+
+def Deletedefaultlist():
+    removefilelist = []
+    for file in defaultlist:
+        try:
+            openfile(file, True)
+            removefile(file)
+            removefilelist.append(file)
+        except:
+            pass
+    for file in removefilelist:
+        defaultlist.remove(file)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

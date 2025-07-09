@@ -1,0 +1,12 @@
+# tn2272_attackcase4.r2py
+
+try:
+    f = openfile('overwritefile.txt', True)
+    f.writeat('Original content', 0)
+    f.close()
+
+    f = openfile('overwritefile.txt', False)
+    f.writeat('New content', 0) 
+    f.close()
+except:
+    pass 

@@ -1,0 +1,12 @@
+# tn2272_attackcase3.r2py
+
+try:
+    f = openfile('lockfile.txt', True)
+    f.close()
+
+    filelock = lockfile('lockfile.txt')
+    filelock2 = lockfile('lockfile.txt')  
+    filelock.release()
+    filelock2.release()
+except:
+    pass  

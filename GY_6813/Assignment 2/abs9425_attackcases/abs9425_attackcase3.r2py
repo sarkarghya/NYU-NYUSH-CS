@@ -1,0 +1,13 @@
+invalid_filenames = ["../test", "test/file", "a"*150, "test!@#$"]
+
+for filename in invalid_filenames:
+    try:
+        file = openfile(filename, True)
+        file.close()
+        log("Security bug: Created file with invalid name \n")
+    except RepyArgumentError:
+        pass
+        # log("Correctly rejected invalid filename\n")
+    except Exception:
+        pass
+        # log("Unexpected error for filename\n")

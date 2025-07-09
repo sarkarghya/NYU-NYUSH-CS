@@ -1,0 +1,154 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+mycontext['closed_files'] = set()
+mycontext['default_file'] = None
+mycontext['default_lock'] = createlock()
+mycontext['closed_files_lock'] = createlock()
+
+class LPFile():
+    def __init__(self, filename, create):
+        self.filename = filename
+        self.is_default = (filename == 'default')
+        
+        if not self.is_default:
+            mycontext['closed_files_lock'].acquire(True)
+            try:
+                mycontext['closed_files'].discard(filename)
+
+                if not create and filename not in listfiles():
+                    if 'default' in listfiles():
+                        mycontext['default_lock'].acquire(True)
+                        try:
+                            if mycontext['default_file'] is not None:
+                                content = mycontext['default_file'].readat(None, 0)
+                                self.LPfile = openfile(filename, True)
+                                self.LPfile.writeat(content, 0)
+                            else:
+                                default_file = openfile('default', False)
+                                content = default_file.readat(None, 0)
+                                self.LPfile = openfile(filename, True)
+                                self.LPfile.writeat(content, 0)
+                                default_file.close()
+                        finally:
+                            mycontext['default_lock'].release()
+                    else:
+                        raise FileNotFoundError('The default file to be used as a template does not exist!')
+                else:
+                    self.LPfile = openfile(filename, create)
+            finally:
+                mycontext['closed_files_lock'].release()
+        else:
+            mycontext['default_lock'].acquire(True)
+            try:
+                if create and 'default' not in listfiles():
+                    self.LPfile = openfile(filename, create)
+                    mycontext['default_file'] = self.LPfile
+                    remove_closed_files()
+                else:
+                    self.LPfile = openfile(filename, create)
+                    mycontext['default_file'] = self.LPfile
+            finally:
+                mycontext['default_lock'].release()
+                
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        if self.is_default:
+            mycontext['default_lock'].acquire(True)
+            try:
+                self.LPfile.writeat(data, offset)
+                remove_closed_files()
+            finally:
+                mycontext['default_lock'].release()
+        else:
+            self.LPfile.writeat(data, offset)
+
+    def close(self):  
+        if not self.is_default:
+            mycontext['closed_files_lock'].acquire(True)
+            try:
+                self.LPfile.close()
+                mycontext['closed_files'].add(self.filename)
+            finally:
+                mycontext['closed_files_lock'].release()
+        else:
+            mycontext['default_lock'].acquire(True)
+            try:
+                self.LPfile.close()
+                mycontext['default_file'] = None
+            finally:
+                mycontext['default_lock'].release()
+
+def remove_closed_files():
+    mycontext['closed_files_lock'].acquire(True)
+    try:
+        for filename in mycontext['closed_files']:
+            if filename in listfiles():
+                removefile(filename)
+        mycontext['closed_files'] = set()
+    finally:
+        mycontext['closed_files_lock'].release()
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename == 'default':
+        mycontext['default_lock'].acquire(True)
+        try:
+            removefile(filename)
+            remove_closed_files()
+        finally:
+            mycontext['default_lock'].release()
+    else:
+        mycontext['closed_files_lock'].acquire(True)
+        try:
+            removefile(filename)
+            mycontext['closed_files'].discard(filename)
+        finally:
+            mycontext['closed_files_lock'].release()
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

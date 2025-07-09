@@ -1,0 +1,22 @@
+
+#Test to write to files that are close
+
+try:
+    # Open a file and write some data to it
+    myfile = openfile("testfile.txt", True)  # 'True' means create if not exists
+    myfile.writeat("Initial data", 0)  # Write at the beginning of the file
+
+    # Close the file
+    myfile.close()
+
+    # Attempt to write to the file after it has been closed
+    myfile.writeat("This should fail", 0)
+
+    # If no exception is raised, log this as a failure
+    log("FAILURE: The reference monitor allowed writing to a closed file 'testfile.txt'.\n")
+
+except FileClosedError:
+    pass
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))

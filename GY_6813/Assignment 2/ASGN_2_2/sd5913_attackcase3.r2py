@@ -1,0 +1,24 @@
+if "default" in listfiles():
+    removefile("default")
+if "Filenew.txt" in listfiles():
+    removefile("Filenew.txt")
+
+# Step 1: Create the default file
+default = openfile("default", True)
+default.writeat("DEFAULT_CONTENT", 0)
+default.close()
+
+# Step 2: Open Filenew.txt using the default content
+Filenew = openfile("Filenew.txt", False)
+
+# Step 3: Remove the default file
+removefile("default")
+
+# Step 4: Modify the content of Filenew.txt
+Filenew.writeat("MODIFY_FILE1_CONTENT", 0)
+Filenew.close()
+
+# Step 5: Reopen Filenew.txt and check the content
+Filenew = openfile("Filenew.txt", False)
+assert Filenew.readat(None, 0) == "MODIFY_FILE1_CONTENT", "Expected Filenew.txt content to be updated after modification."
+Filenew.close()

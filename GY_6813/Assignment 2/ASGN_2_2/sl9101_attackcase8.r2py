@@ -1,0 +1,16 @@
+# CASE 8: Double close error handling
+if "default" in listfiles():
+    removefile("default")
+
+# Create and write to the default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Check that closing the file does not raise an error
+try:
+    default.close()  # Attempt to close it again
+    assert False, "Expected FileClosedError was not raised" # Ensures failure if no exception is raised
+except FileClosedError:
+    pass
+# END OF CASE 8

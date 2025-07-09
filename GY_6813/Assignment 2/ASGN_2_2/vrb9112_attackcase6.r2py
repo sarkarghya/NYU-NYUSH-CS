@@ -1,0 +1,23 @@
+def attack():
+    try:
+        default = openfile('default', True)
+        default.writeat("Original", 0)
+        default.close()
+
+        test = openfile("test.txt", False)  # Open the file in read mode.
+        try:
+            test.writeat("Modified", 0)  # Attempt to write despite being in read mode.
+            content = test.readat(None, 0)  # Read to check if the write was successful.
+        except Exception:
+            pass  # Write permission enforcement, do nothing on exception.
+
+        test.close()
+        removefile("test.txt")
+        removefile("default")
+
+    except Exception:
+        pass
+    finally:
+        exitall()
+
+createthread(attack)

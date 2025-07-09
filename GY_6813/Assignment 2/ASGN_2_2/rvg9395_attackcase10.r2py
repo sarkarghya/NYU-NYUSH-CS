@@ -1,0 +1,7 @@
+myfile = openfile("testfile.txt", True)
+myfile.close()
+
+try:
+    myfile.writeat("data", 0)
+except FileClosedError:
+    pass

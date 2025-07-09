@@ -1,0 +1,15 @@
+# Attack case to test that default file works as template
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("DEFAULT TEMP", 0)
+default.close()
+
+# Create a test file that we don't write to
+testfile = openfile("testfile.txt", False)
+assert testfile.readat(None, 0) == "DEFAULT TEMP"
+testfile.close()

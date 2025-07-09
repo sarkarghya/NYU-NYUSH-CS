@@ -1,0 +1,17 @@
+if "default" in listfiles():
+  removefile("default")
+
+default = openfile("default", True)
+
+default.writeat("TEMPLATE", 0)
+
+default.close()
+
+try:
+    default.close()
+
+except FileClosedError:
+    pass
+
+else:
+    log("Did not catch exception")

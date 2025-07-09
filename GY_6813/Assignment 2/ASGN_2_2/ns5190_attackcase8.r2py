@@ -1,0 +1,48 @@
+'''
+Verify file deletion on default change:
+Verifies that when the content of the default file is modified,
+the closed files that were created using default are deleted.
+The attack case also checks that files still open remain unchanged,
+adhering to the requirement that only closed files are affected.
+This is important for maintaining data integrity and ensuring the reference monitor
+behaves securely when the default file is altered.
+'''
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "test_deletion.txt" in listfiles():
+    removefile("test_deletion.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("INITIAL CONTENT", 0)
+default.close()
+
+# Create a file using the default template
+myfile = openfile("test_deletion.txt", False)
+
+# Change the default file content
+try:
+    default = openfile("default", True)
+    default.writeat("NEW CONTENT", 0)
+    default.close()  # This should trigger deletion of closed files
+except Exception as e:
+    log("Error occurred: " + str(e))
+
+# Verify that the previously opened file still exists
+try:
+    assert myfile.readat(None, 0) == "INITIAL CONTENT"  # Should remain unchanged
+except Exception as e:
+    log("Error occurred while reading test_deletion.txt: " + str(e))
+else:
+    log("File test_deletion.txt still exists and is unchanged.")
+finally:
+    myfile.close()  # Ensure to close the file if it was opened
+
+
+
+
+
+
+

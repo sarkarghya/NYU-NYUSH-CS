@@ -1,0 +1,29 @@
+# Clean up if the file exists
+if 'test' in listfiles():
+	removefile('test')
+
+if "default" in listfiles():
+  removefile("default")
+
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test", True)
+
+# checks if SeekPastEndOfFileError
+# is raised
+try:
+	test.readat(1000, 0)
+except Exception("SeekPastEndofFileError"):
+	a = 1
+except SeekPastEndofFileError:
+	a = 1
+
+# closes the files
+test.close()
+

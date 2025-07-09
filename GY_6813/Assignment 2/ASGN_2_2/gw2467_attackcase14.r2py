@@ -1,0 +1,28 @@
+import time
+import threading
+import logging
+
+def test_thread_interruption():
+    def interrupt_operation():
+        time.sleep(0.5)
+        logging.info("Attempting to close the file from another thread.")
+        closefile(file_handle)  
+
+    try:
+        logging.info("Opening file for writing.")
+        file_handle = openfile("testfile.txt", "w")
+        thread = threading.Thread(target=interrupt_operation)
+        thread.start()
+
+        
+        file_handle.write("Testing thread interruption.")
+        logging.info("Writing to the file while another thread attempts to close it.")
+        
+       
+        thread.join() 
+
+      
+        assert False, "File operation should not be interrupted by another thread."
+    except Exception as e:
+        logging.error(f"Error when performing file operations: {e}")
+        assert "File is already closed" in str(e), f"Unexpected error: {e}"

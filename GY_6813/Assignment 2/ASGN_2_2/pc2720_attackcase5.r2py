@@ -1,0 +1,9 @@
+# Closing a Closed File
+# Should raise error
+
+try:
+    file = openfile("test.txt", True)
+    file.close()
+    file.close()
+except FileClosedError:
+    pass

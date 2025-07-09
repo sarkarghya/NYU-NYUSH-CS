@@ -1,0 +1,14 @@
+
+
+
+def test_buffer_overflow():
+    try:
+        file_handle = openfile("testfile.txt", "w")
+        large_data = "A" * 1000000 
+        file_handle.write(large_data)
+       
+        assert False, "Buffer overflow should be prevented."
+    except Exception as e:
+        log("Error encountered during buffer overflow test: %s", e)  
+        assert "Resource limit exceeded" in str(e), f"Unexpected error: {e}"
+

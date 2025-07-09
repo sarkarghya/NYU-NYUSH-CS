@@ -1,0 +1,11 @@
+# TestCase: file_1 readat() when file is closed - FileClosedError
+
+if "file_1.txt" in listfiles():
+  removefile("file_1.txt")
+
+try:
+  file1 = openfile("file_1.txt", True)
+  file1.close()
+  file1.readat(None, 0)
+except FileClosedError:
+  pass

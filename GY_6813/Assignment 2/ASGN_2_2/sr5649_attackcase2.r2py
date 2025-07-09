@@ -1,0 +1,21 @@
+"""
+test case 2 catches FileNotFoundError when default file does not exist, and open file that does not exist.
+
+"""
+
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "file1" in listfiles():
+  removefile("file1")
+if "file2" in listfiles():
+  removefile("file2")
+
+try:
+    myfile1 = openfile("file1", False)
+except FileNotFoundError as err:
+    aa = 1 #this is good case
+except Exception as err:
+    log("error: should have caught FileNotFoundError")
+

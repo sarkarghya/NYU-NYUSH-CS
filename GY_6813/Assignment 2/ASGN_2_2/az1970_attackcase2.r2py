@@ -1,0 +1,37 @@
+# Clean up any pre-existing files
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Write initial content to the default file
+default.writeat("DEFAULT TEMPLATE", 0)
+
+# Close the default file
+default.close()
+
+# Create a new file (testfile.txt) without creating it explicitly (using the default file as a template)
+testfile = openfile("testfile.txt", False)
+
+# Verify that testfile.txt has the same content as the default file
+assert testfile.readat(None, 0) == "DEFAULT TEMPLATE", "Error: testfile.txt content does not match default file!"
+
+# Close the testfile.txt
+testfile.close()
+
+# Reopen the default file and modify its content
+default = openfile("default", False)
+default.writeat("TAMPERED CONTENT", 0)
+
+# Close the tampered default file
+default.close()
+
+# Open testfile.txt again and verify that its content hasn't changed
+testfile = openfile("testfile.txt", False)
+assert testfile.readat(None, 0) == "DEFAULT TEMPLATE", "Error: testfile.txt content was altered after default was tampered with!"
+testfile.close()
+
+log("Attack Case 2 completed successfully.")

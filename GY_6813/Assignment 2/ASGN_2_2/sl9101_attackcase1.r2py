@@ -1,0 +1,12 @@
+# CASE 1: Check if exception raised when open file that doesn't exist without default file
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+try:
+    myfile = openfile('testfile.txt', False)
+    assert False, "Expected FileNotFoundError was not raised" # Ensures failure if no exception is raised
+except FileNotFoundError:
+    pass
+# END OF CASE 1

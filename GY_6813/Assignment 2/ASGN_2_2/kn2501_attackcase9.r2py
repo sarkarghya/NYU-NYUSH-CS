@@ -1,0 +1,32 @@
+# Test if 'default' file creation and behavior is handled properly
+try:
+    
+    # First create the 'default' file
+    default_file = openfile("default", True)
+    default_file.writeat("Default content", 0)
+    default_file.close()
+
+    # Now create a new file that copies the content from 'default'
+    lpfile = openfile("copy_of_default.txt", False)
+    content = lpfile.readat(None, 0)  # Should have the content of 'default'
+    
+    if content != "Default content":
+        log("ERROR: Content copied from 'default' file does not match expected.")
+    
+    lpfile.close()
+
+    # Remove 'default' file and ensure other files created during run are also deleted
+    removefile("default")
+    
+    # Check if 'copy_of_default.txt' is also deleted
+    try:
+        lpfile = openfile("copy_of_default.txt", False)
+    except FileNotFoundError:
+        pass  # Expected behavior: file should be deleted after 'default' is removed
+    except Exception as e:
+        log("attacked")
+    else:
+        log("ERROR: Reference monitor failed to delete file created during run after 'default' removal.")
+
+except Exception as e:
+    log("ERROR: Unexpected failure in handling 'default' file. Exception: " + str(e))

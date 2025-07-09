@@ -1,0 +1,128 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+class LPFile():
+    # set to keep track of files that have been created
+    created_files = set()
+    def __init__(self, filename, create):
+        #globals
+        mycontext['debug'] = False
+
+        # check the filename for invalid characters
+        self.check_filename(filename)
+        # this handles possible 'default' file deletions or changes
+        if 'default' not in listfiles():  # If 'default' is deleted
+            for file in list(LPFile.created_files):
+                try:
+                    removefile(file)
+                except:
+                    pass
+            LPFile.created_files.clear() 
+
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+
+        elif create == False and 'default' not in listfiles():
+            raise FileNotFoundError("Default file was not found.")
+        
+        elif filename in listfiles():
+            self.LPfile = openfile(filename, False)
+        
+        else:
+            self.LPfile = openfile(filename, create)
+        
+        # add the file to the list of created files if it is newly created
+        if create or (not create and 'default' in listfiles()):
+            LPFile.created_files.add(filename)
+
+    def check_filename(self, filename):
+        if '/' in filename:
+            raise ValueError("Error: The filename must be in the current directory.")
+
+        valid_characters = "abcdefghijklmnopqrstuvwxyz1234567890._"
+        for x in filename:
+            if x not in valid_characters:
+                raise ValueError("Error: Invalid characters in the filename, make sure they are all lowercase and/or alphanumeric")
+
+        if filename.startswith('.'):
+            raise ValueError("Error: Filename cannot start with a period.")
+        if len(filename) > 120:
+            raise ValueError("Invalid filename: Filename must be 120 characters or fewer.")
+        if '...' in filename:
+            raise ValueError("Error: Filename cannot contain consecutive periods.")
+        
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        # same check in the init
+        if 'default' not in listfiles():  
+            for file in list(LPFile.created_files):
+                try:
+                    removefile(file)
+                except:
+                    pass
+            LPFile.created_files.clear()  
+
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    # if its in created files remove
+    if filename in LPFile.created_files:
+        LPFile.created_files.remove(filename)
+    removefile(filename)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

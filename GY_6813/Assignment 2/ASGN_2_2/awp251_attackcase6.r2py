@@ -1,0 +1,42 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+default.close()
+
+
+
+## ATTACK CASE WITH STARTING DEFAULT FILE AND NO STARTING testfile.txt ##
+
+#GOAL: Have one thread modify the default template before the first thread wrote the old template to the file
+#      But after the first thread
+
+
+
+def thread1():
+    myfile1 = openfile("testfile.txt", False)
+    sleep(3)
+    myfile1.close()
+
+
+def thread2():
+    default_file = openfile("default", False)
+    default_file.writeat("NEW TEMPLATE", 0) #should delete all previously closed files
+    default_file.close()
+
+#the following thread if executed atomically would write the old template to the new file and then close it
+createthread(thread1)
+sleep(1)
+createthread(thread2)
+
+# testfile.txt should close before default file is rewritten and thus be deleted after the rewrite
+sleep(6)
+assert "testfile.txt" not in listfiles()

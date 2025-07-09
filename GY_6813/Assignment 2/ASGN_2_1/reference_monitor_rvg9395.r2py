@@ -1,0 +1,146 @@
+"""
+Simplified reference monitor with enhanced security, file locking, and access control.
+This version removes logging and focuses on efficiency as per assignment guidelines.
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+
+file_locks = {}
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.access_count = 0 
+        self.is_locked = False
+        self.filename = filename
+        self.closed = False
+
+        if '..' in filename or '/' in filename:
+            raise Exception("Invalid filename!")
+
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0)
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+        else:
+            self.LPfile = openfile(filename, create)
+
+    def _validate_access(self):
+        self.access_count += 1
+        if self.access_count > 5:
+            raise Exception("Access rate limit exceeded!")
+
+    def _validate_offset(self, offset):
+        if offset < 0:
+            raise Exception("Invalid offset!")
+
+    def _validate_data_size(self, data):
+        if len(data) > 1024:
+            raise Exception("Data size too large!")
+
+    def _lock_file(self):
+        if file_locks.get(self.filename, False):
+            raise Exception("File %s is locked by another process!" % self.filename)
+        file_locks[self.filename] = True
+        self.is_locked = True
+
+    def _unlock_file(self):
+        if self.is_locked:
+            file_locks[self.filename] = False
+            self.is_locked = False
+
+    def readat(self, num_bytes, offset):
+        self._validate_access()
+        self._validate_offset(offset)
+        self._lock_file()
+
+        if num_bytes <= 0 or num_bytes > 1024:
+            self._unlock_file()
+            raise Exception("Invalid byte count!")
+
+        if self.closed:
+            self._unlock_file()
+            raise Exception("File is closed!")
+
+        result = self.LPfile.readat(num_bytes, offset)
+        self._unlock_file()
+        return result
+
+    def writeat(self, data, offset):
+        self._validate_access()
+        self._validate_offset(offset)
+        self._validate_data_size(data)
+        self._lock_file()
+
+        try:
+            if self.closed:
+                raise Exception("File is closed!")
+
+            self.LPfile.writeat(data, offset)
+        finally:
+            self._unlock_file()
+
+    def close(self):
+        if self.closed:
+            raise Exception("File is already closed!")
+
+        try:
+            self.LPfile.close()
+        finally:
+            self.closed = True
+            self._unlock_file()
+
+
+def LPopenfile(filename, create):
+    if filename == 'default' and not create:
+        raise Exception("Opening 'default' file is not allowed without creation.")
+    
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename == "default":
+        raise Exception("Cannot remove default file!")
+
+    removefile(filename)
+
+    if filename in file_locks:
+        del file_locks[filename]
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

@@ -1,0 +1,132 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+class FileMonitor:
+    def __init__(self):
+        self.closed_files = []
+        self.lock = createlock()
+
+    def add_closed_file(self, filename):
+
+        self.lock.acquire(True)
+        try:
+            self.closed_files.append(filename)
+        finally:
+            self.lock.release()
+
+    def clear_closed_files(self):
+        self.lock.acquire(True)
+        try:
+            for filename in self.closed_files:
+                if filename == 'default':
+                    continue
+                if filename in listfiles():
+                    try:
+                        removefile(filename)
+                        self.closed_files.remove(filename)
+                    except Exception as e:
+                        log("Failed to delete closed file: " + filename)
+        finally:
+            self.lock.release()
+
+file_monitor = FileMonitor()
+
+class LPFile:
+    def __init__(self, filename, create):
+        if create == False and 'default' in listfiles():
+            try:
+                file_monitor.lock.acquire(True)
+
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)
+                default_file.close()
+
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+            except Exception as e:
+                raise FileNotFoundError("Error opening or reading from the default file: " + str(e))
+            finally:
+                file_monitor.lock.release()
+        else:
+            # Normal file opening (with or without creation)
+            self.LPfile = openfile(filename, create)
+
+        self.filename = filename
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        if self.filename == 'default':
+            file_monitor.clear_closed_files()
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+        file_monitor.add_closed_file(self.filename)
+
+
+def LPremovefile(filename):
+    if filename == 'default':
+        file_monitor.clear_closed_files()
+    removefile(filename)
+
+def is_valid_filename(filename):
+    ALLOWED_FILENAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-"
+    MAX_FILENAME_LENGTH = 255
+
+    if '..' in filename:
+        return False, "Filename contains directory traversal patterns."
+
+    if '\x00' in filename:
+        return False, "Filename contains null bytes."
+
+    if len(filename) > MAX_FILENAME_LENGTH:
+        return False, "Filename is too long."
+
+    for char in filename:
+        if char not in ALLOWED_FILENAME_CHARS:
+            return False, "Filename contains disallowed characters."
+
+    return True, ""
+
+def LPopenfile(filename, create):
+    valid, error_msg = is_valid_filename(filename)
+    if not valid:
+        raise ValueError("Invalid filename: " + error_msg)
+    return LPFile(filename, create)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

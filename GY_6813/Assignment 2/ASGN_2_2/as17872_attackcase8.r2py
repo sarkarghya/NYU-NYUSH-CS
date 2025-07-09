@@ -1,0 +1,36 @@
+def write(filename, data, offset=0):
+    file = openfile(filename, True)
+    file.writeat(data, offset)
+    file.close()
+
+def read(filename):
+    try:
+        file = openfile(filename, False)
+        content = file.readat(None, 0)
+        file.close()
+        return content
+    except FileNotFoundError:
+        return None
+
+def run_exception_cleanup_test():
+    write("default", "Default content")
+    write("test_file", "Test content")
+
+    try:
+        file = openfile("test_file", False)
+        file.writeat("New content", -1)
+    except RepyArgumentError:
+        pass
+    finally:
+        file.close()
+
+    removefile("test_file")
+
+    assert "default" in listfiles(), "Test8 FAILED, defaultremoved unexepcetdly"
+
+    default_content = read("default")
+    assert default_content == "Default content", "Test8 FAILED, contents of default corrupted"
+
+    removefile("default")
+
+run_exception_cleanup_test()

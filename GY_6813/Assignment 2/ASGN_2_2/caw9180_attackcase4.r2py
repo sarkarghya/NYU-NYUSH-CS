@@ -1,0 +1,16 @@
+# Assume file opened correctly
+
+filename = "validfile.txt"  
+file_handle = openfile(filename, True)  
+file_handle.close()
+
+
+# Attempt to writeat on closed file
+try:
+    data_to_write = "Data to Write"
+    file_handle.writeat(data_to_write, 0)  # writeat 0
+    log("fail")  # Log failure if no exception
+except FileClosedError as e:
+    pass 
+except Exception as e:
+    log("Unexpected Error")  # Log any unexpected errors

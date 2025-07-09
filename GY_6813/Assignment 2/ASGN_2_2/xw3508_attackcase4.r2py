@@ -1,0 +1,6 @@
+try:
+    openfile('foo', False)
+except FileNotFoundError:
+    pass
+else:
+    raise AssertionError("FileNotFoundError was not raised!")

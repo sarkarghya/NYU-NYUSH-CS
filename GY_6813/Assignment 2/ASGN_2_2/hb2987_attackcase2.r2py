@@ -1,0 +1,31 @@
+try:
+    # clean up if the file exists.
+    if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+    # create a file
+    myfile=openfile("testfile.txt",True)
+
+    # intial write to the file
+    myfile.writeat("12345678",0)
+
+    # attempt to overwrite the beginning of the file
+    myfile.writeat("Hi!",5)
+
+    # now, undo the previous write
+    # myfile.undo()
+
+    # this writeat is not supposed to write in the file since there is no writeat function after this
+    # nor myfile.close() statement is present to write the changes permenentely
+    # so the file is not behaving as expected.
+    myfile.writeat("funny", 8)
+
+
+    assert("12" == myfile.readat(2,0))
+
+except Exception:
+    log("Exception Found in the security layer")
+else:
+    pass
+
+

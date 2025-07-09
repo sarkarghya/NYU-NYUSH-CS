@@ -1,0 +1,17 @@
+# CASE 3: Open a file that doesn't exist, using default as template
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create and write to default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+assert default.readat(None, 0) == "TEMPLATE"
+default.close()
+
+# Open a file that doesn't exist, using default as template
+myfile = openfile("testfile.txt", False)
+assert myfile.readat(None, 0) == "TEMPLATE"
+myfile.close()
+# END OF CASE 3

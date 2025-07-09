@@ -1,0 +1,33 @@
+if "default" in listfiles():
+    removefile("default")
+
+def thread_function(filename, content):
+    openfile(filename, True).writeat(content, 0)
+    assert openfile(filename, False).readat(None, 0) == content, "Concurrent write/read failed"
+
+def thread1():
+    thread_function("testfile3", "THREAD1")
+
+def thread2():
+    thread_function("testfile4", "THREAD2")
+
+createthread(thread1)
+createthread(thread2)
+
+# Add timeout
+timeout = getruntime() + 5
+while getruntime() < timeout:
+    if "testfile3" in listfiles() and "testfile4" in listfiles():
+        break
+    sleep(0.1)
+
+if getruntime() >= timeout:
+    raise Exception("Timeout: Possible deadlock detected in concurrent access")
+
+# Check results
+assert "testfile3" in listfiles() and "testfile4" in listfiles(), "Concurrent file creation failed"
+
+for filename in ["testfile3", "testfile4"]:
+    if filename in listfiles():
+        removefile(filename)
+

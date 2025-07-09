@@ -1,0 +1,32 @@
+'''
+    An attack case, wherein, closed files are deleted if 'default' is deleted
+'''
+if 'default' in listfiles():
+    removefile('default')
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+# Create a default
+
+default = openfile('default', True)
+
+default.writeat("SAMPLE NEW", 0)
+
+default.close()
+
+# Create a random file, add content and close it
+
+testfile_1 = openfile('testfile_1.txt', True)
+
+testfile_1.writeat("SOMETHING", 0)
+
+testfile_1.close()
+
+# Removing the default file
+
+removefile('default')
+
+# Since we are creating a default, then previous closed files must be removed
+
+assert 'testfile_1.txt' not in listfiles()

@@ -1,0 +1,30 @@
+# attack on default file logic
+
+def attack_default_template_spec():
+    try:
+        if "default" in listfiles():
+            removefile("default")
+        
+        default_file = openfile("default", True)
+        default_file.writeat("Template content", 0)
+        default_file.close()
+
+        foo_file = openfile("foo.txt", False)  # This should use 'default' as the template
+        foo_content = foo_file.readat(None, 0)
+        
+        if foo_content != "Template content":
+            raise Exception("File 'foo' did not use 'default' as the template.")
+        foo_file.close()
+
+        removefile("default")
+        
+        try:
+            another_file = openfile("bar.txt", False)
+        except Exception as e:
+            pass
+
+    except Exception:
+        pass
+
+# Execute the attack
+attack_default_template_spec()

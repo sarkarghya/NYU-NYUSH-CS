@@ -1,0 +1,5 @@
+# Open a file that doesn't exist
+try:
+    myfile = openfile("testfile.txt", False)
+except FileNotFoundError:
+    pass

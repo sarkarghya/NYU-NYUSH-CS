@@ -1,0 +1,22 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Attack case to check if monitor lets file be closed twice
+try:
+    default.close() # if this works, then monitor has flaw
+    assert False, "FileClosedError not raised"
+except FileClosedError:
+    assert True, "Double close handled"
+

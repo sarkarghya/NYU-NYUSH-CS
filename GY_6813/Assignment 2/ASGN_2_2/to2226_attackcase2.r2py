@@ -1,0 +1,22 @@
+# Check if "default" exists in the file list, remove it if it does
+if "default" in listfiles():
+    removefile("default")
+
+# Check if "fileA.txt" exists in the file list, remove it if it does
+if "fileA.txt" in listfiles():
+    removefile("fileA.txt")
+
+# Create a new "default" file and write content at the beginning
+default = openfile("default", True)
+default.writeat("DEFAULT_CONTENT", 0)
+default.close()  # Close the "default" file after writing
+
+# Create an empty "fileA.txt" file and close it immediately
+fileA = openfile("fileA.txt", False)
+fileA.close()
+
+# Remove the "default" file from the list
+removefile("default")
+
+# Assert that "fileA.txt" is still present in the file list
+assert "fileA.txt" in listfiles(), "Expected fileA.txt to be present after default was removed."

@@ -1,0 +1,209 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py
+
+"""
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+# To keep track of open files and closed files
+open_files = {}
+closed_files = []
+
+# ============== Global Variables ===============
+mycontext = {
+    'operation_pending': False,
+    'action_reversible': False,
+    'file_active': True,
+    'backup_data': "",
+    'backup_offset': 0
+}
+
+class LPFile():
+    class LPFile():
+    def __init__(self, filename, create):
+        # Globals
+        mycontext['debug'] = False
+
+        # Validate the filename input (it should be a non-empty string)
+        if not isinstance(filename, str) or filename == "":
+            raise ValueError("Invalid filename. Filenames must be a non-empty string.")
+
+        # Handle file creation and using "default" as a template if necessary
+        if not create:
+            if 'default' in listfiles():
+                # Open the 'default' file, read its content, and use it as the template
+                default_file = openfile('default', False)
+                default_content = default_file.readat(None, 0)  # Read the entire content
+                default_file.close()
+
+                # Create and open the new file with the template content
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(default_content, 0)
+            else:
+                # If the "default" file does not exist, raise an error
+                raise FileNotFoundError("Error: The 'default' file does not exist.")
+        else:
+            # Create a new file without using the "default" file
+            self.LPfile = openfile(filename, True)
+
+        # Keep track of file size
+        self.file_size = len(self.readat(None, 0))
+
+        # Keep track of open files
+        if filename in open_files:
+            raise Exception("FileInUseError")  # Error if trying to open an already open file
+        open_files[filename] = self  # Add this file to the open files tracker
+
+        # Create lock for operations
+        self.lock = createlock()
+
+        # Initialize pending data for write operations
+        self.pending_data = None
+        self.pending_offset = None
+
+    def readat(self, num_bytes, offset):
+        # Validate inputs: num_bytes must be None or a positive integer, offset must be a non-negative integer
+        if num_bytes is not None and (not isinstance(num_bytes, int) or num_bytes < 0):
+            raise ValueError("Invalid num_bytes. It must be None or a non-negative integer.")
+        if not isinstance(offset, int) or offset < 0:
+            raise ValueError("Invalid offset. It must be a non-negative integer.")
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset, close=False):
+        # Validate inputs: data must be a string, offset must be a non-negative integer
+        if not isinstance(data, str):
+            raise ValueError("Invalid data. Data must be a string.")
+        if not isinstance(offset, int) or offset < 0:
+            raise ValueError("Invalid offset. Offset must be a non-negative integer.")
+
+        with self.lock:
+            if not close:
+                # --------------------  EXCEPTIONS  ---------------------------
+                # ~EXCEPTION: FileClosedError
+                if not mycontext['file_active']:
+                    raise Exception("FileClosedError: Attempt to write to a closed file.")
+
+                # ~EXCEPTION: RepyArgumentError
+                if offset < 0:
+                    raise Exception("RepyArgumentError: Offset cannot be negative.")
+
+                # ~EXCEPTION: SeekPastEndOfFileError
+                if self.file_size < offset:
+                    raise Exception("SeekPastEndOfFileError: Attempt to seek past EOF.")
+
+                # Update file size if necessary
+                if (len(data) + offset) > self.file_size:
+                    self.file_size = len(data) + offset
+            # ---------------------------------------------------------------
+
+            # Make previous write permanent if valid
+            if mycontext['operation_pending']:
+                self.LPfile.writeat(self.pending_data, self.pending_offset)
+
+            # Store current data for future operations (e.g., undo)
+            mycontext['backup_data'] = self.pending_data
+            mycontext['backup_offset'] = self.pending_offset
+            mycontext['operation_pending'] = True
+
+            # Hold onto the current valid data for next write
+            self.pending_data = data
+            self.pending_offset = offset
+            mycontext['action_reversible'] = True
+
+    def undo(self):
+        with self.lock:
+            if mycontext['action_reversible']:
+                # Revert the file size to its previous state
+                self.file_size = self.file_size - len(self.pending_data) + len(mycontext['backup_data'])
+                # Restore the previous data
+                self.pending_data = mycontext['backup_data']
+                self.pending_offset = mycontext['backup_offset']
+                mycontext['action_reversible'] = False
+
+    def close(self):
+        with self.lock:
+            if not mycontext['file_active']:
+                raise Exception("FileClosedError: Attempt to close an already closed file.")
+
+            # Commit the final write on close
+            self.writeat(self.pending_data, self.pending_offset, True)
+            mycontext['file_active'] = False
+            self.LPfile.close()
+
+            # Remove this file from the open files list
+            filename = self.LPfile.filename
+            if filename in open_files:
+                del open_files[filename]
+                closed_files.append(filename)
+
+        # If "default" has been modified or deleted, clean up closed files
+        if 'default' not in listfiles():
+            remove_closed_files()
+
+
+# File operations: remove and open file
+def LPopenfile(filename, create):
+    if not isinstance(filename, str) or filename == "":
+        raise ValueError("Invalid filename. Filenames must be a non-empty string.")
+    if not isinstance(create, bool):
+        raise ValueError("Invalid create flag. Create must be a boolean value.")
+    if filename in open_files:
+        raise FileInUseError("Error: Attempt to open a file that is already open.")
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if not isinstance(filename, str) or filename == "":
+        raise ValueError("Invalid filename. Filenames must be a non-empty string.")
+    removefile(filename)
+    if filename == 'default':
+        remove_closed_files()
+
+def remove_closed_files():
+    for filename in closed_files:
+        if filename != 'default':
+            try:
+                removefile(filename)
+            except:
+                pass
+
+
+# The code here sets up type checking and variable hiding for you.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "undo": {"type": "func", "args": None, "exceptions": None, "return": type(None), "target": LPFile.undo},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()
+

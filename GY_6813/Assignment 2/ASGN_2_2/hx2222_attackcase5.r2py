@@ -1,0 +1,19 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+###
+# Test for opening a file that is already closed
+# should raise FileInUseError
+###
+myfile = openfile("testfile.txt", True)
+try:
+    myfile = openfile("testfile.txt", False)
+except FileInUseError:
+   pass
+else:
+   log("should raise FileInUseError")
+
+
+   

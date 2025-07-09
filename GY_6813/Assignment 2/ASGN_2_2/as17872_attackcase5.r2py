@@ -1,0 +1,47 @@
+def setup():
+    default_file = openfile("default", True)
+    default_file.writeat("Default content", 0)
+    default_file.close()
+
+def t1():
+    file = openfile("file1", False)  
+    file.writeat("Content for file1", 0)
+    file.close()
+
+def t2():
+    file = openfile("file2", False)
+    file.writeat("Content for file2", 0)
+    file.close()
+
+def t3():
+    file = openfile("file3", False)
+    file.writeat("Content for file3", 0)
+    file.close()
+
+def run_concurrency_test():
+    setup()
+    createthread(t1)
+    createthread(t2)
+    createthread(t3)
+    
+    sleep(3)
+    
+    file1 = openfile("file1", False)
+    content1 = file1.readat(None, 0)
+    file1.close()
+    
+    file2 = openfile("file2", False)
+    content2 = file2.readat(None, 0)
+    file2.close()
+    
+    file3 = openfile("file3", False)
+    content3 = file3.readat(None, 0)
+    file3.close()
+        
+    assert (content1 == "Content for file1" and 
+    content2 == "Content for file2" and 
+    content3 == "Content for file3"), "Test5 FAILED, file contents corrupted"
+    
+    removefile("default")
+
+run_concurrency_test()

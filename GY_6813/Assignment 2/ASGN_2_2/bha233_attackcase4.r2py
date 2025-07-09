@@ -1,0 +1,44 @@
+# Check if closed files be removed when default file written.
+if "default" in listfiles():
+    removefile("default")
+if "test2_file1" in listfiles():
+    removefile("test2_file1")
+if "test2_file2" in listfiles():
+    removefile("test2_file2")
+if "test2_file3" in listfiles():
+    removefile("test2_file3")
+if "test2_file4" in listfiles():
+    removefile("test2_file4")
+
+default = openfile("default", True)
+
+file1 = openfile("test2_file1", True)
+file2 = openfile("test2_file2", True)
+file3 = openfile("test2_file3", True)
+file4 = openfile("test2_file4", True)
+
+file2.close()
+file4.close()
+
+default.writeat("TEMPLATE", 0)
+
+# Only test2_file1 and test2_file3 are opened (will not get removed)
+
+testPassed = True
+
+try:
+    removefile("test2_file2")
+except FileNotFoundError:
+    pass
+else:
+    testPassed = False
+
+try:
+    removefile("test2_file4")
+except FileNotFoundError:
+    pass
+else:
+    testPassed = False
+
+if testPassed == False:
+        log("**************************************************Failed Test 4****************************************************\n")

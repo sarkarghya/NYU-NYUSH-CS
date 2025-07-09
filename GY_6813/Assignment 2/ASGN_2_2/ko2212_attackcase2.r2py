@@ -1,0 +1,6 @@
+try:
+    lp_file = openfile("nonexistent_file.txt", False)
+except FileNotFoundError:
+    pass
+else:
+    log("Test failed: Non-existent file opened. The reference monitor failed to block this.")

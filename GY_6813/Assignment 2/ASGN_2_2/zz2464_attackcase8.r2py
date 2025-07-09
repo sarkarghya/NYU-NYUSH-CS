@@ -1,0 +1,48 @@
+# Attack 8: Handle Files with Identical Names
+# Cause confusion or errors by creating files with similar or identical names to check how the security layer handles case sensitivity and naming conventions.
+
+# Clean up any existing files before starting the test
+for filename in ["testfile.txt", "Testfile.txt", "file .txt", "file%.txt"]:
+    if filename in listfiles():
+        removefile(filename)
+
+# --- Attack Step 1: Create files with identical names but different capitalization ---
+try:
+    # Create the first file with lowercase letters
+    file1 = openfile("testfile.txt", True)
+    file1.writeat("This is testfile.txt", 0)
+    file1.close()
+
+    # Create the second file with uppercase letters
+    file2 = openfile("Testfile.txt", True)
+    file2.writeat("This is Testfile.txt", 0)
+    file2.close()
+
+except RepyArgumentError:
+    # Suppress expected RepyArgumentError for disallowed characters
+    pass
+
+# --- Attack Step 2: Create files with spaces or special characters in the names ---
+try:
+    # Create a file with a space in the name
+    file_with_space = openfile("file .txt", True)
+    file_with_space.writeat("This is file with space", 0)
+    file_with_space.close()
+
+    # Create a file with a special character in the name
+    file_with_special_char = openfile("file%.txt", True)
+    file_with_special_char.writeat("This is file with special character", 0)
+    file_with_special_char.close()
+
+except RepyArgumentError:
+    # Suppress expected RepyArgumentError for disallowed characters
+    pass
+
+# Clean up created files
+for filename in ["testfile.txt", "Testfile.txt", "file .txt", "file%.txt"]:
+    try:
+        if filename in listfiles():
+            removefile(filename)
+    except FileInUseError:
+        # Suppress expected FileInUseError if the file is still open
+        pass

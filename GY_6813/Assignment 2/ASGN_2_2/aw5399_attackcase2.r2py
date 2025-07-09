@@ -1,0 +1,29 @@
+################################################################################
+# Test Case: Creation of New File with Default Content
+# This test checks if a new file is created with the correct default content
+# when opened for the first time.
+################################################################################
+
+# Remove existing files if present
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Write initial content to the default file
+default.writeat("TEMPLATE", 0)
+
+# Close the default file
+default.close()
+
+# Remove existing files if present
+
+# Open a new file that doesn't exist
+# This should create the file
+myfile = openfile("testfile.txt", False)
+
+assert myfile.readat(None, 0) == "TEMPLATE"
+myfile.close()

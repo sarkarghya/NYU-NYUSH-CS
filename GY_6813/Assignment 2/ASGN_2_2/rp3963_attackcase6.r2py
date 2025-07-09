@@ -1,0 +1,11 @@
+if "default" in listfiles():
+    removefile("default")
+
+try:
+    openfile("testfile_largefile", False).readat(100, 1000001)
+    assert False, "Failed to raise exception for read beyond file size"
+except SeekPastEndOfFileError:
+    pass
+
+if "testfile_largefile" in listfiles():
+    removefile("testfile_largefile")

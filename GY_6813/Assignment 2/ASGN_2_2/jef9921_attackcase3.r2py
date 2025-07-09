@@ -1,0 +1,11 @@
+# TestCase: Filename not found and create is False and default is not present
+
+if "default" in listfiles():
+  removefile("default")
+if "file_not_found" in listfiles():
+  removefile("file_not_found")
+
+try:
+  file1 = openfile("file_not_found", False)
+except FileNotFoundError:
+  pass

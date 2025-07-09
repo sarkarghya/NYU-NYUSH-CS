@@ -1,0 +1,10 @@
+try:
+
+    default = openfile("default", True)
+    default.writeat("TEMPLATE", 0)
+    default.close()
+
+
+    myfile = openfile("default", False)
+except Exception:
+    pass  

@@ -1,0 +1,108 @@
+stop_flag = [False]  # Mutable object to act as a global stop flag
+stop_lock = createlock()  # Lock to safely modify stop_flag
+exception_message = [None]  # Global exception tracker
+
+def safe_remove_file(filename):
+    if filename in listfiles():
+        try:
+            removefile(filename)
+        except Exception as e:
+            pass
+
+# Clean up if the files exist
+safe_remove_file("default")
+safe_remove_file('testfile.txt')
+
+def open_and_read(filename):
+    try:
+        # Check if the stop flag is set
+        stop_lock.acquire(True)
+        if stop_flag[0]:
+            stop_lock.release()
+            return  # Stop execution if the flag is set
+        stop_lock.release()
+
+        myfile = openfile(filename, False)
+        assert myfile.readat(None, 0) == "TEMPLATE"
+        myfile.close()
+    except Exception as e:
+        # Capture the first exception in the global tracker
+        stop_lock.acquire(True)
+        if not stop_flag[0]:  # Only capture the first exception
+            exception_message[0] = "Race condition test failed for " + str(filename) + ": " + str(e)
+            stop_flag[0] = True  # Stop all threads
+        stop_lock.release()
+
+def timeout_monitor(completion_flags, timeout_duration=5):
+    time_waited = 0
+    while time_waited < timeout_duration:
+        sleep(0.1)  # Check every 100 ms
+        time_waited += 0.1
+
+        # Check if all threads have completed or the stop flag is set
+        stop_lock.acquire(True)
+        if stop_flag[0]:
+            stop_lock.release()
+            return  # Stop the monitor if stop_flag is set
+        stop_lock.release()
+
+        all_complete = True
+        for flag in completion_flags:
+            if not flag[0]:
+                all_complete = False
+                break
+
+        if all_complete:
+            return  # All threads completed successfully
+
+    # Timeout reached, set stop flag and exception message
+    stop_lock.acquire(True)
+    if not stop_flag[0]:  # Only set message if no exception occurred
+        exception_message[0] = "Timeout reached: Race condition test timeout."
+        stop_flag[0] = True  # Signal all threads to stop
+    stop_lock.release()
+
+def thread_wrapper(func, filename="testfile.txt", completion_flag=None, completion_flags=None):
+    def open_read_wrapped_function():
+        open_and_read(filename)
+        if completion_flag:
+            completion_flag[0] = True  # Mark thread completion
+
+    def timeout_wrapped_function():
+        timeout_monitor(completion_flags=completion_flags)
+
+    if func == 'timeout_monitor':
+        return timeout_wrapped_function
+    elif func == 'open_and_read':
+        return open_read_wrapped_function
+    else:
+        raise ValueError("Invalid function name passed to thread_wrapper")
+
+def test_race_conditions():
+    default = openfile("default", True)
+    default.writeat("TEMPLATE", 0)
+    default.close()
+
+    flags = [[False] for _ in range(10)]  # Completion flags for each thread
+
+    # Spawn multiple threads to create race conditions
+    for i in range(10):
+        createthread(thread_wrapper(func='open_and_read', completion_flag=flags[i]))
+
+    # Start the timeout monitor
+    createthread(thread_wrapper(func='timeout_monitor', completion_flags=flags))
+
+    # Wait for threads to finish or timeout
+    sleep(5)  # Arbitrary sleep duration to allow all threads to complete
+
+    # Check if there was an exception or timeout and print the summary
+    if exception_message[0]:
+        log("Test failed: " + exception_message[0] + "\n")
+    else:
+        pass
+
+# Run the test with a timeout of 5 seconds
+test_race_conditions()
+
+safe_remove_file("default")
+safe_remove_file('testfile.txt')

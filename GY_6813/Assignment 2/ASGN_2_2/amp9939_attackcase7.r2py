@@ -1,0 +1,49 @@
+#attack case 7: checking default template works if files are closed before default was removed. then they should be removed
+
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "purple.txt" in listfiles():
+    removefile("purple.txt")
+
+
+#open, write, and read a file
+nextfile = openfile("purple.txt", True)
+nextfile.writeat("hello. this is the purple file", 0)
+nextfile.readat(None, 0)
+
+#opening a new file 
+secondfile = openfile("anotherfile.txt", True)
+secondfile.writeat("this is the second file", 0)
+secondfile.readat(None, 0)
+
+
+#closing the files 
+nextfile.close()    #purple needs to be removed 
+secondfile.close()  #anotherfile needs to be removed 
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+# Close default
+default.close()
+
+#file that needs default
+myfile = openfile("testfile.txt", False)
+myfile.close()
+
+#opening a third file - 
+thirdfile = openfile("thirdfile.txt", True)
+
+#removing testfile.txt - which will delete all the closed files before it 
+removefile("testfile.txt")
+
+#asserting if the file was removed
+if "purple.txt" in listfiles():
+  log("purple.txt file needed to be removed.")
+
+
+
+
+

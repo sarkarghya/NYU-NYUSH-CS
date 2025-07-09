@@ -1,0 +1,10 @@
+# Creating new file with non-existing default file
+
+if "default" in listfiles():
+    removefile("default")
+
+try:
+    file1 = openfile("test1.txt", False)
+    file1.close()
+except FileNotFoundError:
+    pass

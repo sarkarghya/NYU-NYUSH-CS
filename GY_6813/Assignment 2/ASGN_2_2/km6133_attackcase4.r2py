@@ -1,0 +1,17 @@
+if "test1" in listfiles():
+    removefile("test1")
+
+test1=openfile("test1",True)
+test1.writeat("Helloworld",0)
+
+def read():
+    data=test1.readat(None,0)
+
+def write():
+    test1.writeat("Amazing",0)
+
+
+createthread(read)
+createthread(write)
+sleep(1)
+test1.close()

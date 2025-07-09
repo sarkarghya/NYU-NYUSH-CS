@@ -1,0 +1,15 @@
+
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+long_filename = 'a' * 120
+cleanup_files(long_filename)
+
+# Edge Case: Handling filenames with 120 characters limit
+try:
+    longfile = openfile(long_filename, True)
+    assert True  # File should open successfully
+    longfile.close()
+except RepyArgumentError:
+    assert False  # Should not raise an exception here

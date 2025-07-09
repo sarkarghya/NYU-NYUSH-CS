@@ -1,0 +1,165 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+filesToLeaveAlone = ['natlayer_rpc.r2py', 'safe.py', 'parallelize.r2py', 'repyportability.py', 'namingandresolveraffix.r2py', 'windows_api.pyc', 'repyunit.r2py', 'namespace.py', 'noopaffix.r2py', 'canihear.r2py', 'time.r2py', 'affix_wrapper_lib.r2py', 'tcprelayaffix.r2py', 'nat_advertisement.r2py', 'windows_api.py', 'tcp_time.r2py', 'advertiseserver_v2.r2py', 'centralizedadvertise.r2py', 'nanny.pyc', 'testportfiller.py', 'secureadvertise_server.r2py', 'doradvertise.r2py', 'cv.r2py', 'seash_dictionary.py', 'sockettimeout.r2py', 'getvesselresources.r2py', 'emulcomm.py', 'resourcemanipulation.py', 'safe_check.py', 'emultimer.pyc', 'signeddata.r2py', 'exception_hierarchy.pyc', 'seash_global_variables.py', 'restrictions.widenet', 'secureadvertise_client.r2py', 'resourcemanipulation.pyc', 'build_component.pyc', 'random.r2py', 'multiplexer.r2py', 'advertise_objects.r2py', 'LICENSE', 'affix_repy_network_api_wrapper.r2py', 'emulfile.pyc', 'portable_popen.pyc', 'statusstorage.pyc', 'exception_hierarchy.py', 'httpretrieve.r2py', 'repy_constants.pyc', 'priority_queue.r2py', 'appveyor.yml', 'harshexit.py', 'binascii.r2py', 'seattleclearinghouse_xmlrpc.py', 'sshkey.r2py', 'statusstorage.py', 'cachedadvertise.r2py', 'fakelinecache.py', 'xmlrpc_server.r2py', 'fakelinecache.pyc', 'repypp.py', 'checkpythonversion.py', 'loggingaffix.r2py', 'encoding_header.py', 'idhelper.py', 'freebsd_api.py', 'harshexit.pyc', 'repy.py', 'geoip_client.r2py', 'domainnameinfo.r2py', 'loggingrepy.pyc', 'dylink.r2py', 'encasementlib.r2py', 'tracebackrepy.pyc', 'httpserver.r2py', 'loggingrepy.py', 'freebsd_kinfo.py', 'registerhttpcallback.r2py', 'README.md', 'centralizedadvertise_v2.r2py', 'udpcentralizedadvertise.r2py', 'emulmisc.pyc', 'experimentlib.r2py', 'tracebackrepy.py', 'build_component.py', 'xmlrpc_common.r2py', 'ntp_time.r2py', 'librepyrandom.r2py', 'pycryptorsa.r2py', 'portable_popen.py', 'coordinationaffix.r2py', 'namespace.pyc', 'nmstatusinterface.pyc', 'textops.py', 'deserialize.r2py', 'advertise.r2py', 'rsa.r2py', 'pydes.r2py', 'restrictions.default', 'command_callbacks.py', 'seash_exceptions.py', 'sshkey_paramiko.r2py', 'idhelper.pyc', 'linux_api.py', 'nix_common_api.pyc', 'listops.r2py', 'repyhelper.py', 'affix_exceptions.r2py', 'seash_helper.py', 'secureclient.r2py', 'safe_eval.r2py', 'base64.r2py', 'safe.pyc', 'sha.r2py', 'emulfile.py', 'uniqueid.r2py', 'encoding_header.pyc', 'urlparse.r2py', 'math.r2py', 'servicelookup.r2py', 'librepyfile.r2py', 'librepysocket.r2py', 'tcp_relay_common_lib.r2py', 'makemehearaffix.r2py', 'strace.py', 'fastnmclient.py', 'checkpythonversion.pyc', 'loggingrepy_core.py', 'darwin_api.py', 'repy_constants.py', 'loggingrepy_core.pyc', 'xmlrpc_client.r2py', 'repyportability.pyc', 'linux_api.pyc', 'nix_common_api.py', 'librepyrunloop.r2py', 'restrictions.threeports', 'opendhtadvertise.r2py', 'resource_constants.py', 'session.r2py', 'win_cpu_nanny.py', 'urllib.r2py', 'textops.pyc', 'testportfiller.pyc', 'convert_print_to_log.sh', 'emulcomm.pyc', 'repyhelper.pyc', 'nmclient.r2py', 'readline.so.mac', 'wrapper.r2py', 'nmstatusinterface.py', 'restrictions.fixed', 'baseaffix.r2py', 'argparse.r2py', 'readline_windows.py', 'librepy.r2py', 'virtual_namespace.py', 'librepythread.r2py', 'affix_stack.r2py', 'emulmisc.py', 'seash_modules.py', 'md5py.r2py', 'seash.py', 'virtual_namespace.pyc', 'nonportable.py', 'dnscommon.r2py', 'emultimer.py', 'tab_completer.py', 'restrictions.test', 'time_interface.r2py', 'serialize.r2py', 'xmlparse.r2py', 'restrictions.twoports', 'advertisepipe.r2py', 'semaphore.r2py', 'rhizoma.mix', 'persist.py', 'nonportable.pyc', 'nanny.py', 'resource_constants.pyc']
+openFiles, closedFiles = [], []
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        # to check for default 
+        self.name = filename
+
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+        else:
+            self.LPfile = openfile(filename, create)
+
+        openFiles.append(filename)
+
+    def readat(self, num_bytes, offset):
+        try:
+            return self.LPfile.readat(num_bytes, offset)
+        except RepyArgumentError:
+            raise RepyArgumentError
+        except FileClosedError:
+            raise FileClosedError
+        except SeekPastEndOfFileError:
+            raise SeekPastEndOfFileError
+        except Exception:
+            pass
+
+    def writeat(self, data, offset):
+        try: 
+            if (self.name == 'default'):
+                handleDefaultChange()
+            self.LPfile.writeat(data, offset)
+        except RepyArgumentError:
+            raise RepyArgumentError
+        except FileClosedError:
+            raise FileClosedError
+        except SeekPastEndOfFileError:
+            raise SeekPastEndOfFileError
+        except Exception:
+            pass
+
+
+    def close(self):
+        try: 
+            self.LPfile.close()
+            if self.name != 'default':
+                openFiles.remove(self.name)
+                closedFiles.append(self.name)
+        except FileClosedError:
+            raise FileClosedError
+        except Exception: 
+            return 
+
+        
+def LPopenfile(filename, create):
+    if filename in filesToLeaveAlone or ("reference_monitor_" in filename and ".r2py" in filename) or ("_attackcase.r2py" in filename):
+        raise RepyArgumentError
+
+
+    if not create:
+        if "default" in listfiles():
+            defaultContent = openfile("default", False).readat(None, 0)
+            newFile = LPFile(filename, True)
+            newFile.writeat(defaultContent, 0)
+            return newFile
+        else:
+            raise FileNotFoundError
+
+    try:
+        res = LPFile(filename, create)
+        if (filename == 'default'):
+            handleDefaultChange()
+        else:
+            openFiles.append(filename)
+        return res
+    except RepyArgumentError:
+        raise RepyArgumentError 
+    except FileInUseError: 
+        raise FileInUseError
+    except ResourceExhaustedError:
+        raise ResourceExhaustedError
+    except FileNotFoundError:
+        raise FileNotFoundError
+    except Exception:
+        return 
+
+def LPremovefile(filename): 
+    if filename in filesToLeaveAlone or ("reference_monitor_" in filename and ".r2py" in filename) or ("_attackcase.r2py" in filename):    
+        raise RepyArgumentError
+
+    try:
+        removefile(filename) 
+        if (filename == 'default'):
+            handleDefaultChange()
+        else:
+            if filename in closedFiles:
+                closedFiles.remove(filename)
+    except RepyArgumentError:
+        raise RepyArgumentError
+    except FileInUseError: 
+        raise FileInUseError
+    except FileNotFoundError:
+        raise FileNotFoundError
+    except Exception as e:
+        return 
+
+def handleDefaultChange():
+    for f in closedFiles:
+        if f in listfiles():
+            removefile(f)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

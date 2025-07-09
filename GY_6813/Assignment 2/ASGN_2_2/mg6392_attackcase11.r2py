@@ -1,0 +1,22 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("default")
+cleanup_files("testfile6.txt")
+
+default = openfile("default", True)
+default.writeat("new v3 default_message", 0)
+default.close()
+
+# Write to a file created using the default content
+myfile6 = openfile("testfile6.txt", False)
+myfile6.writeat("additional content", len("new v3 default_message"))
+myfile6.close()
+
+# Reopen and check content
+myfile6 = openfile("testfile6.txt", True)
+assert myfile6.readat(None, 0) == "new v3 default_message" + "additional content"
+
+myfile6.close()
+cleanup_files("testfile6.txt")

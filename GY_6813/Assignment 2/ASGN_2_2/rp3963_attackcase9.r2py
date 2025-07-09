@@ -1,0 +1,31 @@
+if "default" in listfiles():
+    removefile("default")
+
+def race_thread1():
+    lot_of_data = "abcdefgh" * 1000000
+    openfile("default", True).writeat(lot_of_data, 0)
+
+def race_thread2():
+    openfile("testfile_racefile", True).writeat("ORIGINAL", 0)
+    sleep(0.01)  # Small delay to try to hit the race condition
+
+createthread(race_thread1)
+createthread(race_thread2)
+
+# Add timeout
+timeout = getruntime() + 5
+while getruntime() < timeout:
+    if "default" in listfiles():
+        break
+    sleep(0.1)
+
+if getruntime() >= timeout:
+    raise Exception("Timeout: Possible deadlock detected in race condition test")
+
+sleep(3)  # Give threads time to complete
+assert "testfile_racefile" not in listfiles(), "Race condition: file not deleted after default modified"
+
+if "default" in listfiles():
+    removefile("default")
+if "testfile_racefile" in listfiles():
+    removefile("testfile_racefile")

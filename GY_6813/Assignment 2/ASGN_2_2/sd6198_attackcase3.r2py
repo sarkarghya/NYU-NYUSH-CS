@@ -1,0 +1,24 @@
+def attack_delete_open_file():
+    try:
+        # Open a file
+        LPopenfile("delete_me", True)
+
+        # Try to remove the open file
+        LPremovefile("delete_me")
+    except Exception as e:
+        if not isinstance(e, FileInUseError):
+            raise Exception("Unexpected behavior: Did not trigger FileInUseError")
+
+attack_delete_open_file()
+
+
+
+
+
+
+
+
+
+
+
+

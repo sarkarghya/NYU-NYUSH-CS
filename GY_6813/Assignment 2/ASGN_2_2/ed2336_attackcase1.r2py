@@ -1,0 +1,22 @@
+# Remove 'testfile.txt' if it exists
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Test to open a file that doesn't exist
+try:
+    # Attempt to open a file that doesn't exist without creating it
+    myfile = openfile("testfile.txt", False)
+
+    # If no exception is raised and the file is opened, log this as a failure
+    log("FAILURE: The reference monitor allowed access to a non-existent file 'testfile.txt'.\n")
+
+    # Close the file (in case it was somehow opened)
+    myfile.close()
+
+except FileNotFoundError:
+    # Expected outcome: The file doesn't exist, so no log is needed
+    pass
+
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))

@@ -1,0 +1,157 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+
+Khalid Omer
+Assignment 2.1
+10/08/24
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+if "created_files" not in mycontext:
+    mycontext['created_files'] = {}  
+
+class LPFile():
+    def __init__(self, filename, create):
+        mycontext['debug'] = False
+
+        # make sure the filename is valid before proceeding
+        self.validate_filename(filename)  
+
+        if filename == "default" and create:
+            self.LPfile = openfile(filename, create)
+            mycontext['created_files'][filename] = 'open'
+
+        elif not create:
+            if filename not in listfiles():
+                raise FileNotFoundError("Error: Trying to open a file that doesn't exist: %s" % filename)
+
+            if 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)
+                default_file.close()
+
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+
+                mycontext['created_files'][filename] = 'open'
+            else:
+                raise FileNotFoundError("Error: The 'default' file does not exist.")
+
+        else:
+            self.LPfile = openfile(filename, create)
+
+        self.filename = filename
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        if offset < 0:
+            raise RepyArgumentError("RepyArgumentError: Offset must be non-negative\n")
+            
+        if data is None or data == "":
+            raise RepyArgumentError("RepyArgumentError: Data must be a non-empty string\n")
+
+        if self.is_malicious(data):  
+            raise ValueError("Malicious data detected: Write operation aborted.")
+
+        current_size = len(self.LPfile.readat(None, 0))
+    
+        if offset > current_size:
+            padding = ' ' * (offset - current_size)
+            self.LPfile.writeat(padding, current_size)
+
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+
+        if self.filename in mycontext['created_files']:
+            mycontext['created_files'][self.filename] = 'closed'  # track when files are closed
+
+    def validate_filename(self, filename):
+        allowed_chars = "abcdefghijklmnopqrstuvwxyz0123456789-_."
+        
+        if filename in ['.', '..', ''] or len(filename) > 120 or filename[0] == '.':
+            raise RepyArgumentError("Invalid filename: %s" % filename)
+
+        for char in filename:
+            if char not in allowed_chars:
+                raise RepyArgumentError("Invalid filename: %s" % filename)
+
+    def is_malicious(self, data):
+        dangerous_patterns = [
+            "os.system", "rm -rf", ";", "|", "&", "`", "$( )", "eval", "exec"
+        ]
+        
+        for pattern in dangerous_patterns:
+            if pattern in data:
+                log("Detected malicious pattern: %s\n" % pattern)
+                return True
+
+        return False
+
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+
+def LPremovefile(filename):
+    if filename not in listfiles():
+        raise FileNotFoundError("Error: Trying to remove a file that doesn't exist: %s" % filename)
+
+    if filename == "default":
+        files_to_remove = []
+        
+        for file, status in mycontext['created_files'].items():
+            if file != "default" and status == 'closed':
+                files_to_remove.append(file)
+        
+        for file in files_to_remove:
+            if file in listfiles():
+                removefile(file)
+                del mycontext['created_files'][file]
+
+    removefile(filename)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

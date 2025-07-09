@@ -1,0 +1,17 @@
+try:
+    # Clean up existing files
+    if "default" in listfiles():
+        removefile("default")
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+    # Create default file
+    default_file = openfile("default", True)
+    default_file.writeat("This is the default template.", 0)
+    default_file.close()
+    # Attempt to open a new file using default
+    new_file = openfile("new_file.txt", False)
+    # Assert that content of new file is same as default. 
+    assert new_file.readat(None, 0) == "This is the default template."
+    new_file.close()
+except Exception as e:
+    assert False

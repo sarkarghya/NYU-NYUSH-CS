@@ -1,0 +1,34 @@
+# Louis Hwang
+# lah501_attackcase1.r2py
+
+# Tests if removing default file and then opening default file with True argument
+# causes previously closed files to be removed
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "foo" in listfiles():
+    removefile("foo")
+if "foo2" in listfiles():
+    removefile("foo2")
+
+# Open, write at default file, close default file
+dff = openfile("default", True)
+dff.writeat("abcdefg",0)
+dff.close()
+
+# Open, write in another file, close that file
+foofile = openfile("foo2", True)
+foofile.writeat("pp", 0)
+foofile.close()
+
+# This should not delete foo2 from directory because "default" has already been created.
+dff2 = openfile("default", True)
+dff2.close()
+
+# Raise exception if foo2 is not in directory
+assert "foo2" in listfiles()
+
+# Remove default and see if foo2 is removed
+removefile("default")
+assert "foo2" not in listfiles()

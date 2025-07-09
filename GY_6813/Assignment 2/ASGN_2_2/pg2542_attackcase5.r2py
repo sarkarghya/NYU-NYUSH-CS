@@ -1,0 +1,17 @@
+file1 = openfile("file1.txt", True)
+file2 = openfile("file2.txt", True)
+default = openfile("default", True)
+file2.close()
+
+default.writeat("TEMPLATE", 0)
+default.close()
+
+try:
+    openfile("file1.txt", False)  # Should raise if file1 is deleted
+except FileInUseError:
+    pass
+
+try:
+    openfile("file2.txt", False)  # Should raise if file2 is not deleted
+except FileNotFoundError:
+    pass

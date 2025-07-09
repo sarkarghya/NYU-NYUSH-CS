@@ -1,0 +1,28 @@
+# Check if the "default" file exists, if it does, remove it
+if "default" in listfiles():
+    removefile("default")
+
+# Check if "file1.txt" exists, if it does, remove it
+if "fileA.txt" in listfiles():
+    removefile("fileA.txt")
+
+# Create a new "default" file and write "DEFAULT_CONTENT" at position 0
+default = openfile("default", True)  # True indicates opening in write mode
+default.writeat("DEFAULT_CONTENT", 0)
+default.close()
+
+# Open the "fileA.txt" in read mode. If it doesn't exist, it will raise an error.
+fileA = openfile("fileA.txt", False)  # False indicates opening in read mode
+
+# Remove the "default" file
+removefile("default")
+
+# Modify "fileA.txt" by writing "MODIFY_FILE1_CONTENT" at position 0
+fileA = openfile("fileA.txt", True)  # Switch to write mode
+fileA.writeat("MODIFY_FILE1_CONTENT", 0)
+fileA.close()
+
+# Reopen "fileA.txt" to verify the written content
+fileA = openfile("fileA.txt", False)  # Open in read mode to check content
+assert fileA.readat(None, 0) == "MODIFY_FILE1_CONTENT", "Expected fileA.txt content to be updated after modification."
+fileA.close()

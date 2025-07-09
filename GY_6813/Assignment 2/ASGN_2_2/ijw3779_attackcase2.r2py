@@ -1,0 +1,43 @@
+def attack_cases():
+  # Clean up if the files exist
+  if "default" in listfiles():
+    removefile("default")
+  if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+  # Check if the readat and writeat functions of the security layers are able to handle the errors in below scenarios
+
+  # able to handle error if the bytes set to None for the readat functions
+  try:
+    file_bytes = LPopenfile("case1.txt", False)
+    file_bytes.readatt(None, 1)
+    file_bytes.close()
+  except Exception:
+    pass
+
+  # able to handle error if the offset set to < 0 for the readat functions
+  try:
+    file_offset = LPopenfile("case2.txt", False)
+    file_offset.readatt(0, -1)
+    file_offset.close()
+  except Exception:
+    pass
+
+  # able to handle error if beyond file size for the readat functions
+  try:
+    file_big = LPopenfile("case3.txt", False)
+    file_big.readatt(0, 1000)
+    file_big.close()
+  except Exception:
+    pass
+
+  # able to handle error if the offset set to < 0 for the writeat functions
+  try:
+    file_offs = LPopenfile("case4.txt", False)
+    file_offs.write("TEST4", -1)
+    file_offs.close()
+  except Exception:
+    pass
+
+
+attack_cases()

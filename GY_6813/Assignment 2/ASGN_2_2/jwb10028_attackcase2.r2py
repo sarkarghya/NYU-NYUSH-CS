@@ -1,0 +1,21 @@
+# attack by default file modification
+
+def modify_default_file():
+    try:
+        if "default" in listfiles():
+            removefile("default")
+        else:
+            file = openfile("default", True)
+            file.writeat("Default file content", 0)
+            file.close()
+
+            file = openfile("default", False)
+            file.writeat("Overwriting default content", 0)
+            file.close()
+
+            removefile("default")
+    except Exception:
+        pass 
+
+# Execute the attack
+modify_default_file()

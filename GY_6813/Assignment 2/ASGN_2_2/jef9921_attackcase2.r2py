@@ -1,0 +1,14 @@
+# TestCase: Opening the same file twice
+
+if "file1.txt" in listfiles():
+    removefile("file1.txt")
+
+try:
+  file1 = openfile("file1.txt", True)
+  file2 = openfile("file1.txt", True)
+except FileInUseError:
+  pass
+finally:
+  file1.close()
+
+

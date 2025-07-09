@@ -1,0 +1,25 @@
+# attack by concurrently opening files
+
+def concurrent_open(filename, thread_id):
+    try:
+        file = openfile(filename, False)
+        file.writeat("Thread %d: writing" % thread_id, 0)
+        file.close()
+    except Exception:
+        pass
+
+def concurrent_access_attack():
+    filename = "testfile.txt"
+
+    if filename in listfiles():
+        removefile(filename)
+
+    file = openfile(filename, True)
+    file.writeat("Initial content", 0)
+    file.close()
+
+    for i in range(5):
+        concurrent_open(filename, i)
+
+# Execute the attack
+concurrent_access_attack()

@@ -1,0 +1,186 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        mycontext['filename'] = filename
+        mycontext['create'] = create
+        if 'createdfilelist' not in mycontext:
+            mycontext['createdfilelist'] = []
+        if 'removefilelist' not in mycontext:
+            mycontext['removefilelist'] = []
+
+        # if filename not in listfiles() and create == False and 'default' not in listfiles():
+        if create == False and 'default' not in listfiles() and filename not in listfiles():
+            raise FileNotFoundError("NO default file template! Openfile cannot open non existent file '"+filename+"' without default file or create == True")
+
+        # When 'default' file is created
+        if filename == 'default' and filename not in listfiles():
+
+            # Check if there is any files created and closed before
+            for i in range(len(mycontext['createdfilelist'])):
+                try:
+                    # Double check if the created file still remains in directory
+                    if mycontext['createdfilelist'][i] in listfiles():
+                        check_closed = openfile(mycontext['createdfilelist'][i], True)
+                        check_closed.close()
+                
+                # If opened do nothing
+                except FileInUseError:
+                    pass
+
+                # If closed remove them all
+                else:
+                    removefile(mycontext['createdfilelist'][i])
+                    mycontext['removefilelist'].append(mycontext['createdfilelist'][i])
+            
+            # # Remove removed filenames in the filename tracker
+            for i in range(len(mycontext['removefilelist'])):
+                if mycontext['removefilelist'][i] in mycontext['createdfilelist']:
+                    mycontext['createdfilelist'].remove(mycontext['removefilelist'][i])
+
+            mycontext['removefilelist'] = []
+
+
+        # If file does not exist but default file does
+        if create == False and 'default' in listfiles():
+
+            # Case when default file opened before and not closed
+            try:  
+                default_file = openfile('default', False)
+            except FileInUseError:
+                raise FileInUseError("Cannot open file 'default' because it is already open!")
+
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+
+            if filename not in mycontext['createdfilelist']:
+                mycontext['createdfilelist'].append(filename)
+
+        else:
+            self.LPfile = openfile(filename, create)
+
+            if filename not in mycontext['createdfilelist']:
+                mycontext['createdfilelist'].append(filename)
+        
+    def readat(self, num_bytes, offset):     
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+
+        # Remove every closed file when writing default file
+        if mycontext['filename'] == 'default':
+
+            # Check if there is any files created and closed before
+            for i in range(len(mycontext['createdfilelist'])):
+                try:
+                    # Double check if the created file still remains in directory
+                    if mycontext['createdfilelist'][i] in listfiles():
+                        check_closed = openfile(mycontext['createdfilelist'][i], True)
+                        check_closed.close()
+                
+                # If opened do nothing
+                except FileInUseError:
+                    pass
+
+                # If closed remove them all
+                else:
+                    removefile(mycontext['createdfilelist'][i])
+                    mycontext['removefilelist'].append(mycontext['createdfilelist'][i])
+            
+            # # Remove removed filenames in the filename tracker
+            for i in range(len(mycontext['removefilelist'])):
+                if mycontext['removefilelist'][i] in mycontext['createdfilelist']:
+                    mycontext['createdfilelist'].remove(mycontext['removefilelist'][i])
+            mycontext['removefilelist'] = []
+
+    def close(self):
+        self.LPfile.close()
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+            
+
+def LPremovefile(filename):
+
+    if filename == 'default':
+
+        default = LPopenfile(filename, True)
+
+        # Check if there is any files created and closed before
+        for i in range(len(mycontext['createdfilelist'])):
+            try:
+                # Double check if the created file still remains in directory
+                if mycontext['createdfilelist'][i] in listfiles():
+                    check_closed = openfile(mycontext['createdfilelist'][i], True)
+                    check_closed.close()
+                
+            # If opened do nothing
+            except FileInUseError:
+                pass
+
+            # If closed remove them all
+            else:
+                removefile(mycontext['createdfilelist'][i])
+                mycontext['removefilelist'].append(mycontext['createdfilelist'][i])
+            
+        # # Remove removed filenames in the filename tracker
+        for i in range(len(mycontext['removefilelist'])):
+            if mycontext['removefilelist'][i] in mycontext['createdfilelist']:
+                mycontext['createdfilelist'].remove(mycontext['removefilelist'][i])
+        mycontext['removefilelist'] = []
+        mycontext['createdfilelist'].remove('default')
+
+        default.close()
+
+    removefile(filename)
+    
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

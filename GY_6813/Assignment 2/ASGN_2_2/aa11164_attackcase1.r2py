@@ -1,0 +1,15 @@
+# testing if newly created file with True is empty
+
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", True)
+
+# Read from the whole file. 
+assert myfile.readat(None, 0) == "" # The new file should be empty
+
+myfile.close()
+removefile("testfile.txt")

@@ -1,0 +1,11 @@
+# TestCase: file Double close() - FileClosedError
+
+if "file_double_close.txt" in listfiles():
+  removefile("file_double_close.txt")
+
+try:
+  file1 = openfile("file_double_close.txt", True)
+  file1.close()
+  file1.close()
+except FileClosedError:
+  pass

@@ -1,0 +1,9 @@
+# CASE 2: Correctly write to a file
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+assert default.readat(None, 0) == "TEMPLATE"
+default.close()
+# END OF CASE 2

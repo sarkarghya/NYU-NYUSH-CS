@@ -1,0 +1,16 @@
+def test_default_file():
+    default = openfile("default", True)
+    default.writeat("Default content", 0)
+    default.close()
+    
+    newfile = openfile("newfile", False)
+    content = newfile.readat(None, 0)
+    assert content == "Default content"
+    newfile.close()
+
+    if "default" in listfiles():
+        removefile("default")
+    if "newfile" in listfiles():
+        removefile("newfile")
+
+test_default_file()

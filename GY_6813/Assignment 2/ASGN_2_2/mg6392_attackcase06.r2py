@@ -1,0 +1,23 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("default")
+cleanup_files("testfile3.txt")
+cleanup_files("testfile4.txt")
+
+default = openfile("default", True)
+default.writeat('new default message appearing!', 0)
+default.close()
+
+# Create multiple files using the default file as a template
+file3 = openfile("testfile3.txt", False)
+file4 = openfile("testfile4.txt", False)
+
+assert file3.readat(None, 0) == 'new default message appearing!'
+assert file4.readat(None, 0) == 'new default message appearing!'
+
+file3.close()
+file4.close()
+cleanup_files("testfile3.txt")
+cleanup_files("testfile4.txt")

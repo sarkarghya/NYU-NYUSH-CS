@@ -1,0 +1,39 @@
+# Attack 10: Simulating File Locking Mechanism Attack
+# Goal: Test how the security layer handles concurrent access to a file, ensuring that multiple processes or threads do not interfere with each other when reading or writing to the same file.
+
+# Clean up any existing files before starting the test
+if "file_lock_test.txt" in listfiles():
+    removefile("file_lock_test.txt")
+
+# --- Attack Step 1: Create a file ---
+test_file = openfile("file_lock_test.txt", True)
+test_file.writeat("Initial content for file locking test.", 0)
+test_file.close()  # Close after writing
+
+# --- Attack Step 2: Simulate concurrent access manually (Sequential Simulated File Locking) ---
+try:
+    # Open the file in the first "process"
+    file_handle_1 = openfile("file_lock_test.txt", False)
+
+    # Try to open the same file in a second "process"
+    try:
+        file_handle_2 = openfile("file_lock_test.txt", False)
+        file_handle_2.close()  # Close the second handle if it successfully opens (unexpected)
+    except FileInUseError:
+        # This error is expected because the file is already open; suppress it
+        pass
+
+    # Close the first handle after simulating concurrent access
+    file_handle_1.close()
+
+except FileNotFoundError:
+    # Expected if "default" or the target file doesn't exist; suppress this error
+    pass
+
+# --- Clean up created files ---
+if "file_lock_test.txt" in listfiles():
+    try:
+        removefile("file_lock_test.txt")
+    except FileInUseError:
+        # If the file is still in use during cleanup, suppress the error
+        pass

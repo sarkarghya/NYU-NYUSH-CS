@@ -1,0 +1,22 @@
+# This test checks if a FileNotFoundError is raised when trying to open a file using
+# default when it doesnt exist
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "error_testfile.txt" in listfiles():
+    removefile("error_testfile.txt")
+
+# Test opening a file without default present
+try:
+    myfile = openfile("error_testfile.txt", False)
+except FileNotFoundError as e:
+    log("Caught expected FileNotFoundError: " + str(e))
+except Exception as e:
+    log(f"Unexpected error: {str(e)}")
+finally:
+    try:
+        myfile.close()
+    except:
+        log("File was not opened, no need to close.")
+

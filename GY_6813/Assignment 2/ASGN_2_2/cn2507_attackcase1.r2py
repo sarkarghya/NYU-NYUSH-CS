@@ -1,0 +1,11 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'missingfile.txt' in listfiles():
+    removefile('missingfile.txt')
+
+try:
+    file = openfile('missingfile.txt', False)
+except Exception:
+    pass
+else:
+    assert False

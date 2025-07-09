@@ -1,0 +1,44 @@
+#Checks if a FileNotFoundError is properly raised when default does not exist and create is set as False
+
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+if "checknum1" in listfiles():
+  removefile("checknum1")
+
+#________________________________________________________________________________________________________________
+# Check if an error is raised because default does not exist
+
+try:
+  check1 = openfile("checknum1", False)
+
+except FileNotFoundError:
+   pass
+
+else:
+    check1.close()
+    raise Exception("FileNotFoundError was not raised (ac1)")
+
+#________________________________________________________________________________________________________________
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close the file
+myfile.close()

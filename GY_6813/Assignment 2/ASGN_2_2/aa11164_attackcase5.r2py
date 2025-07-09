@@ -1,0 +1,35 @@
+# Modifying default file deletes all closed files but keep open files
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile('default')
+if "tesst1" in listfiles():
+  removefile('tesst1')
+if "tesst2" in listfiles():
+  removefile('tesst2')
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+tesstfile1 = openfile("tesst1", True)
+tesstfile1.writeat("NEW CONTENT", 0)
+tesstfile1.close()
+
+tesstfile2 = openfile("tesst2", False)
+tesstfile2.writeat("NEW CONTENT2", 0)
+
+removefile('default')
+
+# file should not have been deleted and should contain NEW CONTENT2
+tesstfile2.close()
+
+try:
+  tesstfile1 = openfile('tesst1', False) # fail because default was deleted and tesst1 was also deleted
+  log("default and file was deleted but FilenotFound not thrown")
+except:
+  pass
+
+tesstfile2 = openfile('tesst2', True) # file should not have been deleted and should contain NEW CONTENT2
+assert tesstfile2.readat(None, 0) == "NEW CONTENT2"
+

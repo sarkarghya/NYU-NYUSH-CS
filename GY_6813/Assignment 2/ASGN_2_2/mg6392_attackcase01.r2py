@@ -1,0 +1,12 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+# Try to open default file but get a FileNotFoundError
+cleanup_files("default")
+
+try:
+  default = openfile("default", False)
+  assert False
+except FileNotFoundError:
+  assert True

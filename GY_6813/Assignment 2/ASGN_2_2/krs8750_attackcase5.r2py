@@ -1,0 +1,24 @@
+#Test that allowed filenames don't throw an error
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+try:
+  # Open a file with an invalid name
+  myfile = openfile(".badfile", False)
+except RepyArgumentError:
+  pass
+else:
+  myfile.close()
+  removefile(".badfile")
+  raise RepyArgumentError("This file name should not be allowed")

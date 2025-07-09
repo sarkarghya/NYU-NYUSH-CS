@@ -1,0 +1,13 @@
+# huge file read and write
+
+my_file = openfile("hugefile.txt", True)
+
+try:
+    my_file.writeat("aaa"*100000, 0)
+except:
+    log("ERROR - huge file write")
+
+try:
+    my_file.readat(10000000, 10)
+except:
+    log("ERROR - huge file read")

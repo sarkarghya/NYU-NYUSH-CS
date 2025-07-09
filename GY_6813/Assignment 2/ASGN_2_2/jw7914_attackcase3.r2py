@@ -1,0 +1,58 @@
+#Attack Case 3 - Testing if removing default file removes all closed files
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "testfile1.txt" in listfiles():
+    removefile("testfile1.txt")
+if "testfile2.txt" in listfiles():
+    removefile("testfile2.txt")
+if "testfile3.txt" in listfiles():
+    removefile("testfile3.txt")
+
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default file
+default.writeat("TEMPLATE", 0)
+
+# Close the 'default' file
+default.close()
+
+# Open a file that doesn't exist (testfile.txt)
+myfile = openfile("testfile.txt", False)
+
+# Read from the file (reading entire file from offset 0)
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close the file
+myfile.close()
+
+# Testing if removing 'default' removes all closed files
+# Create three files
+myfile1 = openfile("testfile1.txt", True)
+myfile2 = openfile("testfile2.txt", True)
+myfile3 = openfile("testfile3.txt", True)
+
+# Close the files
+myfile1.close()
+myfile2.close()
+myfile3.close()
+
+# Remove the 'default' file
+removefile("default")
+
+# Check if the closed files have been removed
+if "testfile1.txt" in listfiles():
+    log("testfile1.txt still exists\n")
+if "testfile2.txt" in listfiles():
+    log("testfile2.txt still exists\n")
+if "testfile3.txt" in listfiles():
+    log("testfile3.txt still exists\n")
+if "testfile.txt" in listfiles():
+    log("testfile.txt still exists\n")
+if "defualt" in listfiles():
+    log("default still exists\n")

@@ -1,0 +1,16 @@
+# should stay false
+created = False
+
+# checks if RepyArgumentError is raised for
+# a nonstring filename
+try:
+	test = openfile(100, True)
+except Exception("RepyArgumentError"):
+	a = 1
+except RepyArgumentError:
+	a = 1
+
+# closes the file if its created
+# even though it shouldn't be created
+if created:
+	test.close()

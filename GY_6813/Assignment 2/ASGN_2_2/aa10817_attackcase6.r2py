@@ -1,0 +1,22 @@
+def test_negative_offset():
+    myfile = openfile("negative_offset", True)
+    myfile.writeat("Hello", 0)
+    
+    try:
+        myfile.readat(5, -1)
+        assert False
+    except:
+        pass
+    
+    try:
+        myfile.writeat("Oops", -1)
+        assert False
+    except:
+        pass
+    
+    myfile.close()
+
+    if "negative_offset" in listfiles():
+        removefile("negative_offset")
+
+test_negative_offset()

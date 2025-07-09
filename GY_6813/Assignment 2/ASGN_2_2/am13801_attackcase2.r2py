@@ -1,0 +1,27 @@
+# case 2: checking the behaviour of default as template for a file
+def close_after(t):
+  def sleep_for():
+    # Terminated the program after sleeping t sec
+    sleep(t)
+    log("ATTACK 2 | Unsuccessful Operation as Program Triggered Race Condition / Infinite Loop\n")
+    exitall()
+  return sleep_for
+terminate_program = close_after(10)
+createthread(terminate_program)
+
+# Clean up existing files
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+
+try:
+    # create a file with no create flag and default file is not there
+    myfile = openfile("testfile.txt", False)
+    log("ATTACK 2 | PASSTHROUGH | File without create flag created when default file is not there\n")
+    myfile.close()
+except FileNotFoundError:
+   pass
+finally:
+    #Exit operation
+    exitall()

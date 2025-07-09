@@ -1,0 +1,14 @@
+def test_file_persistence():
+    myfile = openfile("persist", True)
+    myfile.writeat("Persist this!", 0)
+    myfile.close()
+    
+    myfile = openfile("persist", False)
+    content = myfile.readat(None, 0)
+    assert content == "Persist this!"
+    myfile.close()
+
+    if "persist" in listfiles():
+        removefile("persist")
+
+test_file_persistence()

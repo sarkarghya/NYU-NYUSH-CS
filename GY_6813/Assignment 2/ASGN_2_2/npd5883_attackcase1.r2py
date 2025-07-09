@@ -1,0 +1,18 @@
+def thread_open():
+    try:
+        myfile = openfile("testfile.txt", True)
+        myfile.close()
+    except Exception:
+        pass
+
+def thread_delete():
+    try:
+        removefile("testfile.txt")
+    except Exception:
+        pass
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+createthread(thread_open)
+createthread(thread_delete)

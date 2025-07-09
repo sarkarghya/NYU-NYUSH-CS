@@ -1,0 +1,28 @@
+import logging
+import threading
+
+
+
+
+def access_file_concurrently():
+    try:
+        file_handle = openfile("shared_file.txt", "r")
+        logging.info("File accessed successfully by thread: %s", threading.current_thread().name)
+    except Exception as e:
+        logging.error("Error accessing file in thread %s: %s", threading.current_thread().name, e)
+
+
+def test_concurrent_file_access():
+    thread1 = threading.Thread(target=access_file_concurrently, name="Thread-1")
+    thread2 = threading.Thread(target=access_file_concurrently, name="Thread-2")
+
+    thread1.start()
+    thread2.start()
+
+    thread1.join()
+    thread2.join()
+
+    logging.info("Concurrent file access test completed.")
+    assert True, "Concurrent access did not cause any failures."
+
+

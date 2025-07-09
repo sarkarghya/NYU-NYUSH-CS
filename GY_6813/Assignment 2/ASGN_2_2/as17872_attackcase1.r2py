@@ -1,0 +1,14 @@
+default_content = "This is the default content."
+default_file = openfile("default", True)
+default_file.writeat(default_content, 0)
+default_file.close()
+
+new_file = openfile("newfile", False)
+
+new_content = new_file.readat(None, 0)
+assert "This is the default content." == new_content, "Test1 FAILED, contents mismatch for newfile"
+
+new_file.close()
+
+
+removefile("default")

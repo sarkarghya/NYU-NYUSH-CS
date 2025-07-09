@@ -1,0 +1,7 @@
+file = openfile("testfile1.txt", True)
+file.writeat("Blah Blah", 0)
+file.close()
+try:
+    file.writeat("More Blah", 0)
+except FileClosedError as e:
+    pass

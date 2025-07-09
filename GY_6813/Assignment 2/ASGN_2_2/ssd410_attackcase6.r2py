@@ -1,0 +1,28 @@
+# Clean up if the file exists
+if 'test' in listfiles():
+	removefile('test')
+
+if "default" in listfiles():
+  removefile("default")
+
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test", True)
+
+# checks if FileClosedError
+# is raised
+# closes the files
+try:
+	test.close()
+	test.close()
+except Exception("FileClosedError"):
+	a = 1
+except FileClosedError:
+	a = 1
+

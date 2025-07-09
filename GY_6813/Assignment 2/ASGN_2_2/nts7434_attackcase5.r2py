@@ -1,0 +1,14 @@
+# Create a private data file
+private_file = "private_data.txt"
+file_content = "This is private information."
+
+# Create the private file through the monitor
+openfile(private_file, True).writeat(file_content, 0)
+
+# Try to read the private file
+try:
+    private_data = openfile(private_file, False).readat(None, 0)
+    # If access is granted, raise an exception
+    assert False, "Access to private data was allowed!"
+except Exception as e:
+    log("Caught exception: " + str(e))

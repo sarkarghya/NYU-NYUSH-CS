@@ -1,0 +1,33 @@
+if "default" not in listfiles():
+    default = openfile("default", True)
+    default.writeat("TEMPLATE", 0)
+    default.close()
+
+def thread_open_write(filename, data):
+    try:
+        file = openfile(filename, True)
+        file.writeat(data, 0)            
+        file.close()  
+    except Exception as e:
+        raise Exception
+
+# Create threads to simulate concurrent writing
+createthread(thread_open_write("file1.txt", "Data from thread 1"))
+createthread(thread_open_write("file1.txt", "Data from thread 2"))
+
+# Sleep to ensure threads complete
+sleep(1)
+
+# Validate that file1 contains the correct data, and no race condition occurred
+try:
+    file = openfile("file1.txt", False)  # Open file in read mode
+    content = file.readat(None, 0)   # Read all the content from the file
+    file.close()                     # Close the file after reading
+
+    # Check if the file contains data written by any of the threads
+    if "Data from thread" in content:
+        continue
+    else:
+        continue
+except Exception as e:
+    raise Exception

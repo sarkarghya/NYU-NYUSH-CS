@@ -1,0 +1,16 @@
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+myfile = openfile("testfile.txt", True)
+
+
+large_data = "A" * 1025
+try:
+    myfile.writeat(large_data, 0)
+except Exception:
+    pass 
+
+
+myfile.close()

@@ -1,0 +1,13 @@
+try:
+    d = openfile("default3", True)
+    d.writeat("None", 10)
+    d.writeat("None", 3)
+    d.close()
+    d = openfile("default3", True)
+    d.close()
+except SeekPastEndOfFileError as e:
+    pass
+except Exception as e:
+    log("this should not have happened\n")
+    log(e)
+    log("\n")

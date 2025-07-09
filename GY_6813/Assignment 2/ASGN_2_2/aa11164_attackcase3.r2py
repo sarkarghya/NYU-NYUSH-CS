@@ -1,0 +1,23 @@
+# testing if newly created file have the contents of default
+
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+
+# Read from the whole file. 
+assert myfile.readat(None, 0) == "TEMPLATE" # The new file should have TEMPLATE at 0
+
+myfile.close()

@@ -1,0 +1,79 @@
+# Clean up if files exist
+def cleanup_files():
+    filenames = ["default", "file1", "file2", "file3"]
+    for filename in filenames:
+        if filename in listfiles():
+            try:
+                removefile(filename)
+            except Exception:
+                pass  # Ignore errors during cleanup if files do not exist
+
+cleanup_files()
+
+# Create 'default' file with initial content
+try:
+    default_file = openfile("default", True)
+    default_file.writeat("Initial content", 0)
+    default_file.close()
+except Exception as e:
+    log("Error creating 'default': " + str(e))
+
+# Function to open 'default' and keep it open
+def hold_default_open():
+    file = None
+    try:
+        file = openfile("default", False)
+        sleep(3)  # Hold the file open for some time
+    except Exception as e:
+        log("Error in hold_default_open: " + str(e))
+    finally:
+        if file:
+            file.close()
+
+# Functions to create new files from 'default'
+def create_file1_from_default():
+    try:
+        file = openfile("file1", False)
+        content = file.readat(None, 0)
+        if content != "Initial content":
+            log("File file1 content mismatch: %s" % content)
+        file.close()
+    except Exception as e:
+        log("Error creating file1: %s" % str(e))
+
+def create_file2_from_default():
+    try:
+        file = openfile("file2", False)
+        content = file.readat(None, 0)
+        if content != "Initial content":
+            log("File file2 content mismatch: %s" % content)
+        file.close()
+    except Exception as e:
+        log("Error creating file2: %s" % str(e))
+
+def create_file3_from_default():
+    try:
+        file = openfile("file3", False)
+        content = file.readat(None, 0)
+        if content != "Initial content":
+            log("File file3 content mismatch: %s" % content)
+        file.close()
+    except Exception as e:
+        log("Error creating file3: %s" % str(e))
+
+# Start the thread that holds 'default' open
+createthread(hold_default_open)
+sleep(0.5)  # Ensure 'default' is open before creating new files
+
+# Start threads to create new files from 'default'
+createthread(create_file1_from_default)
+sleep(0.5)  # Short delay between attempts
+createthread(create_file2_from_default)
+sleep(0.5)  # Short delay between attempts
+createthread(create_file3_from_default)
+
+# Allow time for threads to execute
+sleep(2)
+
+# Clean up at the end
+cleanup_files()

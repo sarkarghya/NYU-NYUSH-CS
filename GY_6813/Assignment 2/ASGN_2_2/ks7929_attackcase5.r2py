@@ -1,0 +1,21 @@
+#--- CLeaning
+if "default" in listfiles():
+    removefile("default")
+if "cat.txt" in listfiles():
+    removefile("cat.txt")
+if "dog.txt" in listfiles():
+    removefile("dog.txt")
+
+default = openfile("default", True)
+default.writeat("CAT TEMPLATE", 0)
+cat = openfile("cat.txt", False)
+cat.close()
+
+#cat file closed but yet in files list
+assert "cat.txt" in listfiles()
+
+default.writeat("change template", 1)
+default.close()
+
+#default written, so deleted closed file
+assert "cat.txt" not in listfiles()

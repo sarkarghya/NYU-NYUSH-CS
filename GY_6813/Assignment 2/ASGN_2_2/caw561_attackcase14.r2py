@@ -1,0 +1,33 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+myfile.close()
+
+default = openfile("default", True)
+myfile = openfile("testfile.txt", True)
+myfile.close()
+
+default.writeat("TEMPLATE", 0)
+
+if "testfile.txt" in listfiles():
+  myfile.close()
+
+
+
+
+
+
+

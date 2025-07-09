@@ -1,0 +1,40 @@
+# md6031_attackcase2.r2py
+# This attack case tests concurrent write access to a file
+
+def write_thread(filename, content, offset):
+    try:
+        myfile = openfile(filename, False)
+        myfile.writeat(content, offset)
+        myfile.close()
+    except Exception as e:
+        log(f"Write thread exception: {str(e)}")
+
+def attack_case2():
+    # Clean up if the file exists
+    if "testfile2.txt" in listfiles():
+        removefile("testfile2.txt")
+
+    # Create the test file
+    testfile = openfile("testfile2.txt", True)
+    testfile.close()
+
+    # Start multiple threads to write to the file concurrently
+    createthread(write_thread, args=("testfile2.txt", "Thread1", 0))
+    createthread(write_thread, args=("testfile2.txt", "Thread2", 0))
+
+    # Sleep to allow threads to run
+    sleep(0.1)
+
+    # Check the file content
+    testfile = openfile("testfile2.txt", False)
+    content = testfile.readat(None, 0)
+    testfile.close()
+
+    # Verify that the content hasn't changed due to concurrent writes
+    if content != "TEMPLATE":
+        log("Vulnerability 2: File content changed under concurrent write access")
+    else:
+        log("Attack case 2 passed: Concurrent write access handled correctly")
+
+if callfunc == 'initialize':
+    attack_case2()

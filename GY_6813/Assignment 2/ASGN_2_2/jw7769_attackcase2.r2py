@@ -1,0 +1,20 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+  
+def test_concurrent_access():
+    def open_testfile():
+        openfile('testfile.txt', True)
+        
+    file_obj = openfile('testfile.txt', False)
+    file_obj.close()
+
+    thread_1 = create_thread(open_testfile, [])
+    thread_2 = create_thread(open_testfile, [])
+
+    thread_1.join()
+    thread_2.join()
+
+    log("Error in test_concurrent_access: " + str(e), "logfile.txt")

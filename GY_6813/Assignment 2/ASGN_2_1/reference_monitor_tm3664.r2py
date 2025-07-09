@@ -1,0 +1,116 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+openFiles = {}
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        if not is_valid_filename(filename):
+            raise ValueError("Invalid filename: " + filename)
+        self.filename = filename
+        self.lock = createlock()
+        self.lock.acquire(True)
+
+        try:
+            if create == False and 'default' in listfiles():
+                try:
+                    with openfile('default', False) as default_file:
+                        content = default_file.readat(None, 0)
+                    self.LPfile = openfile(filename, True)
+                    self.LPfile.writeat(content, 0)
+                except FileNotFoundError:
+                    raise FileNotFoundError("Default file is required but not found.")
+            else:
+                self.LPfile = openfile(filename, create)
+            openFiles[filename] = self
+        finally:
+            self.lock.release()
+
+    def readat(self, bytes, offset):
+        self.lock.acquire(True)
+        try:
+            if offset < 0 or bytes is not None and offset + bytes > len(self.LPfile.readat(None, 0)):
+                raise ValueError("Attempt to read beyond the bounds of the file.")
+            return self.LPfile.readat(bytes, offset)
+        finally:
+            self.lock.release()
+
+    def writeat(self, data, offset):
+        self.lock.acquire(True)
+        try:
+            if offset < 0 or offset > len(self.LPfile.readat(None, 0)):
+                raise ValueError("Invalid offset for write operation.")
+            if self.filename == 'default':
+                affected_files = [file for file in listfiles() if file != 'default' and file not in openFiles]
+                for file in affected_files:
+                    removefile(file)
+            self.LPfile.writeat(data, offset)
+        finally:
+            self.lock.release()
+
+    def close(self):
+        if self.filename in openFiles:
+            del openFiles[self.filename]
+        self.LPfile.close()
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename in openFiles:
+        openFiles[filename].close()
+    removefile(filename)
+
+def is_valid_filename(filename):
+    valid_chars = set("abcdefghijklmnopqrstuvwxyz0123456789")
+    if not filename:
+        return False
+    if filename[0] == '.' or filename in {'.', '..'} or any(char not in valid_chars for char in filename) or len(filename) > 120:
+        return False
+    return True
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

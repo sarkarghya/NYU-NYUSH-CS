@@ -1,0 +1,11 @@
+some_file = openfile("some_other_file", True)
+some_file.writeat("First instance of text", 0)
+some_file.close()
+
+try:
+    some_file.readat(None, 0)
+    
+except FileClosedError:
+    pass # correct exception raised
+else:
+    log("did not raise correct exception")

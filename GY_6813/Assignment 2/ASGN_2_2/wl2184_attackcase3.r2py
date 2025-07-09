@@ -1,0 +1,34 @@
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+try:
+    default = openfile("default", True)
+    default.writeat("TEMPLATE", 0)
+    default.close()
+except:
+    pass  
+
+# Attempt to delete 'testfile.txt' after closing
+if "testfile.txt" in listfiles():
+    try:
+        removefile("testfile.txt")
+    except:
+        pass  
+
+# Reopen and read 'default' to verify contents
+try:
+    default = openfile("default", False)
+    read_data = default.readat(None, 0)
+    default.close()
+except:
+    pass  
+
+# Delete 'default' after reading
+if "default" in listfiles():
+    try:
+        removefile("default")
+    except:
+        pass  

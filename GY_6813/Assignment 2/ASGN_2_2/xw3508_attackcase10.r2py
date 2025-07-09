@@ -1,0 +1,6 @@
+try:
+    f = openfile('deletefile', True)
+    f.close()
+    removefile('deletefile')
+except:
+    pass

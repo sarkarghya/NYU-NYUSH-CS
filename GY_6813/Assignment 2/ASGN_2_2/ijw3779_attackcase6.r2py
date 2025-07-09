@@ -1,0 +1,30 @@
+def attack_cases():
+  # Clean up if the files exist
+  if "default" in listfiles():
+    removefile("default")
+  if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+  # Check if the readat and writeat functions of the security layers are able to handle the errors in below scenarios
+  
+  # able to handle error is the file open before the create of DEFAULT file is not closed for the writeat functions
+  try:
+    file5 = LPopenfile("attackcase.txt", False)
+    file5.writeat("TEST5", 0)
+
+    # create a Default file while file5 is still open
+    default_file = LPopenfile("default", True)
+    try:
+      for i in range(10): # try continous write and read from the default file
+        message = "DEFAULT"+ str(i)
+        default_file.writeat(message, 0)
+        default_file.readatt(1, 1)
+      default_file.close()
+    except Exception:
+      pass
+
+    file5.close()
+  except Exception:
+    pass
+
+attack_cases()

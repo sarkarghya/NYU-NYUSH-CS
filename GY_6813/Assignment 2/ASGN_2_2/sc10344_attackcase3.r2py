@@ -1,0 +1,25 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "data_file.txt" in listfiles():
+    removefile("data_file.txt")
+
+# Create a default file and write content to it
+default_data = openfile("default", True)
+default_data.writeat("DEFAULT_CONTENT", 0)
+default_data.close()
+
+# Open a new file (data_file.txt) that uses default file as a template
+data_file = openfile("data_file.txt", False)
+
+# Remove the default file
+removefile("default")
+
+# Write new content into the data_file
+data_file.writeat("MODIFIED_CONTENT", 0)
+data_file.close()
+
+# Reopen the data_file and verify if the new content has been correctly written
+data_file = openfile("data_file.txt", False)
+assert data_file.readat(None, 0) == "MODIFIED_CONTENT", "Expected 'data_file.txt' content to be updated after modification."
+data_file.close()

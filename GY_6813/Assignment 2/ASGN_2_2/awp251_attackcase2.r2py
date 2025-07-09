@@ -1,0 +1,27 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+
+## ATTACK CASE WITH NO STARTING DEFAULT FILE AND NO STARTING testfile.txt ##
+
+#GOAL: To not have the FileNotFoundError raised when default file does not exist 
+#      and testfile.txt does not exist and create==False 
+
+
+# Open a file that doesn't exist
+try:
+    myfile = openfile("testfile.txt", False)
+except FileNotFoundError:
+    pass
+
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+# if the assert condition is not true, the attack case program will raise the AssertionError to indicate the reference monitor behaved unexpectedly
+# the autograder will then consider this as a successful attack case
+assert "testfile.txt" not in listfiles()
+

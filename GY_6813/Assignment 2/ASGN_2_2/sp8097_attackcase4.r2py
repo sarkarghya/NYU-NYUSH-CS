@@ -1,0 +1,10 @@
+### default file created -> all files deleted
+
+# testfile created
+myfile = openfile('testfile1.txt', True)
+myfile.close()
+
+#default file created
+default_file = openfile('default', True)
+assert "testfile1.txt" not in listfiles() 
+

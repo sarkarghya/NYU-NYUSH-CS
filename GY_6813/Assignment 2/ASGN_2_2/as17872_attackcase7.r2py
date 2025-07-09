@@ -1,0 +1,30 @@
+def write_and_close(filename, data, offset=0):
+    file = openfile(filename, True)
+    file.writeat(data, offset)
+    file.close()
+
+def read_file(filename):
+    try:
+        file = openfile(filename, False)
+        content = file.readat(None, 0)
+        file.close()
+        return content
+    except FileNotFoundError:
+        return None
+    
+def t1():
+    data = "a" * 100
+    write_and_close("default", data)
+
+def t2():
+    lot_of_data = "a" * 1000000
+    write_and_close("racefile", lot_of_data)
+    #  tiny delay
+    sleep(0.01)  
+
+createthread(t1)
+createthread(t2)
+sleep(3)
+assert "racefile" in listfiles(), "Test7 FAILED, race file NOT in listfiles()"
+
+removefile("default")

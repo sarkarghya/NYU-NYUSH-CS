@@ -1,0 +1,30 @@
+ 
+
+def test_open_allowed_file():
+    try:
+        file_handle = openfile("allowed_file.txt", "r")
+        assert file_handle is not None, "Failed to open an allowed file."
+    except Exception as e:
+     log(f"Error when opening an allowed file: {e}")
+     assert False, f"Error when opening an allowed file: {e}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

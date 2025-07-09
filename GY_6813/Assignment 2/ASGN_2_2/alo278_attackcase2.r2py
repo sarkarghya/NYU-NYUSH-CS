@@ -1,0 +1,6 @@
+# Attack case for basic starting operations
+
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")

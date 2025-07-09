@@ -1,0 +1,23 @@
+
+
+# List of invalid filenames to test
+invalid_filenames = ["@", "#", "$", "", "file:name", "invalid/filename", "test?.txt"]
+
+#Test the creation on an invalid filenames
+
+for filename in invalid_filenames:
+    try:
+        # Attempt to create or open a file with an invalid filename
+        myfile = openfile(filename, True)
+
+        # If no exception is raised, log this as a failure
+        log("FAILURE: The reference monitor allowed creation of a file with an invalid filename: '{}'.\n".format(filename))
+
+        # Close the file if it was somehow opened
+        myfile.close()
+
+    except RepyArgumentError:
+        pass
+    except Exception as e:
+        # Log any unexpected exceptions for review
+        log("ERROR: An unexpected exception occurred: %s\n" % str(e))

@@ -1,0 +1,24 @@
+#Attack Case 5: Checking for FileInUseError 
+
+#Cleaning up if the files exist 
+if "default" in listfiles():
+    removefile("default")
+if "usedfile.txt" in listfiles():
+    removefile("usedfile.txt")
+
+
+#Opening the file for the first time 
+firstopen = openfile("usedfile.txt", True)
+
+#trying to read a file that is already opened 
+try: 
+    secondopen = openfile("usedfile.txt", True)
+    secondopen.writeat("this test case is to see what happens when opening a file twice", 0)
+    nextfile.readat(None, 0)
+except FileInUseError as f: 
+    pass 
+else: 
+    #assert statement that file is open but was not caught in FileInUseError exception
+    assert False , "FileInUseError was not caught!! "
+    
+

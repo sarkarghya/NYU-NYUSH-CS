@@ -1,0 +1,15 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+	
+try:
+	myfile = openfile("testfile.txt", True)
+	myfile2 = openfile("testfile.txt", True)
+	myfile.close()
+	myfile2.close()
+except FileInUseError:
+	pass # should raise FileInUseError  
+else: 
+	log("should raise FileInUseError\n")

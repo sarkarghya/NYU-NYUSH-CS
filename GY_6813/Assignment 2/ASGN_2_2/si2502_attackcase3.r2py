@@ -1,0 +1,14 @@
+# Default file missing
+try:
+    # Ensure the default file does not exist
+    if 'default' in listfiles():
+        LPremovefile('default')
+
+    # Attempt to opening a new file without it being created, should raise FileNotFoundError
+    try:
+        LPopenfile('testfile', False)
+        log("Failed - FileNotFoundError not raised.")
+    except FileNotFoundError:
+        log("Passed - FileNotFoundError raised as expected.")
+except Exception as e:
+    log(f"Attackcase Failed - {e}")

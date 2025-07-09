@@ -1,0 +1,5 @@
+file = openfile("testfile.txt", True)
+try:
+    file.writeat("hello world", 9999)  # Offset exceeds file size
+except SeekPastEndOfFileError as e:
+    pass

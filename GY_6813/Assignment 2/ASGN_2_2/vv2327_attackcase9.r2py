@@ -1,0 +1,6 @@
+# type: ignore  
+try:
+    myfile = openfile(".testfile", False)
+except RepyArgumentError:
+    assert ".testfile" not in listfiles()
+    pass

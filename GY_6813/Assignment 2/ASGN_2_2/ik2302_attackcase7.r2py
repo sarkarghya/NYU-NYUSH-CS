@@ -1,0 +1,15 @@
+# default file behavior
+
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+if "default" in listfiles():
+  removefile("default")
+  
+file = openfile("testfile.txt", True)
+file.writeat("TEST", 0)
+file.close()
+
+# Create a default file
+default = openfile("default", True)
+
+assert "testfile.txt" not in listfiles(), "Test failed: `testfile.txt` should not exist since it was closed when default was created"

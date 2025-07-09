@@ -1,0 +1,14 @@
+if "file1.txt" in listfiles():
+    removefile("file1.txt")
+if "file2.txt" in listfiles():
+    removefile("file2.txt")
+
+# Open multiple files
+f1 = openfile("file1.txt", True)
+f2 = openfile("file2.txt", True)
+
+f1.writeat("Write File 1", 0)
+f2.writeat("Write File 2", 0)
+
+f1.close()
+f2.close()

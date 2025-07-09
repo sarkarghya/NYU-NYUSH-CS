@@ -1,0 +1,13 @@
+try:
+    file_handle = openfile("default2", True)
+    file_handle.close()
+    file_handle.read_at(None, 0)
+
+except FileClosedError as error:
+    # Attempted to read from a closed file, skipping operation
+    pass
+    
+except Exception as error:
+    log("An unexpected error occurred during file operation\n")
+    log(error)
+    log("\n")

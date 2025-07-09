@@ -1,0 +1,14 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'afterdelete.txt' in listfiles():
+    removefile('afterdelete.txt')
+
+if 'default' in listfiles():
+    removefile('default')
+
+try:
+    after_delete_file = openfile('afterdelete.txt', False)
+except Exception:
+    pass  # Expected behavior: should raise FileNotFoundError
+else:
+    assert False

@@ -1,0 +1,11 @@
+if "nonexistent.txt" in listfiles():
+    removefile("nonexistent.txt")
+
+try:
+    removefile("nonexistent.txt")
+except FileNotFoundError:
+    pass  
+try:
+    openfile("nonexistent.txt", False)
+except FileNotFoundError:
+    pass  

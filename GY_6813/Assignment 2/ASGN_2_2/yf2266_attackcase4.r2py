@@ -1,0 +1,17 @@
+# TEST CASE 4 - Checking file contents
+
+# file cleanup
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# creating testfile
+testfile = openfile("testfile.txt", True)
+testfile.writeat("Attack Case 4", 0)
+testfile.close()
+
+# reopening testfile
+testfile = openfile("testfile.txt", False)
+# checking if contents match
+assert testfile.readat(None, 0) == "Attack Case 4"
+
+testfile.close()

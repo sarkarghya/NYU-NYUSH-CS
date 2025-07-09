@@ -1,0 +1,15 @@
+try:
+    file_handle = openfile("default3", True)
+    file_handle.writeat("None", 0)
+    file_handle.writeat("None", 3)
+    file_handle.close()
+    file_handle = openfile("default3", True)
+    file_handle.close()
+
+except FileClosedError as error:
+    log("FileClosedError: ", error)
+    log("\n")
+    
+except Exception as error:
+    log("Unexpected error: ", error)
+    log("\n")

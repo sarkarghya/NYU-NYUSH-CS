@@ -1,0 +1,31 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+
+
+## ATTACK CASE WITH STARTING DEFAULT FILE AND NO STARTING testfile.txt ##
+
+#GOAL: Not having testfile.txt automatically deleted after writing to default file
+
+
+# Open a file that doesn't exist and don't copy the default TEMPLATE
+myfile = openfile("testfile.txt", True)
+myfile.writeat("The first file, the best file.", 0)
+myfile.close()
+
+
+#attempt to write to default file; previously created and closed files should be deleted automatically
+default.writeat("NEW TEMPLATE", 0)
+default.close()
+
+#testfile.txt should have been deleted
+assert "testfile.txt" not in listfiles()

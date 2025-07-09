@@ -1,0 +1,147 @@
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+class LPFile():
+    def __init__(self, filename, create):
+        mycontext['debug'] = False
+   
+        if 'created_files' not in mycontext:
+            mycontext['created_files'] = []
+        if 'open_files' not in mycontext:
+            mycontext['open_files'] = []
+        if 'default_content' not in mycontext:
+            mycontext['default_content'] = None
+            
+        try:
+            if not filename or len(filename) > 120 or filename.startswith('.'):                             #validate file
+                raise RepyArgumentError("Invalid filename")
+            
+            if filename in mycontext['open_files']:
+                raise FileInUseError(f"File {filename} is already open")                                                 #check if file open
+            
+            if create:                                                                                                 #file creation
+                self.file_obj = openfile(filename, True)
+                if filename != 'default':
+                    mycontext['created_files'].append(filename)
+            else:
+                if filename in listfiles():                                                                             #try opening file that exists
+                    self.file_obj = openfile(filename, False)
+
+                elif 'default' in listfiles():
+                    try:                                                                                                                
+                        if mycontext['default_content'] is None:
+                            default_file = openfile('default', False)
+                            mycontext['default_content'] = default_file.readat(None, 0)
+                            default_file.close()
+
+                        self.file_obj = openfile(filename, True)
+                        self.file_obj.writeat(mycontext['default_content'], 0)
+                        mycontext['created_files'].append(filename)
+                    except:
+                        raise FileNotFoundError("Failed to use default template")
+                else:
+                    raise FileNotFoundError(f"File {filename} does not exist and no default template")
+            
+                                                                                                                    #open file
+            mycontext['open_files'].append(filename)
+            self.filename = filename
+            self.is_closed = False
+            
+        except RepyArgumentError:
+            raise
+        except FileNotFoundError:
+            raise
+        except:
+            raise
+    
+    def readat(self, bytes, offset):
+        try:
+            if self.is_closed:
+                raise FileClosedError("File is closed")
+            return self.file_obj.readat(bytes, offset)
+        except:
+            raise
+    
+    def writeat(self, data, offset):
+        try:
+            if self.is_closed:
+                raise FileClosedError("File is closed")
+            self.file_obj.writeat(data, offset)
+
+            if self.filename == 'default':
+                mycontext['default_content'] = self.file_obj.readat(None, 0)
+        except:
+            raise
+    
+    def close(self):
+        try:
+            if self.is_closed:
+                raise FileClosedError("File is already closed")
+            self.file_obj.close()
+            self.is_closed = True
+            mycontext['open_files'].remove(self.filename)
+        except:
+            raise
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    try:                                                                                                           #validate file
+        if not filename or len(filename) > 120 or filename.startswith('.'):
+            raise RepyArgumentError("Invalid filename")
+
+        if filename in mycontext['open_files']:
+            raise FileInUseError(f"Cannot remove file {filename} while open")                                                #check if open
+        
+        removefile(filename)
+        
+        if filename == 'default':
+            mycontext['default_content'] = None                                                                                      #file removal
+            # Remove all closed created files
+            for created_file in list(mycontext['created_files']):
+                try:
+                    if created_file not in mycontext['open_files'] and created_file in listfiles():
+                        removefile(created_file)
+                        mycontext['created_files'].remove(created_file)
+                except:
+                    pass  
+    except FileNotFoundError:
+        raise
+    except:
+        raise
+
+
+
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

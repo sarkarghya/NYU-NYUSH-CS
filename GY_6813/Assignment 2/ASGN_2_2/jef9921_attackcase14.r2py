@@ -1,0 +1,22 @@
+# TestCase: The "default" file should be closed after creating a new file from "default" - FileInUseError
+# If the 'default file' is not closed after being used, we shall throw a FileInUseError
+
+if "file_from_default.txt" in listfiles():
+  removefile("file_from_default.txt")
+if "default" in listfiles():
+  removefile("default")
+
+try:
+  default = openfile("default", True)
+  default.writeat("data", 0)
+  default.close()
+
+  file1 = openfile("file_from_default.txt", False)
+  file1.close()
+
+  default = openfile("default", False)
+except FileInUseError as e:
+  raise e
+
+
+

@@ -1,0 +1,13 @@
+
+
+import logging
+
+
+def test_restricted_file_read():
+    try:
+        
+        file_handle = openfile("restricted_file.txt", "r")
+        assert False, "Unauthorized access to the restricted file should be denied."
+    except Exception as e:
+        logging.error(f"Error opening file: {e}")
+        assert "Permission denied" in str(e), f"Unexpected error: {e}"

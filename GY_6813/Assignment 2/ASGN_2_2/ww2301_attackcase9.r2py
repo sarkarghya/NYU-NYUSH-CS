@@ -1,0 +1,27 @@
+# reference_monitor_am14504.r2py
+# reference_monitor_jw7914.r2py 
+# reference_monitor_zz4692.r2py
+
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test.txt", False)
+test.close()
+
+try:
+    test = openfile("test.txt", False)
+    test.close()
+except FileClosedError:
+    raise Exception("Should be able to reopen test.txt since it's a closed file")
+except ValueError:
+    raise Exception("Should be able to reopen test.txt since it's a closed file")
+
+

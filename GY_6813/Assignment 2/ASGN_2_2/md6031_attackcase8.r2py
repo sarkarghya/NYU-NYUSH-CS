@@ -1,0 +1,84 @@
+# md6031_attackcase8.r2py
+# This attack case stress tests boundary conditions and error handling
+
+def attack_case8():
+    # Clean up if the files exist
+    if "default" in listfiles():
+        removefile("default")
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Create a default file with special characters
+    default = openfile("default", True)
+    default.writeat("TE\0MP\nLA\rTE", 0)
+    default.close()
+
+    # Test 1: Try to create a file with an empty name
+    try:
+        openfile("", True)
+        log("Security layer flaw: Allowed creation of file with empty name")
+    except Exception:
+        pass
+
+    # Test 2: Try to open a file with a very long name
+    long_name = "a" * 1000000  # 1 million characters
+    try:
+        openfile(long_name, True)
+        log("Security layer flaw: Allowed creation of file with extremely long name")
+    except Exception:
+        pass
+
+    # Test 3: Rapid open and close operations
+    for _ in range(1000):
+        try:
+            f = openfile("testfile.txt", True)
+            f.close()
+            removefile("testfile.txt")
+        except Exception:
+            pass
+
+    # Test 4: Write operations with unusual offsets and lengths
+    f = openfile("testfile.txt", True)
+    try:
+        f.writeat("TEST", -1)
+        log("Security layer flaw: Allowed write with negative offset")
+    except Exception:
+        pass
+
+    try:
+        f.writeat("TEST", 1000000000)  # Very large offset
+        log("Security layer flaw: Allowed write with very large offset")
+    except Exception:
+        pass
+
+    try:
+        f.writeat("", 0)  # Empty string
+        log("Security layer flaw: Allowed write with empty string")
+    except Exception:
+        pass
+
+    # Test 5: Read operations with unusual offsets and lengths
+    try:
+        f.readat(-1, 0)
+        log("Security layer flaw: Allowed read with negative length")
+    except Exception:
+        pass
+
+    try:
+        f.readat(1000000000, 0)  # Very large length
+        log("Security layer flaw: Allowed read with very large length")
+    except Exception:
+        pass
+
+    f.close()
+
+    # Final check
+    f = openfile("testfile.txt", False)
+    content = f.readat(None, 0)
+    f.close()
+
+    if content != "TE\0MP\nLA\rTE":
+        log("Security layer flaw: File content does not match default after stress test")
+
+if callfunc == 'initialize':
+    attack_case8()

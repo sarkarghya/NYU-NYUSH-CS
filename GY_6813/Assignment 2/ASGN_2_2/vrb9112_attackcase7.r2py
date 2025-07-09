@@ -1,0 +1,34 @@
+def attack():
+    try:
+        default = openfile("default", True)
+        default.writeat("Original", 0)
+        default.close()
+
+        files = []
+        count = 0
+        for i in range(10):
+            try:
+                f = openfile("test" + str(i), False)
+                files.append(f)
+                count += 1
+                if count > 1:  # If we can open more than one test file
+                    break  # Exit the loop if the limit is bypassed
+            except:
+                break
+
+        for f in files:
+            f.close()
+
+        removefile("default")
+        for i in range(count):
+            try:
+                removefile("test" + str(i))
+            except:
+                pass
+
+    except Exception:
+        pass  # Do nothing on exception
+    finally:
+        exitall()
+
+createthread(attack)

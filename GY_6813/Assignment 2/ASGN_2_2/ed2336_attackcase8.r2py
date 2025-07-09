@@ -1,0 +1,25 @@
+#Try to write pass the end of the file
+
+try:
+    # Open the file and write some initial data to it
+    myfile = openfile("testfile.txt", True)  # 'True' means create if it doesn't exist
+    myfile.writeat("Initial data", 0)  # Write at the beginning of the file
+
+    # Attempt to write past the end of the file
+    myfile.writeat("This should fail", 1000)  # Writing at position 1000 (past the end)
+
+    # If no exception is raised, log this as a failure
+    log("FAILURE: The reference monitor allowed writing past the end of the file 'testfile.txt'.\n")
+
+except SeekPastEndOfFileError:
+    pass
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))
+
+finally:
+    # Ensure the file is closed if it was opened
+    try:
+        myfile.close()
+    except:
+        pass

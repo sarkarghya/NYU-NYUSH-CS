@@ -1,0 +1,49 @@
+def attack_cases():
+  # File Name Attacks
+  # Check if the security layer is able to handle the errors when passed in filename with errors
+
+  # Open a file with long filename
+  try:
+    long_filename = "a" * 1000
+    longfile = LPopenfile(long_filename, False)
+    longfile.writeat("LONG FILENAME DATA", 0)
+    longfile.close()
+  except Exception:
+    pass
+
+  # Open a file with filename starts with "."
+  try:
+    startfile = LPopenfile(".start.txt", False)
+    startfile.readat(1, 0)
+    startfile.close()
+  except Exception:
+    pass
+
+  # Open a file with filename include invalid characters
+  try:
+    invalidfile = LPopenfile("invalid?*><invalid.txt", False)
+    invalidfile.writeat("INVALID DATA", 0)
+    invalidfile.close()
+  except Exception:
+    pass
+
+  # Open a file with empty filename
+  try:
+    emptyfile = LPopenfile("", False)
+    emptyfile.writeat("EMPTY DATA", 0)
+    emptyfile.close()
+  except Exception:
+    pass
+
+  # Open a file with filename of space
+  try:
+    nofile = LPopenfile("      ", False)
+    nofile.writeat("NO DATA", 0)
+    nofile.close()
+  except Exception:
+    pass
+
+  #FOR %r IN (reference_monitor_*) DO @(ECHO %r under test & FOR %a IN (<net_id>_*) DO @python repy.py restrictions.default encasementlib.r2py %r %a)
+  # for referencemonitor in reference_monitor_*; do for testcase in mm14029_*; do python ../repy.py ../restrictions.default ../encasementlib.r2py $referencemonitor $testcase; done; done
+
+attack_cases()

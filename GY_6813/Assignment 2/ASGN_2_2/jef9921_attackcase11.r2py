@@ -1,0 +1,41 @@
+# TestCase: removefile Invalid filename - RepyArgumentError
+
+try:
+  removefile(".")
+except RepyArgumentError:
+  pass
+
+try:
+  removefile("..")
+except RepyArgumentError:
+  pass
+  
+try:
+  removefile("")
+except RepyArgumentError:
+  pass
+
+try:
+  removefile(".abc")
+except RepyArgumentError:
+  pass
+
+try:
+  removefile("$abc")
+except RepyArgumentError:
+  pass
+
+try:
+  removefile("abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz")
+except RepyArgumentError:
+  pass
+
+try:
+  removefile("UPPERCASE")
+except RepyArgumentError:
+  pass
+
+try:
+  removefile("directory/file")
+except RepyArgumentError:
+  pass

@@ -1,0 +1,27 @@
+#Test that allowed filenames don't throw an error
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+if "qwertyuiopasdfghjklzxcvbnm1234567890._-" in listfiles():
+  removefile("qwertyuiopasdfghjklzxcvbnm1234567890._-")
+myfile = openfile("qwertyuiopasdfghjklzxcvbnm1234567890._-", False)
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close the file
+myfile.close()
+removefile("qwertyuiopasdfghjklzxcvbnm1234567890._-")

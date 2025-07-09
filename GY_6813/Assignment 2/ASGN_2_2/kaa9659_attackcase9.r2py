@@ -1,0 +1,28 @@
+if "default" in listfiles():
+    removefile("default")
+if 'testa' in listfiles():
+    removefile('testa')
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+flock = createlock()
+def testthread(i):
+   flock.acquire(True)
+
+   try: 
+      myfile1 = openfile('testa', False)
+      myfile1.writeat(str(i), i)
+      myfile1.close()
+   finally:
+      flock.release()
+
+def makethreadwid(i):
+   def foo():
+      testthread(i)
+   return createthread(foo)   
+   
+# no errors should occur
+for i in range(0, 6):
+    makethreadwid(i)

@@ -1,0 +1,29 @@
+################################################################################
+# Test Case: Closed Files are Not Accessible
+################################################################################
+
+# Remove existing files if present
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Open a new file that doesn't exist
+# This should create the file
+myfile = openfile("testfile.txt", True)
+myfile.writeat("Hello World", 0)
+myfile.close()
+
+# Read from the new file. We expect it to contain the content from the new file
+try:
+    # Read the entire content of the file
+    content = myfile.readat(None, 0)
+except ValueError:
+    pass
+finally:
+    # Clean up
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Exit the test
+    exitall()

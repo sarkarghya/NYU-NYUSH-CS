@@ -1,0 +1,16 @@
+def test_permission_escalation():
+    try:
+        # attempt to create a file with default permissions
+        f = openfile("permissions.txt", create=True)
+        f.close()
+        
+        # attempt to reopen the file with escalated permissions or restricted actions
+        f = openfile("permissions.txt", create=False)
+        f.writeat("Test", 0)
+        log("Security Flaw: Managed to write to a file without proper permissions.")
+    except Exception as e:
+        log("Passed: Permission escalation prevented. Error: " + str(e))
+    finally:
+        removefile("permissions.txt")
+
+test_permission_escalation()

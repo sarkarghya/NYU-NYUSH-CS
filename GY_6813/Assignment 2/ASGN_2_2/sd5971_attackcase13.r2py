@@ -1,0 +1,14 @@
+try:
+    d = openfile("default", True)
+    d.writeat("None", 0)
+    d.close()
+    y = openfile("shreyash", False)
+    data = y.readat(None, 0)
+    if data != "None":
+        log("Attack passed\n\n\n")
+    # removefile("shreyash")
+except Exception as e:
+    log("ther e is an exception\n\n")
+    log(e)
+    log("\n\n")
+    

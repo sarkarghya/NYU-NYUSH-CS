@@ -1,0 +1,23 @@
+# TestCase: file_1 readat() - RepyArgumentError
+
+if "file_1.txt" in listfiles():
+  removefile("file_1.txt")
+
+try:
+  file1 = openfile("file_1.txt", True)
+  file1.readat(None, -5)
+except RepyArgumentError:
+  pass
+finally:
+  file1.close()
+
+try:
+  file2 = openfile("file_1.txt", True)
+  file2.readat(-5, 0)
+except RepyArgumentError:
+  pass
+  
+
+
+
+

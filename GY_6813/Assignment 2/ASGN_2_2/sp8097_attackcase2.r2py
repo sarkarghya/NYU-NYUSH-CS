@@ -1,0 +1,21 @@
+###steps 1,3,4
+
+# Step 1: Create the 'default' file with some initial content
+default_file = openfile('default', True)
+default_file.writeat('This is a default template.', 0)
+assert default_file.readat(None,0) == "This is a default template."
+default_file.close()
+
+# Step 3: Now delete the 'default' file and try opening another file without creating it (should raise error)
+removefile('default')
+
+try:
+    newfile = openfile('testfile2.txt', False)  # This should raise FileNotFoundError
+except FileNotFoundError:
+    pass
+    #log("'default' file is not found. Cannot open 'testfile2.txt' without creating it first.")
+
+# Step 4: Test creating a file when 'default' is not present
+anotherfile = openfile('anotherfile.txt', True)
+#log("Content of 'anotherfile.txt' (should be empty): {}".format(anotherfile.readat(None, 0)))
+anotherfile.close()

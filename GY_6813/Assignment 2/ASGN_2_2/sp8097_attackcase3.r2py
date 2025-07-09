@@ -1,0 +1,17 @@
+#### default removed/deleted -> all files deleted
+
+
+# Step 1: Create the 'default' file with some initial content
+default_file = openfile('default', True)
+default_file.writeat('This is a default template.', 0)
+assert default_file.readat(None,0) == "This is a default template."
+default_file.close()
+
+# Step 2: Test opening a non-existent file without creating it (should use 'default' as template)
+myfile = openfile('testfile1.txt', False)
+myfile.close()
+
+
+# Step 3: Now delete the 'default' file 
+removefile('default')
+assert "testfile1.txt" not in listfiles() 

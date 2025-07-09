@@ -1,0 +1,29 @@
+# CASE 4: Write default causes the previously closed files (foo and boo) to be deleted
+files_to_remove = ["default", "testfile.txt", "foo.txt", "boo.txt"]
+for file in files_to_remove:
+    if file in listfiles():
+        removefile(file)
+
+# Set up a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Open and close files
+myfile = openfile("testfile.txt", False)
+foo = openfile("foo.txt", True)
+boo = openfile("boo.txt", False)
+foo.close()
+boo.close()
+
+# Write to default
+default = openfile("default", True)
+default.writeat("TEMPLATE", 1)
+assert default.readat(None, 1) == "TEMPLATE"
+default.close()
+
+# Verify that 'foo' and 'boo' has been deleted but 'testfile' is not
+assert "foo.txt" not in listfiles()
+assert "boo.txt" not in listfiles()
+assert "testfile.txt" in listfiles()
+# END OF CASE 4

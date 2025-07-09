@@ -1,0 +1,18 @@
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+myfile = openfile("testfile.txt", True)
+
+
+myfile.writeat("VALID DATA", 0)
+
+
+try:
+    myfile.readat(10, -5)
+except Exception:
+    pass
+
+
+myfile.close()

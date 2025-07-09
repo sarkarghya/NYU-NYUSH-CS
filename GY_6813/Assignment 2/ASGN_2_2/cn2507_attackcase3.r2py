@@ -1,0 +1,14 @@
+if 'predefault.txt' in listfiles():
+    removefile('predefault.txt')
+if 'default' in listfiles():
+    removefile('default')
+
+temp_file = openfile('predefault.txt', True)
+temp_file.writeat('Data before default exists.', 0)
+temp_file.close()
+
+default_file = openfile('default', True)
+default_file.writeat('Content of default file.', 0)
+default_file.close()
+
+assert 'predefault.txt' not in listfiles()

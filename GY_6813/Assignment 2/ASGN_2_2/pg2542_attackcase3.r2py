@@ -1,0 +1,11 @@
+long_filename = "x" * 150
+try:
+    file = openfile('long_filename' + '.txt', True)
+except ValueError as e:
+    pass
+
+invalid_filename = "invalid$filename.txt"
+try:
+    file = openfile(invalid_filename, True)
+except ValueError as e:
+    pass

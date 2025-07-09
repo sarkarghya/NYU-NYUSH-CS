@@ -1,0 +1,8 @@
+def test_error_handling():
+    # test improper error handling
+    try:
+        f = openfile("nonexistent.txt", False)
+    except Exception as e:
+        log("Caught an error as expected when opening nonexistent file: " + str(e))
+
+test_error_handling()

@@ -1,0 +1,21 @@
+def attack():
+    try:
+        default = openfile("default", True)
+        default.writeat("A", 0)
+        default.close()
+
+        test = openfile("test.txt", False)
+        test.writeat("B", 0)
+        removefile("default")
+        test.writeat("C", 0)
+        content = test.readat(None, 0)
+
+        test.close()
+        removefile("test.txt")
+        
+    except Exception:
+        pass
+    finally:
+        exitall()
+
+createthread(attack)

@@ -1,0 +1,22 @@
+def attack():
+    try:
+        default = openfile("default", True)
+        default.writeat("A", 0)
+        default.close()
+
+        test = openfile("test.txt", False)
+        test.writeat("B" * 100, -1)  # Try negative offset.
+        test.writeat("C" * 100, 1000)  # Try large offset.
+
+        content = test.readat(None, 0)
+
+        test.close()
+        removefile("test.txt")
+        removefile("default")
+
+    except Exception:
+        pass
+    finally:
+        exitall()
+
+createthread(attack)

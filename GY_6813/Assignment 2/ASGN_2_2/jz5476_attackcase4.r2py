@@ -1,0 +1,10 @@
+# read from negative offset
+
+my_file = openfile("negativeoffset.txt", True)
+
+try:
+    my_file.readat(10, -5)
+except RepyArgumentError:
+    pass
+else:
+    log("ERROR - allow read from negative offset")

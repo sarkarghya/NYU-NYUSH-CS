@@ -1,0 +1,34 @@
+################################################################################
+# Test Case: When default is not present
+# openfile("testfile.txt", True)
+# Done
+################################################################################
+
+# Remove existing files if present
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+myfile = openfile("testfile.txt", True)
+myfile.writeat("Hello World", 0)
+
+# Read from the new file. We expect it to contain the content from the new file
+try:
+    # Read the entire content of the file
+    content = myfile.readat(None, 0)
+    
+    # Assert that the content matches the expected new content
+    assert content == "Hello World", "File couldnt be created."
+    
+    #log("\nTest passed: File created.")
+except Exception as e:
+  pass
+    #log("Test failed due to another exception.")
+finally:
+    myfile.close()
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Exit the test
+    exitall()

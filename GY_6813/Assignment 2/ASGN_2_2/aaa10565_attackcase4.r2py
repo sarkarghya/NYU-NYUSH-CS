@@ -1,0 +1,4 @@
+try:
+    openfile("nonfile.r2py", False)
+except FileNotFoundError:
+    pass

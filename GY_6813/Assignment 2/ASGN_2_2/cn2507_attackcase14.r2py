@@ -1,0 +1,25 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'openfile.txt' in listfiles():
+    removefile('openfile.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('Initial content.', 0)
+default_file.close()
+
+open_file = openfile('openfile.txt', False)
+file_content = open_file.readat(None, 0)
+assert file_content == 'Initial content.'
+
+default_file = openfile('default', False)
+default_file.writeat('Modified content.', 0)
+default_file.close()
+
+open_file.close()
+
+assert 'openfile.txt' in listfiles()
+
+open_file = openfile('openfile.txt', False)
+file_content = open_file.readat(None, 0)
+assert file_content == 'Initial content.'
+open_file.close()

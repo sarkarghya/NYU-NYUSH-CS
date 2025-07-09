@@ -1,0 +1,202 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+class LPFile():
+
+    # Class variable to track open and closed files
+    open_files = set()  # Tracks currently open files
+    closed_files = set()  # Tracks closed files
+    
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        
+        # Initialize file state
+        self.filename = filename
+        self.is_closed = False  # Track if the file is closed
+
+        # Validate `filename` and `create`
+        if not isinstance(filename, str) or not isinstance(create, bool):
+            raise RepyArgumentError("Filename must be a string and 'create' must be a boolean.")
+        
+        # Check filename constraints: valid characters and length
+        valid_chars = '._-'
+        if len(filename) > 120 or filename in ['.', '..'] or filename == '' or filename.startswith('.'):
+            raise RepyArgumentError("Invalid filename '{}'. Filenames must not be '.', '..', blank, start with a '.', or exceed 120 characters.".format(filename))
+        
+        # Check if each character in the filename is valid
+        for c in filename:
+            if not (c.isalnum() or c in valid_chars):
+                raise RepyArgumentError("Invalid character in filename: '{}'.".format(c))
+
+        # Check if a handle to the file is already open
+        if filename in LPFile.open_files:
+            raise FileInUseError("A handle to the file '{}' is already open.".format(filename))
+        
+        try:
+            # If `create=True`, create a new file and track it
+            if create:
+                self.LPfile = openfile(filename, True)
+
+            else:
+                # If `create=False` and `default` exists, create the new file from `default`
+                if 'default' in listfiles():
+                    default_file = openfile('default', False)
+                    content = default_file.readat(None, 0)  # Read entire content of `default`
+                    self.LPfile = openfile(filename, True)  # Create the new file
+                    self.LPfile.writeat(content, 0)  # Write `default` content to new file
+                    default_file.close()
+
+                else:
+                    # If `default` does not exist, raise an error
+                    raise FileNotFoundError("Cannot create file '{}' without `default` template.".format(filename))
+            
+            # Add the file to the set of open files
+            LPFile.open_files.add(filename)
+
+            # Check for interactions with `default`
+            if filename == "default":
+                self._handle_default_interaction()
+
+        except FileNotFoundError as e:
+            raise e
+        except ResourceExhaustedError as e:
+            raise ResourceExhaustedError("No available file handles: {}".format(str(e)))
+        except Exception as e:
+            raise IOError("An unexpected error occurred while opening the file '{}': {}".format(filename, str(e)))
+
+    def _handle_default_interaction(self):
+        """Handle the special behavior when 'default' is created, written to, or deleted."""
+        # Delete all closed files when default is interacted with
+        for closed_file in list(LPFile.closed_files):
+            if closed_file != 'default':  # Skip deleting 'default'
+                try:
+                    if closed_file not in LPFile.open_files:
+                        removefile(closed_file)
+                        LPFile.closed_files.remove(closed_file)  # Remove from closed files set
+                    else:
+                        raise FileInUseError("Cannot remove file '{}' because it is still open.".format(closed_file))
+                except FileInUseError:
+                    # Pass on files that are in use
+                    pass
+                except FileNotFoundError:
+                    raise FileNotFoundError("Closed file '{}' no longer exists.".format(closed_file))
+                except PermissionError:
+                    raise PermissionError("Permission denied to remove closed file '{}'.".format(closed_file))
+                except Exception as e:
+                    raise IOError("Failed to remove closed file '{}': {}".format(closed_file, str(e)))
+
+
+    def readat(self, num_bytes, offset):
+        # Check if file is closed
+        if self.is_closed:
+            raise FileClosedError("Cannot read from closed file '{}'.".format(self.filename))
+        
+        # Validate offset
+        if offset < 0:
+            raise RepyArgumentError("Offset cannot be negative")
+
+        # Validate size (num_bytes)
+        if num_bytes is not None and num_bytes < 0:
+            raise RepyArgumentError("Number of bytes to read cannot be negative")
+
+        # Check if reading past the end of the file
+        file_size = self.LPfile.readat(None, 0)  # Read the entire file to get its size
+        if offset > len(file_size) or (num_bytes is not None and offset + num_bytes > len(file_size)):
+            raise SeekPastEndOfFileError("Attempting to read past the end of file '{}'.".format(self.filename))
+
+        # Perform the read operation
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        
+        # Check if file is closed
+        if self.is_closed:
+            raise FileClosedError("Cannot write to closed file '{}'.".format(self.filename))
+        
+        # Validate offset
+        if offset < 0:
+            raise RepyArgumentError("Offset cannot be negative")
+
+        # Validate data to ensure it's a string
+        if not isinstance(data, str):
+            raise RepyArgumentError("Data to be written must be a string.")
+        
+        # Check if attempting to write past the end of the file
+        file_size = self.LPfile.readat(None, 0)  # Get full content to determine the file size
+        if offset > len(file_size):
+            raise SeekPastEndOfFileError("Cannot write past the end of the file '{}'.".format(self.filename))
+
+        # Perform the write operation
+        return self.LPfile.writeat(data, offset)
+
+    def close(self):
+        
+        # Check if file is already closed
+        if self.is_closed:
+            raise FileClosedError("File '{}' is already closed.".format(self.filename))
+        
+        # Close the file
+        self.LPfile.close()
+        self.is_closed = True  # Mark file as closed
+
+        # Move the file from open to closed files set
+        if self.filename in LPFile.open_files:
+            LPFile.open_files.remove(self.filename)
+        LPFile.closed_files.add(self.filename)
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    # Attempt to remove the file, handling errors if file is in use
+    try:
+        removefile(filename)
+    except Exception as e:
+        raise IOError("Cannot remove file '{}': {}".format(filename, str(e)))
+
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

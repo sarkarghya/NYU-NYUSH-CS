@@ -1,0 +1,26 @@
+
+#Test if the file try to remove a file that still open
+
+try:
+    # Open the file and write some data
+    myfile = openfile("testfile.txt", True)  # 'True' means create if it doesn't exist
+    myfile.writeat("Some data", 0)  # Write at the beginning of the file
+
+    # Attempt to delete the file while it is still open
+    removefile("testfile.txt")
+
+    # If no exception is raised, log this as a failure
+    log("FAILURE: The reference monitor allowed deletion of an open file 'testfile.txt'.\n")
+
+except FileInUseError:
+    pass
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))
+
+finally:
+    # Ensure the file is closed if it was opened
+    try:
+        myfile.close()
+    except:
+        pass

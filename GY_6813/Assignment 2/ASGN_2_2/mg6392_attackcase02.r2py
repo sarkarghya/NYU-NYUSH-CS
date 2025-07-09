@@ -1,0 +1,18 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("default")
+cleanup_files("testfile.txt")
+
+# Create a new default
+default = openfile("default", True)
+default.writeat('default message', 0)
+default.close()
+
+# Open a file that doesn't exist, use True so it stays empty
+myfile = openfile("testfile.txt", True)
+assert myfile.readat(None, 0) == ""
+
+myfile.close()
+cleanup_files("testfile.txt")

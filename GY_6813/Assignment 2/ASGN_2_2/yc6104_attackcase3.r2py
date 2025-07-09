@@ -1,0 +1,24 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+# One common edge case often overlooked by students occurs when attempting to open a non-existent file 
+# with create=False while default is already open. 
+# If it's not handled correctly, this will cause a FileInUseError, which shouldn't happen. 
+#To prevent this, the reference monitor should maintain a reference to the file handle of default, 
+# whenever default is open (so that it can be used to create new templates).
+# Also note that storing the contents of default in memory at all times is not an optimal solution due to efficiency concerns.
+ThereIsNoError = True
+try:
+    myfile = openfile("testfile.txt", False)
+except FileInUseError:
+    ThereIsNoError = False
+
+assert ThereIsNoError == True
+    
+default.close()

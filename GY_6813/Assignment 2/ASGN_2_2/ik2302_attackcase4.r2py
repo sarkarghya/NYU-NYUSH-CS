@@ -1,0 +1,22 @@
+# Creating default with `create=False`
+
+def create_test_file(filename = "testfile.txt"):
+    file = openfile(filename, True)
+    file.writeat("TEST", 0)
+    file.close()
+
+# Clean up if the files exist
+for filename in ["default", "test_1.txt", "test_2.txt", "testfile.txt"]:
+    if filename in listfiles():
+        removefile(filename)
+
+
+create_test_file("test_1.txt")
+create_test_file("test_2.txt")
+test1 = openfile("test_1.txt", True)
+
+# Create a default file
+default = openfile("default", True)
+
+assert "test_2.txt" not in listfiles(), "Test failed: `test_2.txt` should not exist since default was created"
+assert "test_1.txt" in listfiles(), "Test failed: `test_1.txt` should exist since it was open when default was created"

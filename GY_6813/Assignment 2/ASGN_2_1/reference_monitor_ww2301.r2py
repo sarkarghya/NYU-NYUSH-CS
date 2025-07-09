@@ -1,0 +1,171 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    Initial Run Statement without the sha module:
+    python repy.py restrictions.default encasementlib.r2py reference_monitor_ww2301.r2py ww2301_attackcase.r2py 
+    After importing sha module:
+    python2 repy.py restrictions.default dylink.r2py encasementlib.r2py reference_monitor_ww2301.r2py ww2301_attackcase.r2py
+
+Specification:
+    1. Your defense monitor should incorporate all the standard file operation methods, from opening a file, reading and writing to it, to closing and deleting it.
+    2. In addition, if a specially named file - default - exists, it shall be used as a template when opening files without creating them first. Eg: Calling openfile('foo', True) 
+       should create and open a new empty file called foo (assuming it's not present already). However, calling openfile('foo', False) should create a new file using default as 
+       the template. If default doesn't exist, throw the relevant error (FileNotFoundError).
+    3. If default is created, written to, or deleted, then all closed files that were previously created gets deleted. Any files that are already open must be left unchanged.
+    
+"""
+
+# sha = dy_import_module("sha.r2py")
+# rand = dy_import_module("random.r2py")
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+class FileTracker():
+    def __init__(self):
+        self._listOfFiles = set()
+    
+    def _add_file(self, filename):
+        self._listOfFiles.add(filename)
+    
+    def _remove_file(self, filename):
+        self._listOfFiles.remove(filename)
+    
+    def _find_file(self, filename):
+        return filename in self._listOfFiles
+
+    def _get_listOfFiles(self):
+        return self._listOfFiles
+
+fileList = {}
+closedFile = FileTracker()
+openedFile = FileTracker()
+globalStartFlag = True
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self._filename = filename
+
+        if create == False:
+            if 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+                default_file.close()
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+            else:
+                raise Exception("FileNotFoundError")
+        else:
+            self.check_default_and_delete()
+            self.LPfile = openfile(filename, create)
+        openedFile._add_file(filename)
+
+    def readat(self, num_bytes, offset):
+        if self._filename not in openedFile._get_listOfFiles():
+            raise Exception("FileNotOpenedError")
+        if self._filename not in listfiles():
+            raise Exception("FileDoesNotExistError")
+        try:
+            return self.LPfile.readat(num_bytes, offset)
+        except:
+            raise Exception("FileReadError : Check Offset Value")
+
+    def writeat(self, data, offset):
+        if self._filename not in openedFile._get_listOfFiles():
+            raise Exception("FileNotOpenedError")
+        if self._filename not in listfiles():
+            raise Exception("FileDoesNotExistError")
+        self.check_default_and_delete()
+        try:
+            self.LPfile.writeat(data, offset)
+        except:
+            raise Exception("FileWriteError : Check Offset Value")
+
+    def close(self):
+        if self._filename not in listfiles():
+            raise Exception("FileDoesNotExist")
+        if self._filename not in openedFile._get_listOfFiles():
+            raise Exception("FileNotOpened")
+        if self._filename in closedFile._get_listOfFiles():
+            raise Exception("FileClosedAlready")
+        closedFile._add_file(self._filename)
+        openedFile._remove_file(self._filename)
+        self.LPfile.close()
+
+    def check_default_and_delete(self):
+        if self._filename == 'default':
+            for filename in closedFile._get_listOfFiles().copy():
+                removefile(filename)
+                fileList.pop(filename)
+                closedFile._remove_file(filename)
+        
+def LPopenfile(filename, create):
+    if filename in listfiles():
+        if filename in openedFile._get_listOfFiles():
+            raise Exception("FileAlreadyOpenedError")
+        closedFile._remove_file(filename)
+        openedFile._add_file(filename)
+        fileList[filename].LPfile = openfile(filename, create)
+        return fileList[filename]
+    file = LPFile(filename, create)
+    fileList[filename] = file
+    return file
+
+def LPremovefile(filename):
+    if filename in listfiles():
+        if filename in closedFile._get_listOfFiles():
+            removefile(filename)
+            closedFile._remove_file(filename)
+            fileList.pop(filename)
+            if filename == 'default':
+                for filename in closedFile._get_listOfFiles().copy():
+                    removefile(filename)
+                    closedFile._remove_file(filename)
+                    fileList.pop(filename)
+        elif globalStartFlag:
+            removefile(filename)
+        else:
+            raise Exception("FileStillInUseError")
+    else:
+        raise Exception("FileDoesNotExistError")
+        
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

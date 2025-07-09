@@ -1,0 +1,14 @@
+def test_open_many_files():
+    files = []
+    try:
+        for i in range(100): 
+            files.append(openfile("exhaust_" + str(i) + ".txt", create=True))
+        log("Security Flaw: System allowed excessive resource allocation.")
+    except Exception as e:
+        log("Passed: Resource limits enforced properly. Error: " + str(e))
+    finally:
+        for file in files:
+            file.close()
+            removefile(file.filename)
+
+test_open_many_files()

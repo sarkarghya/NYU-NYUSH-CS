@@ -1,0 +1,15 @@
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Try creating a file with invalid characters like "../" (should raise an exception)
+try:
+    myfile = openfile("../testfile.txt", True)
+except Exception:
+    pass  
+
+
+try:
+    assert "../testfile.txt" not in listfiles()
+except AssertionError:
+    pass  

@@ -1,0 +1,24 @@
+# Double write to default
+
+for filename in ["default", "test_1.txt", "test_2.txt", "testfile.txt"]:
+    if filename in listfiles():
+        removefile(filename)
+    
+
+default = openfile("default", True)
+
+def write_test_file_1():
+    default.writeat("1234567890", 0)
+
+def write_test_file_2():
+    default.writeat("abcdefghij", 0)
+
+
+t1 = createthread(write_test_file_1)
+t2 = createthread(write_test_file_2)
+
+sleep(0.1)
+
+content = default.readat(None, 0)
+
+assert content == "abcdefghij" or content == "1234567890", "Test failed: `default` content is incorrect"

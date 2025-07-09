@@ -1,0 +1,48 @@
+# md6031_attackcase5.r2py
+# This attack case tests large write operations, invalid offsets, and file deletion/recreation
+
+def attack_case5():
+    # Clean up if the file exists
+    if "testfile5.txt" in listfiles():
+        removefile("testfile5.txt")
+
+    # Create the test file
+    testfile = openfile("testfile5.txt", True)
+    testfile.close()
+
+    # Test large write operation
+    large_data = "A" * 10000
+    try:
+        testfile = openfile("testfile5.txt", False)
+        testfile.writeat(large_data, 0)
+        testfile.close()
+        log("Vulnerability 5a: Large write operation not handled properly")
+    except Exception:
+        log("Attack case 5a passed: Large write operation handled correctly")
+
+    # Test invalid offset
+    try:
+        testfile = openfile("testfile5.txt", False)
+        testfile.writeat("TEST", -1)
+        testfile.close()
+        log("Vulnerability 5b: Negative offset not handled properly")
+    except Exception:
+        log("Attack case 5b passed: Invalid offset handled correctly")
+
+    # Test file deletion and recreation
+    removefile("testfile5.txt")
+    testfile = openfile("testfile5.txt", True)
+    testfile.close()
+
+    # Check content after recreation
+    testfile = openfile("testfile5.txt", False)
+    content = testfile.readat(None, 0)
+    testfile.close()
+
+    if content != "TEMPLATE":
+        log("Vulnerability 5c: File deletion and recreation not handled correctly")
+    else:
+        log("Attack case 5c passed: File deletion and recreation handled correctly")
+
+if callfunc == 'initialize':
+    attack_case5()

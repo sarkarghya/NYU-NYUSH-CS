@@ -1,0 +1,12 @@
+some_file = openfile("some_file", True)
+some_file.writeat("First instance of text", 0)
+
+try:
+    some_file.writeat(8033, -1)
+    
+except RepyArgumentError:
+    pass # correct exception raised
+else:
+    log("did not raise correct exception")
+    
+some_file.close()

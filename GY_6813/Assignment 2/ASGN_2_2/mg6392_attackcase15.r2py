@@ -1,0 +1,18 @@
+
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("testfile10.txt")
+
+# Edge Case: Reading from a closed file
+myfile10 = openfile("testfile10.txt", True)
+myfile10.writeat("sample data", 0)
+myfile10.close()
+try:
+    myfile10.readat(None, 0)
+    assert False  # Should not reach here
+except FileClosedError:
+    assert True
+
+cleanup_files("testfile10.txt")

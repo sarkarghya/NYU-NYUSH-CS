@@ -1,0 +1,34 @@
+#Test to open without default file
+
+try:
+    #Create and open a new file 'testfile.txt'
+    myfile = openfile("testfile.txt", True)  # 'True' means create if it doesn't exist
+    
+    #Write some data to the file
+    myfile.writeat("Initial data", 0)  # Writing 'Initial data' at position 0
+   
+   #Close the file
+    myfile.close()
+
+    # Clean up if the 'default' file exists
+    if "default" in listfiles():
+        removefile("default")
+    
+    #Try to reopen the file without 'default' template
+    myfile = openfile("testfile.txt", False)  # 'False' indicates not to create but to reopen
+
+    # If it reopens without error, log as failure (since it should fail without 'default')
+    log("FAILURE: File 'testfile.txt' reopened without 'default' template.\n")
+
+except FileNotFoundError:
+    pass
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))
+
+finally:
+    # Ensure the file is closed if it was opened
+    try:
+        myfile.close()
+    except:
+        pass

@@ -1,0 +1,23 @@
+# testing if file can be created with template. First with default present, then after removing default.
+
+if "default" in listfiles():
+  removefile("default")
+if "file1" in listfiles():
+  removefile("file1")
+
+default = openfile('default', True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+#should work
+file1 = openfile('file1', False)
+
+removefile('default')
+
+try:
+  file2 = openfile('file2', False) #should fail
+  log("FileNotFoundError not thrown")
+except FileNotFoundError:
+   pass
+
+file1.close()

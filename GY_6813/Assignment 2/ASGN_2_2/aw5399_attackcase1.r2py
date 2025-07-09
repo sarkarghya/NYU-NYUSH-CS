@@ -1,0 +1,51 @@
+################################################################################
+# Test Case: Creation of New File without default content
+# This test checks if a new file is created without the default content
+# when opened for the first time with True arg.
+################################################################################
+
+# Remove existing files if present
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Write initial content to the default file
+default.writeat("TEMPLATE", 0)
+
+# Close the default file
+default.close()
+
+# Remove existing files if present
+
+# Open a new file that doesn't exist
+# This should create the file
+myfile = openfile("testfile.txt", True)
+myfile.writeat("Hello World", 0)
+
+# Read from the new file. We expect it to contain the content from the new file
+try:
+    # Read the entire content of the file
+    content = myfile.readat(None, 0)
+    
+    # Assert that the content matches the expected new content
+    assert content == "Hello World", "File content does not match expectation"
+    
+    #log("\nTest passed: New file created with new content different from default")
+except Exception as e:
+  pass
+    #log("Test failed due to another exception.")
+finally:
+    myfile.close()
+
+    # Clean up
+    if "default" in listfiles():
+        removefile("default")
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Exit the test
+    exitall()

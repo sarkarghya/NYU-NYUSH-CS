@@ -1,0 +1,28 @@
+'''
+    An attack case where writing happens at negative index
+'''
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+# Create a file
+
+test = openfile('testfile_1.txt', True)
+
+try:
+    test.writeat('SOMETHING', -20)
+
+except RepyArgumentError:
+    pass
+
+except IOError as e:
+    pass
+
+except ValueError as e:
+    pass
+
+except Exception as e:
+    log(e)
+
+finally:
+    test.close()

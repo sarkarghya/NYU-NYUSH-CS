@@ -1,0 +1,55 @@
+# case 3: checking the behaviour of default as template for a file
+def close_after(t):
+  def sleep_for():
+    # Terminated the program after sleeping t sec
+    sleep(t)
+    log("ATTACK 2 | Unsuccessful Operation as Program Triggered Race Condition / Infinite Loop\n")
+    exitall()
+  return sleep_for
+terminate_program = close_after(10)
+createthread(terminate_program)
+
+# Clean up existing files
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+if "newfile.txt" in listfiles():
+  removefile("newfile.txt")
+try:
+    
+    # Create default file
+    default = openfile("default", True)
+    default.writeat("DEFAULT_CONTENT", 0)
+    default.close()
+    # Open a new file without create flag
+    myfile = openfile("testfile.txt", False)
+    # Check if the new file has default content
+    content = myfile.readat(None, 0)
+    if content != "DEFAULT_CONTENT":
+        log("ATTACK 3 | ERROR | Default content not properly copied\n")
+    myfile.close()
+    # Modify default file
+    default = openfile("default", False)
+    default.writeat("NEW_CONTENT", 0)
+    default.close()
+
+    # Check if testfile.txt was removed
+    if "testfile.txt" in listfiles():
+        log("ATTACK 3 | ERROR | Previously created file not removed after modifying default\n")
+
+    # Create a new file after modifying default
+    newfile = openfile("newfile.txt", False)
+    content = newfile.readat(None, 0)
+    if content != "NEW_CONTENT":
+        log("ATTACK 3 | ERROR | New default content not applied to new file\n")
+    newfile.close()
+except FileNotFoundError:
+   log("ATTACK 3 | ERROR | File not found Exception\n")
+except Exception as e:
+    log(e)
+    log("ATTACK 3 | ERROR | Uncaught exception\n")
+
+finally:
+    #Exit operation
+    exitall()

@@ -1,0 +1,33 @@
+# Attack case to ensure creating a new file without using 'default' as a template
+def attack_create_file_without_default_template():
+    # Clean up 'default' and 'newfile_no_template' to ensure a fresh start
+    try:
+        removefile("default")
+    except Exception:
+        pass  # Ignore errors if 'default' does not exist
+
+    try:
+        removefile("newfile_no_template")
+    except Exception:
+        pass  # Ignore errors if 'newfile_no_template' does not exist
+
+    try:
+        # Step 1: Create 'default' file with initial content
+        default_file = openfile("default", True)
+        default_file.writeat("Template content", 0)
+        default_file.close()
+
+        # Step 2: Create 'newfile_no_template' without using 'default' as a template
+        newfile = openfile("newfile_no_template", True)  # create=True
+        newfile_content = newfile.readat(None, 0)
+        newfile.close()
+
+        # Step 3: Check that 'newfile_no_template' is empty
+        if newfile_content != "":
+            raise AssertionError("'newfile_no_template' should be empty when created with create=True")
+
+    except Exception as e:
+        raise e  # Allow unexpected errors to signal a failure
+
+# Execute the new attack case
+attack_create_file_without_default_template()

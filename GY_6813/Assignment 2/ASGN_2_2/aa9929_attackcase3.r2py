@@ -1,0 +1,62 @@
+#Checks if files are properly deleted when default is written to
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if("apple" in listfiles()):
+   removefile("apple")
+if("grape" in listfiles()):
+   removefile("grape")
+if("orange" in listfiles()):
+  removefile("orange")
+
+# Create a default file
+default = openfile("default", True)
+
+#________________________________________________________________________________________________________________
+# Create two file
+apple = openfile("apple", True)
+grape = openfile("grape", True)
+
+# Create one more file
+orange = openfile("orange", True)
+
+# Closes two files
+apple.close()
+grape.close()
+
+#We shall see if only the closed files are deleted when default is written to
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+if("apple" in listfiles()):
+   log("apple was not removed (ac3) \n")
+
+elif("grape" in listfiles()):
+   log("grape was not removed (ac3) \n")
+   
+elif("orange" not in listfiles()):
+   log("orange was removed when it should not have (ac3) \n")
+
+
+#________________________________________________________________________________________________________________
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close the file
+myfile.close()
+try:
+  orange.close()
+except Exception as e:
+  pass

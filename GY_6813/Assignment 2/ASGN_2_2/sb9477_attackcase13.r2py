@@ -1,0 +1,26 @@
+# Test seeking past end of file
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+default.writeat("short", 0) 
+default.close()
+
+test = openfile("test.txt", False)
+
+try:
+    test.readat(1, 10) 
+except SeekPastEndOfFileError:
+    pass 
+
+assert test.readat(1, 4) == "t" 
+
+try:
+    test.readat(1, 5) 
+except SeekPastEndOfFileError:
+    pass
+
+test.close()

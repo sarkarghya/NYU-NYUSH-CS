@@ -1,0 +1,8 @@
+# try to delete the file, while it is already opened - race condition
+try:
+    lpfile = openfile("somefile", True)
+    removefile("somefile")  # Try deleting while the file is open.
+except FileInUseError:
+    pass  # Expected behavior: the file should not be deletable while open.
+except Exception as e:
+    log("attacked")

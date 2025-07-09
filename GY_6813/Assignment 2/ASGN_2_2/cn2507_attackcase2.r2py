@@ -1,0 +1,9 @@
+if 'default' in listfiles():
+    removefile('default')
+
+try:
+    default_file = openfile('default', False)
+except Exception:
+    pass
+else:
+    assert False

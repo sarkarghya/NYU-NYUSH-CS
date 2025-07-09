@@ -1,0 +1,14 @@
+# clean up if the file exists.
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+myfile = openfile("testfile.txt",True)
+myfile.close()
+
+try:
+    myfile.writeat("0",0)
+except FileClosedError:
+    pass
+else:
+    raise Exception("FileClosedError not raised")

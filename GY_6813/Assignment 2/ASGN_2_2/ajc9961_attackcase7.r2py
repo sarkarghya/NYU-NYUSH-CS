@@ -1,0 +1,17 @@
+### Check file in use error when opening file twice ### 
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+
+try:
+  myfile = openfile("testfile.txt", False)
+except FileInUseError:
+  assert False
+finally:
+    if 'testfile' in listfiles():
+      myfile.close()
+    default.close()

@@ -1,0 +1,34 @@
+# CASE 6: Creation of default causes the previously closed files (foo and boo) to be deleted
+files_to_remove = ["default", "testfile.txt", "foo.txt", "boo.txt"]
+for file in files_to_remove:
+    if file in listfiles():
+        removefile(file)
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Create and open files
+myfile = openfile("testfile.txt", False)
+foo = openfile("foo.txt", True)
+boo = openfile("boo.txt", False)
+
+# Delete default
+removefile('default')
+assert "default.txt" not in listfiles()
+
+# Close 'boo' and 'foo' but not 'testfile'
+foo.close()
+boo.close()
+
+# Recreate default
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Verify that 'foo' and 'boo' has been deleted but 'testfile' is not
+assert "foo.txt" not in listfiles()
+assert "boo.txt" not in listfiles()
+assert "testfile.txt" in listfiles()
+# END OF CASE 6

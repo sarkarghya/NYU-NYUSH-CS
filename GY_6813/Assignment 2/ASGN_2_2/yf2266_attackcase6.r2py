@@ -1,0 +1,32 @@
+# TEST CASE 6 - Concurrent read/write
+
+# file cleanup
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+        
+try:
+    testfile = openfile("testfile.txt", True)  # Create a file
+
+    def thread1():
+        for i in range(100):
+            testfile.writeat("A", i)
+
+    def thread2():
+        for i in range(1, 101):
+            testfile.writeat("B", i)
+
+    def thread3():
+        for i in range(1, 100):
+            testfile.readat(1, i)
+
+    # create threads
+    createthread(thread1)
+    createthread(thread2)
+    createthread(thread3)
+    sleep(1)
+
+    # close file
+    testfile.close()
+
+except Exception:
+    pass

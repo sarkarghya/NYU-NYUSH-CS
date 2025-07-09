@@ -1,0 +1,50 @@
+def attack_cases():
+  # Clean up if the files exist
+  if "default" in listfiles():
+    removefile("default")
+  if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+  # Check if the readat and writeat functions of the security layers are able to handle the errors in below scenarios
+  
+  # able to handle error if read from remove file
+  
+  file1 = LPopenfile("testing1.txt", False)
+  LPremovefile(file1)
+  try:
+    file1.readatt(0, 1)
+  except Exception:
+      pass
+
+  # able to handle error if write to remove file
+  file2 = LPopenfile("testing2.txt", False)
+  LPremovefile(file2)
+  try:
+    file2.write("TEST2", 0)
+  except Exception:
+      pass
+
+  # able to handle error if read from remove default file
+  file3 = LPopenfile("default", True)
+  LPremovefile(file3)
+  try:
+    file3.readatt(0, 1)
+  except Exception:
+      pass
+
+  # able to handle error if write to remove file
+  file4 = LPopenfile("default", True)
+  LPremovefile(file4)
+  try:
+    file4.write("TEST4", 0)
+  except Exception:
+      pass
+
+  # able to handle error if closed on to remove files
+  file1.close()
+  file2.close()
+  file3.close()
+  file4.close()
+  file5.close()
+
+attack_cases()

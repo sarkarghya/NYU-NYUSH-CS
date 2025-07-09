@@ -1,0 +1,28 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("default")
+cleanup_files("testfile5.txt")
+
+default = openfile("default", True)
+default.writeat("new v2 default_message", 0)
+default.close()
+
+# Open a file and keep it open
+myfile5 = openfile("testfile5.txt", False)
+
+# Delete and recreate default
+removefile("default")
+default = openfile("default", True)
+default.writeat("new v3 default_message", 0)
+default.close()
+
+# Ensure the open file still exists and retains its content
+files = listfiles()
+assert "testfile5.txt" in files
+assert myfile5.readat(None, 0) == "new v2 default_message"
+
+myfile5.close()
+cleanup_files("testfile5.txt")
+

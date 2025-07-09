@@ -1,0 +1,35 @@
+'''
+Verify use of default file as template:
+Verifies that when a file is opened with the create parameter set to False,
+the reference monitor uses the existing default file as a template.
+It checks that the new file has the same content as the default file.
+This directly tests the requirement that the monitor must create a new file based
+on the default file when the specified conditions are met.
+''
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "test_template.txt" in listfiles():
+    removefile("test_template.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE CONTENT", 0)
+default.close()
+
+# Open a file that does not exist using default as a template
+try:
+    myfile = openfile("test_template.txt", False)
+    assert myfile.readat(None, 0) == "TEMPLATE CONTENT"  # Should read from the default file
+except Exception as e:
+    log("Error occurred: " + str(e))
+else:
+    log("Successfully created file from default template: test_template.txt")
+finally:
+    myfile.close()  # Ensure to close the file if it was opened
+
+
+
+
+

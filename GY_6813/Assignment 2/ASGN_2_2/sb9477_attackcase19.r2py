@@ -1,0 +1,32 @@
+# Test cases for file reopening scenarios
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+default.writeat("original", 0)
+default.close()
+
+test1 = openfile("test1.txt", False) 
+test1.close()
+
+test1_reopen = openfile("test1.txt", False) 
+assert test1_reopen.readat(None, 0) == "original" 
+test1_reopen.close()
+
+file1 = openfile("test2.txt", True)
+file1.close()
+
+file2 = openfile("test2.txt", True) 
+file2.close()
+
+file3 = openfile("test2.txt", False) 
+file3.close()
+
+default1 = openfile("default", False) 
+default1.close()
+
+default2 = openfile("default", True) 
+default2.close()

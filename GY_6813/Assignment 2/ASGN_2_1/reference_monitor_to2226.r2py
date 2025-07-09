@@ -1,0 +1,111 @@
+# Repy V2 Security Layer with Improved Handling of File Operations
+
+# Defining constants for Repy V2 security layer configuration
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+# Context dictionary to handle closed files in a secure manner
+file_context = {
+    "created_files": ()  # Using a tuple to ensure immutability for created files
+}
+
+# Functions to manage created files securely without using global variables
+def add_file_to_created_list(filename):
+    """Append a file to the created files tuple."""
+    file_context["created_files"] = file_context["created_files"] + (filename,)  # Creating a new tuple to include the new file
+
+def remove_all_created_files():
+    """Remove all created files from the system."""
+    for file in file_context["created_files"]:
+        if file in listfiles():
+            removefile(file)
+    file_context["created_files"] = ()  # Reset the created files tuple
+
+def reset_created_files():
+    """Clear all created files by resetting the tuple."""
+    file_context["created_files"] = ()
+
+# Defining the LPFile class to handle file operations with enhanced security features
+class LPFile:
+    created_files = []  # Class-level list to track files that have been created
+    open_files = []     # Class-level list to track currently open files
+
+    def __init__(self, filename, create):
+        mycontext['debug'] = False  # Disable debug mode by default
+        self.filename = filename
+        self.is_open = True
+
+        # Handling file creation using 'default' as a template if applicable
+        if not create and 'default' in listfiles():
+            default_file = openfile('default', False)
+            default_content = default_file.readat(None, 0)  # Read entire content from the "default" file
+
+            self.LPfile = openfile(filename, True)  # Create a new file using the "default" template content
+            self.LPfile.writeat(default_content, 0)
+            default_file.close()
+
+            LPFile.created_files.append(filename)  # Keep track of the newly created file
+            LPFile.open_files.append(filename)     # Keep track of the file that is currently open
+        else:
+            self.LPfile = openfile(filename, create)
+            LPFile.open_files.append(filename)
+
+    def readat(self, num_bytes, offset):
+        """Read data from the file at a given offset."""
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        """Write data to the file at a specified offset."""
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        """Close the file and manage its state securely."""
+        self.is_open = False
+        add_file_to_created_list(self.filename)  # Add the file to the created files list
+        if self.filename in LPFile.open_files:
+            LPFile.open_files.remove(self.filename)  # Remove the file from the open files list
+        self.LPfile.close()
+
+# Factory function to create or open files using LPFile class
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+# Function to securely remove files
+def LPremovefile(filename):
+    if filename == 'default':
+        remove_all_created_files()  # Remove all created files if the "default" file is being deleted
+    removefile(filename)
+
+# The code below sets up type checking and maps functions to Repy V2's API
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {TYPE: FUNC, ARGS: (str, (int, long)), EXCP: Exception, RETURN: (int, type(None)), TARGET: LPFile.writeat},
+    "readat": {TYPE: FUNC, ARGS: ((int, long, type(None)), (int, long)), EXCP: Exception, RETURN: str, TARGET: LPFile.readat},
+    "close": {TYPE: FUNC, ARGS: None, EXCP: Exception, RETURN: (bool, type(None)), TARGET: LPFile.close}
+}
+
+# Map the LPFile operations to the Repy V2 API's file handling methods
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Dispatch the module to enforce the security layer rules for file operations
+secure_dispatch_module()

@@ -1,0 +1,19 @@
+# reference_monitor_krs8750.r2py
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+
+try:
+    default = openfile("default", True)
+except FileInUseError:
+    pass
+except Exception:
+    pass
+else:
+    raise Exception("Default should not be openable since it's already opened")
+    
+default.close()

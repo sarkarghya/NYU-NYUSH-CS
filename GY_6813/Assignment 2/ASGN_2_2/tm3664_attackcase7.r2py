@@ -1,0 +1,13 @@
+def test_unintended_file_deletion():
+    # check if writing to 'default' leads to unauthorized file deletion
+    openfile("tempfile.txt", create=True).close()
+    try:
+        d = openfile("default", create=True)
+        d.writeat("Trigger deletion", 0)
+        d.close()
+        if "tempfile.txt" in listfiles():
+            log("Security flaw: 'tempfile.txt' should have been deleted.")
+    except Exception as e:
+        log("Error handling 'default': " + str(e))
+
+test_unintended_file_deletion()

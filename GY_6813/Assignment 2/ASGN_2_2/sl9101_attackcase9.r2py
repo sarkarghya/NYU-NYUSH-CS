@@ -1,0 +1,14 @@
+# CASE 9: Opening existing file with correct data
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Creates and writes testfile
+myfile = openfile("testfile.txt",True)
+myfile.writeat("Helloworld", 0)
+myfile.close()
+
+# Reopens file and checks content
+myfile = openfile("testfile.txt", False)
+assert myfile.readat(None, 0) == "Helloworld"
+myfile.close()
+# END OF CASE 9

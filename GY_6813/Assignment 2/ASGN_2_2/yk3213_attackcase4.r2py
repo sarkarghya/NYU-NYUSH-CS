@@ -1,0 +1,7 @@
+
+try:
+    LPremovefile("non_existent_file")
+except FileNotFoundError as e:
+    pass
+else:
+    print("Attack failed: Non-existent file was removed.")

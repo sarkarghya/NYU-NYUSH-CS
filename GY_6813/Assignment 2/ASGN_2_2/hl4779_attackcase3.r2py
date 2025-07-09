@@ -1,0 +1,10 @@
+if "default" in listfiles():
+  removefile("default")
+if "fileone" in listfiles():
+    removefile("fileone")
+
+
+try:
+    file = openfile("fileone", False)
+except FileNotFoundError as error:
+    pass

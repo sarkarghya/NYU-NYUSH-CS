@@ -1,0 +1,31 @@
+#Attack case 4: 
+
+#checking if Repy Arguement Error gets surpassed - for trying to open a file that has an invalid file name 
+
+try: 
+    myfile = openfile("in/valid.txt", True )
+except RepyArgumentError: 
+    pass
+else:
+    assert "in/valid.txt" in listfiles , "the error was not caught and filename is in listfiles()"
+
+
+#checking if the file has a negative offset 
+try: 
+    negativefile = openfile("valid.txt" , True)
+    negativefile.readat(None , -2) #negative 
+except RepyArgumentError: 
+    pass
+else: 
+    log("The offset is negative, the file SHOULD NOT be read")
+
+
+#checking if the file has negative sizelimit or not None
+try: 
+    sizedfile = openfile("sizefile.txt" , True)
+    sizedfile.writeat("checking for negative sizelimit")
+    sizedfile.readat(-4, 0)
+except RepyArgumentError:
+    pass
+else: 
+    log("the sizelimit is negative, the file SHOULD NOT be read") 

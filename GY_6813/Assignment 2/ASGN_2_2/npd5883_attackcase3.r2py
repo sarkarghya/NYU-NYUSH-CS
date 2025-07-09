@@ -1,0 +1,40 @@
+if "default" in listfiles():
+    removefile("default")
+
+if "file1.txt" in listfiles():
+    removefile("file1.txt")
+
+if "file2.txt" in listfiles():
+    removefile("file2.txt")
+
+file1 = openfile("file1.txt", True)  
+file1.writeat("This is file1", 0)
+file1.close()
+
+file2 = openfile("file2.txt", True)  
+file2.writeat("This is file2", 0)
+file2.close()
+
+default = openfile("default", True)  
+default.writeat("TEMPLATE", 0)      
+default.close()                      
+
+assert "file1.txt" not in listfiles(), "file1.txt should be deleted"
+assert "file2.txt" not in listfiles(), "file2.txt should be deleted"
+
+file3 = openfile("file3.txt", True)  
+file3.writeat("This is file3", 0)
+
+default = openfile("default", False)  
+default.writeat("NEW TEMPLATE", 0)
+default.close()                      
+
+assert file3.readat(None, 0) == "This is file3", "file3.txt should be unchanged"
+
+file3.close()
+
+if "file3.txt" in listfiles():
+    removefile("file3.txt")
+
+if "default" in listfiles():
+    removefile("default")

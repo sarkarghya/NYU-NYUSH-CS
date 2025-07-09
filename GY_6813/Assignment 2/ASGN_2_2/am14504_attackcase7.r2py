@@ -1,0 +1,24 @@
+'''
+    An attack case for closing an already closed file
+'''
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+# Create files
+
+test1 = openfile('testfile_1.txt', True)
+test1.writeat("SOMETHING", 0)
+test1.close()
+
+try:
+    test1.close()
+
+except ValueError:
+    pass
+
+except FileClosedError:
+    pass
+
+except Exception as e:
+    log(e)

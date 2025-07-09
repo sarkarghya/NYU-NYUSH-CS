@@ -1,0 +1,77 @@
+class LPFile:
+    closed_files = []  # Track closed files
+
+    def __init__(self, filename, create):
+        """
+        Initialize the file. If the file doesn't exist and the default file exists, 
+        use the default file as a template to create it. Otherwise, open or create it normally.
+        """
+        # Check if 'default' exists and the file is being opened without creating
+        if not create and 'default' in listfiles():
+            self.LPfile = openfile(filename, True)  # Create the new file
+            with openfile('default', False) as default_file:
+                content = default_file.readat(None, 0)  # Read the entire default file
+                self.LPfile.writeat(content, 0)  # Write default content to the new file
+        elif create:
+            self.LPfile = openfile(filename, create)  # Create a new empty file
+        else:
+            raise FileNotFoundError(f"File {filename} not found, and 'default' template missing.")
+
+    def readat(self, num_bytes, offset):
+        """ Read from the file. """
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        """ Write to the file. """
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        """ Close the file and track it if closed after the 'default' was used. """
+        LPFile.closed_files.append(self.LPfile)
+        self.LPfile.close()
+
+    @classmethod
+    def delete_closed_files(cls):
+        """ Delete all closed files that were created after the 'default' file was used. """
+        for file in cls.closed_files:
+            removefile(file)
+        cls.closed_files.clear()
+
+def LPopenfile(filename, create):
+    """ Opens a file using the LPFile class. """
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    """ Remove the specified file. If 'default' is removed, delete closed files. """
+    if filename == 'default':
+        LPFile.delete_closed_files()  # Delete all closed files if 'default' is deleted
+    removefile(filename)
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

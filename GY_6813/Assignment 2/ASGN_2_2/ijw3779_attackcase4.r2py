@@ -1,0 +1,41 @@
+def attack_cases():
+  # Clean up if the files exist
+  if "default" in listfiles():
+    removefile("default")
+  if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+  # Check if the readat, writeat, and closed_files functions of the security layers are able to handle the errors in when the files are already closed
+
+  # able to handle error if read at closed file
+  try:
+    file1 = LPopenfile("testcase1.txt", False)
+    file1.close()
+    file1.readatt(1, 1)
+  except Exception:
+    pass
+  
+  # able to handle error if wrote to closed file
+  try:
+    file2 = LPopenfile("testcase2.txt", False)
+    file2.close()
+    file2.writeat("TEST", 1)
+  except Exception:
+    pass
+
+  # able to handle error if closed the closed file
+  try:
+    file2.close()
+  except Exception:
+    pass
+
+  # able to handle error if read at closed default file
+  try:
+    default_file = LPopenfile("default", True)
+    default_file.close()
+    default_file.readatt(1, 1)
+    default_file.writeat("TEST", 1)
+  except Exception:
+    pass
+
+attack_cases()

@@ -1,0 +1,3 @@
+file_open=openfile("test1",True)
+file_open.writeat("This is great",100000)
+file_open.close()

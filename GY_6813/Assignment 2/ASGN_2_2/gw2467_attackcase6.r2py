@@ -1,0 +1,16 @@
+import logging
+
+
+def test_unauthorized_file_write():
+    try:
+        
+        file_handle = openfile("readonly_file.txt", "w")
+        logging.error("Unauthorized write to a read-only file succeeded, which is unexpected.")
+        assert False, "Unauthorized write to a read-only file should be denied."
+    except Exception as e:
+        
+        if "Permission denied" in str(e):
+            logging.info("PermissionError raised as expected: %s", e)
+        else:
+            logging.error("Unexpected error: %s", e)
+

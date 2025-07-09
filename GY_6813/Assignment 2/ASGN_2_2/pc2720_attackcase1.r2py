@@ -1,0 +1,12 @@
+# Create File w/ Non-existant default
+# Should expect error
+
+try:
+    file = openfile("test.txt", False)
+    file.close()
+except FileNotFoundError:
+    pass
+
+
+
+

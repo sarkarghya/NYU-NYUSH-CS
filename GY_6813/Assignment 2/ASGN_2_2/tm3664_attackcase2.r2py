@@ -1,0 +1,24 @@
+def test_default_file_creation_and_deletion():
+    try:
+        default_file = LPopenfile("default", True)
+        default_file.writeat("default content", 0)
+        default_file.close()
+        
+        # open new file which should copy 'default' content
+        new_file = LPopenfile("newfile.txt", False)
+        content = new_file.readat(None, 0)
+        if content != "default content":
+            log("Failed: Content mismatch in new file creation from default.")
+        new_file.close()
+        
+        # remove 'default' and check if 'newfile.txt' still existed
+        LPremovefile("default")
+        try:
+            check_file = LPopenfile("newfile.txt", False)
+            check_file.close()
+        except FileNotFoundError:
+            pass  # Expected behavior, no action needed
+    except Exception as e:
+        log("Failed: Error in default file handling: " + str(e))
+
+test_default_file_creation_and_deletion()

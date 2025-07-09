@@ -1,0 +1,8 @@
+if "test1" in listfiles():
+    removefile("test1")
+
+test1=openfile("test1",True)
+test1.writeat("ABCDE",0)
+
+data=test1.readat(10000,2)
+test1.close()

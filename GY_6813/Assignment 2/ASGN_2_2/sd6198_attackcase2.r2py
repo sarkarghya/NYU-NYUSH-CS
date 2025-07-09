@@ -1,0 +1,25 @@
+
+def LPopenfile(filename, create):
+    # Open the file in read/write mode based on 'create' flag
+    if create:
+        return openfile(filename, True)
+    else:
+        return openfile(filename, False)
+
+def test_read_past_eof(filename):
+    lpfile = LPopenfile(filename, True)
+    try:
+        lpfile.writeat("Short Content", 0)
+
+        # Attempt to read beyond EOF
+        try:
+            content = lpfile.readat(5, 20)
+        except SeekPastEndOfFileError as e:
+            log("Caught error: " + str(e))  
+    finally:
+        lpfile.close()
+
+# Run the EOF read test
+test_read_past_eof("testfile")
+
+

@@ -1,0 +1,15 @@
+# attack by resource exhaustion
+
+def resource_exhaustion_attack():
+    try:
+        for i in range(100):
+            filename = "exhaust_file_%d.txt" % i
+            file = openfile(filename, True)
+            file.writeat("This is a test for file number %d" % i, 0)
+            file.close()
+
+    except Exception:
+        pass
+
+# Execute the attack
+resource_exhaustion_attack()

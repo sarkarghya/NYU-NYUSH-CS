@@ -1,0 +1,16 @@
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+myfile = openfile("testfile.txt", True)
+
+try:
+    myfile.writeat("12345", 0)
+    myfile.writeat("67890\n", 5)
+    myfile.writeat("abcde", 11)
+    content = myfile.readat(None, 0)
+    if content != "1234567890\n    abcde":
+        log("Qahtans Attack 8 successful")
+except Exception:
+    log("Qahtans Attack 8 successful")
+finally:
+    myfile.close()

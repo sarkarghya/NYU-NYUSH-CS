@@ -1,0 +1,11 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'file.txt' in listfiles():
+    removefile('file.txt')
+
+try:
+    file = openfile('file.txt', False)
+except Exception:
+    pass
+else:
+    assert False, "Expected failure when opening file.txt when default do not exist"

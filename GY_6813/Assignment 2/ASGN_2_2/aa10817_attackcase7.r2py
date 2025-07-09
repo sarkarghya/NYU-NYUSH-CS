@@ -1,0 +1,21 @@
+def test_file_isolation():
+    file1 = openfile("isolation1", True)
+    file2 = openfile("isolation2", True)
+    
+    file1.writeat("File 1 content", 0)
+    file2.writeat("File 2 content", 0)
+    
+    content1 = file1.readat(None, 0)
+    content2 = file2.readat(None, 0)
+    
+    assert content1 == "File 1 content" and content2 == "File 2 content"
+    
+    file1.close()
+    file2.close()
+
+    if "isolation1" in listfiles():
+        removefile("isolation1")
+    if "isolation2" in listfiles():
+        removefile("isolation2")
+
+test_file_isolation()

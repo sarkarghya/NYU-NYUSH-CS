@@ -1,0 +1,13 @@
+if "default" in listfiles():
+    removefile("default")
+
+start = getruntime()
+openfile("testfile_largefile", False).readat(100, 0)
+time1 = getruntime() - start
+start = getruntime()
+openfile("testfile_largefile", False).readat(100, 999900)  # Near the end of file
+time2 = getruntime() - start
+assert abs(time1 - time2) < 0.1, "Possible timing attack vulnerability"
+
+if "testfile_largefile" in listfiles():
+    removefile("testfile_largefile")

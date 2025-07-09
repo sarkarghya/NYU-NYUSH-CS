@@ -1,0 +1,8 @@
+# Using Invalid Filename
+# Should raise error
+
+try:
+    file = openfile("test/test.txt", True)
+    file.close()
+except RepyArgumentError:
+    pass

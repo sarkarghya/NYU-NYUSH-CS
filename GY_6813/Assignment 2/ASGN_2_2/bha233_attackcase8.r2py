@@ -1,0 +1,18 @@
+# Check if files are properly removed
+if "default" in listfiles():
+    removefile("default")
+if "testing_file" in listfiles():
+    removefile("testing_file")
+
+testfile = openfile("testing_file", True)
+testfile.close()
+
+default = openfile("default", True)
+default.close()
+
+try:
+    removefile("default")
+except FileNotFoundError:
+    log("************************************Failed test 8*****************************************\n")
+else:
+    pass

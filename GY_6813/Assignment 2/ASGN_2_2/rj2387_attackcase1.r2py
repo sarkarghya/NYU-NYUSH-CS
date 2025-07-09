@@ -1,0 +1,28 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("I BREACHED YOUR PROGRAM", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+assert myfile.readat(None, 0) == "I BREACHED YOUR PROGRAM"
+
+# Close the file
+myfile.close()
+
+except Exception as e:
+    
+    pass

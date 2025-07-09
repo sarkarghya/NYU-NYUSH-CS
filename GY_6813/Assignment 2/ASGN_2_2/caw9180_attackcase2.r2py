@@ -1,0 +1,15 @@
+# Open a file handle first and close it
+
+filename = "validfile.txt"  
+file_handle = openfile(filename, True) 
+file_handle.close()  
+    
+
+#Open a closed files
+try:
+    file_handle.close()  # close file again
+    log("Fail: FileClosedError Expected")  # no exception is raised
+except FileClosedError as e:
+    pass
+except Exception as e:
+    log("Unexpected Error")  # Log any unexpected errors

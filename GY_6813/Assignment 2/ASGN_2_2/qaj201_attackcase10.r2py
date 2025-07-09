@@ -1,0 +1,16 @@
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+myfile = openfile("testfile.txt", True)
+
+try:
+    myfile.writeat("12345\n\n", 0)
+    content = myfile.readat(None, 0)
+    if content != "":
+        log("Qahtans Attack 10 successful")
+except RepyArgumentError:
+    pass
+except Exception:
+    log("Qahtans Attack 10 successful")
+finally:
+    myfile.close()

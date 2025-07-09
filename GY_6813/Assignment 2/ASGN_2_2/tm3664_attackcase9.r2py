@@ -1,0 +1,23 @@
+def test_lock_mechanism_integrity():
+    try:
+        f1 = openfile("lock_test.txt", create=True)
+        f2 = openfile("lock_test.txt", create=False)
+        
+        # simulate concurrent write operations
+        f1.writeat("Data1", 0)
+        f2.writeat("Data2", 0)
+        f1.close()
+        f2.close()
+        
+        # verify data integrity
+        f3 = openfile("lock_test.txt", create=False)
+        final_content = f3.readat(None, 0)
+        if final_content not in ["Data1", "Data2"]:
+            log("Failed: Lock mechanism did not prevent concurrent writes.")
+        f3.close()
+    except Exception as e:
+        log("Error during lock mechanism test: " + str(e))
+    finally:
+        removefile("lock_test.txt")
+
+test_lock_mechanism_integrity()

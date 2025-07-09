@@ -1,0 +1,17 @@
+if "concurrent.txt" in listfiles():
+    removefile("concurrent.txt")
+
+file1 = openfile("concurrent.txt", True)
+file2 = openfile("concurrent.txt", False)
+
+try:
+    file1.writeat("Thread 1", 0)
+    file2.writeat("Thread 2", 8)
+    content = file1.readat(None, 0)
+    if content != "Thread 1Thread 2":
+        log("Qahtans Attack 4 successful")
+except Exception:
+    log("Qahtans Attack 4 successful")
+finally:
+    file1.close()
+    file2.close()

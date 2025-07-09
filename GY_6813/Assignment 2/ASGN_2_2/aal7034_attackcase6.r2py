@@ -1,0 +1,37 @@
+# Short Attack Case for Threading Protection using RepyV2
+# Filename: <netid>_attackcase2.r2py
+
+# Clean up any files that may already exist
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a new file for testing
+try:
+    main_file = openfile("testfile.txt", True)
+    main_file.writeat("Initial content.", 0)
+    main_file.close()
+except Exception as e:
+    log(f"Error while creating test file: {str(e)}")
+
+# Thread task to test concurrent write attempts
+def thread_task():
+    try:
+        file = openfile("testfile.txt", False)
+        file.writeat("Thread writing.", 0)
+        file.close()
+    except FileInUseError:
+        # Expected if another thread is using the file
+        pass
+    except Exception as e:
+        log(f"Unexpected error in thread: {str(e)}")
+
+# Start multiple threads using RepyV2's createthread()
+for _ in range(5):
+    createthread(thread_task)
+
+# Clean up after test
+try:
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+except Exception as e:
+    log(f"Error during cleanup: {str(e)}")

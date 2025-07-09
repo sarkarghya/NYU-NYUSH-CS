@@ -1,0 +1,9 @@
+# test case 6: delete a non-existent file
+
+if "nonexistentfile.txt" in listfiles():
+    removefile("nonexistentfile.txt")
+
+try:
+    removefile("nonexistentfile.txt")
+except FileNotFoundError:
+    pass

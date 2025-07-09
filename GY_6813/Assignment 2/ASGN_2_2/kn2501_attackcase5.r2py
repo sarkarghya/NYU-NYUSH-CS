@@ -1,0 +1,18 @@
+# Test if a file can still be accessed after being deleted.
+try:
+    # Create and open a file.
+    lpfile = openfile("000000000000000000", True)
+    lpfile.writeat("NEW_FILE_CONTENT", 0)
+    lpfile.close()
+
+    # Now remove the file and try to open it again.
+    removefile("000000000000000000")
+
+    # Try accessing the removed file
+    lpfile = openfile("000000000000000000", False)
+    lpfile.writeat("SHOULD_NOT_BE_WRITTEN", 0)
+except FileNotFoundError:
+    pass  # Expected behavior: file should not be found after deletion
+
+except Exception as e:
+    log("attacked")

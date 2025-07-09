@@ -1,0 +1,15 @@
+if "default" in listfiles():
+    removefile("default")
+
+default_file = openfile("default", True)
+
+try:
+    default_file.writeat("Test content\n", 0)
+    default_file.writeat("New line", 13)
+    content = default_file.readat(None, 0)
+    if content != "Test content\n    New line":
+        log("Qahtans Attack 2 successful")
+except Exception:
+    log("Qahtans Attack 2 successful")
+finally:
+    default_file.close()

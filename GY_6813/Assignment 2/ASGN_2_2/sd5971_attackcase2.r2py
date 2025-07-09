@@ -1,0 +1,8 @@
+try:
+    d = openfile("@$%/\\", True)
+except RepyArgumentError as e:
+    pass
+except Exception as e:
+    log("this should not have happened\n")
+    log(e)
+    log("\n")

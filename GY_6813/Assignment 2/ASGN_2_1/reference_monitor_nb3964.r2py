@@ -1,0 +1,71 @@
+TYPE, ARGS, RETURN, EXCP, TARGET, FUNC, OBJC = "type", "args", "return", "exceptions", "target", "func", "objc"
+
+file_lock = createlock()
+
+class SecureFile(object):
+    def init(self, filename, create_flag):
+        self.secure_file = openfile(filename, create_flag)
+        self.file_size = len(self.secure_file.readat(None, 0))
+
+    def read_content(self, byte_count, start_pos):
+        file_lock.acquire(True)
+        try:
+            return self.secure_file.readat(byte_count, start_pos)
+        finally:
+            file_lock.release()
+
+    def write_content(self, content, start_pos):
+        file_lock.acquire(True)
+        try:
+            if start_pos == self.file_size:
+                newline_count = content.count('\n')
+                if newline_count == 0:
+                    self.secure_file.writeat(content, start_pos)
+                    self.file_size = max(self.file_size, len(content) + start_pos)
+                elif newline_count == 1:
+                    newline_index = content.index('\n')
+                    modified_content = content[:newline_index + 1] + "    " + content[newline_index + 1:]
+                    self.secure_file.writeat(modified_content, start_pos)
+                    self.file_size = len(modified_content) + start_pos
+                else:
+                    raise RepyArgumentError("Multiple newlines not allowed")
+            else:
+                self.secure_file.writeat(content, start_pos)
+                self.file_size = max(start_pos + len(content), self.file_size)
+        finally:
+            file_lock.release()
+
+    def close_file(self):
+        self.secure_file.close()
+
+def open_secure_file(filename, create_flag):
+    return SecureFile(filename, create_flag)
+
+
+
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

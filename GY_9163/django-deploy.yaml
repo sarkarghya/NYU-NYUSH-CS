@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assignment3-django-deploy
+  labels:
+    app: assignment3-django-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: assignment3-django-deploy
+  template:
+    metadata:
+      labels:
+        pod: assignment3-django-deploy
+    spec:
+      containers:
+        - name: assignment3-django-deploy
+          image: nyuappsec/assign3:v0
+          ports:
+            - containerPort: 8000
+          env:
+            # - name: MYSQL_ROOT_PASSWORD
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: django-mysql-secrets
+            #       key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
+              value: thisisatestthing.
+
+            - name: MYSQL_DB
+              value: GiftcardSiteDB
+
+            # - name: MYSQL_HOST
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: django-mysql-secrets
+            #       key: MYSQL_HOST
+            - name: MYSQL_HOST
+              value: mysql-service
+
+            - name: ALLOWED_HOSTS
+              value: "*,"
+
+          volumeMounts:
+            - name: mysql-volume-mount
+              mountPath: /var/lib/busybox
+
+            - name: static-data-volume-mount
+              mountPath: /vol/static
+
+      volumes:
+        - name: mysql-volume-mount
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+
+        - name: static-data-volume-mount
+          persistentVolumeClaim:
+            claimName: static-data-pvc

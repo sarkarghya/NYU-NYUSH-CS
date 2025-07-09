@@ -1,0 +1,27 @@
+
+# Edge Case: Ensure removed files can't be accessed (without default)
+
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+
+cleanup_files("default")
+cleanup_files("testfile11.txt")
+
+# Create and remove testfile11
+myfile11 = openfile("testfile11.txt", True)
+myfile11.writeat("some content", 0)
+myfile11.close()
+
+default = openfile("default", True)
+default.writeat("new v3 default_message", 0)
+default.close()
+cleanup_files("default")
+
+# Now attempt to reopen testfile11, expecting a FileNotFoundError, since default changed
+try:
+    reopenedfile = openfile("testfile11.txt", False)  # Without default, this should raise FileNotFoundError
+    assert False  # Should not reach here
+except FileNotFoundError:
+    assert True

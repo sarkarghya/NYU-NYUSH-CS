@@ -1,0 +1,24 @@
+# reference_monitor_caw561.r2py
+# reference_monitor_ctc9510.r2py
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+
+default.close()
+
+try:
+    default.writeat("TEMPLATE", 0)
+except FileClosedError:
+    pass
+except Exception as e:
+    if isinstance(e, AttributeError):
+        raise Exception("Wrong/Unexpected Error is raised: AttributeError is rasied")
+    if isinstance(e, SeekPastEndOfFileError):
+        raise Exception("Wrong/Unexpected Error is raised: SeekPastEndOfFileError is rasied")
+    pass
+else:
+    raise Exception("Default should not be accessible using writeat() since the file is closed already")

@@ -1,0 +1,2 @@
+long_name = 'a' * 10000  # Very long file name
+file_handle = openfile(long_name, True)

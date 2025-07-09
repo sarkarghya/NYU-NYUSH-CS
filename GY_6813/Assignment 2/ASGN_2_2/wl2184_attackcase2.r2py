@@ -1,0 +1,27 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Check if an error is raised when trying to open a non-existent file
+try:
+    airplane = openfile("airplane1", False)
+except FileNotFoundError:
+    pass 
+
+# Create a default file
+try:
+    default = openfile("default", True)
+    default.writeat("TEMPLATE", 0)
+    default.close()
+except:
+    pass 
+
+# Attempt to open a non-existent file ('testfile.txt')
+try:
+    myfile = openfile("testfile.txt", False)
+    read_data = myfile.readat(None, 0)  
+    myfile.close()
+except:
+    pass 

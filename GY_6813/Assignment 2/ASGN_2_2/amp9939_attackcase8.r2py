@@ -1,0 +1,20 @@
+#Attack Case 8: Testing FileClosedError 
+
+# Clean up if the files exist
+if "c-file.txt" in listfiles():
+  removefile("c-file.txt")
+
+
+#opening, reading, and closing the file 
+cfile = openfile("c-file.txt", True)
+cfile.readat(None, 0)
+cfile.close()
+
+#testing correct Exception 
+try: 
+  #closing this file again 
+  cfile.close()
+except FileClosedError as c:
+  pass 
+else: 
+  assert False  , "FileClosedError needs to be thrown - file closed twice"

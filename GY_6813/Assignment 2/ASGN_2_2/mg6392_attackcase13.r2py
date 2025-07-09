@@ -1,0 +1,8 @@
+# Edge Case: Close file twice to trigger FileClosedError
+myfile8 = openfile("testfile8.txt", True)
+myfile8.close()
+try:
+    myfile8.close()
+    assert False  # Should not reach here
+except FileClosedError:
+    assert True

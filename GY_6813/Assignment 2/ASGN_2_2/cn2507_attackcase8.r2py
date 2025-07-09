@@ -1,0 +1,17 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'overwritefile.txt' in listfiles():
+    removefile('overwritefile.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('Original content.', 0)
+default_file.close()
+
+overwrite_file = openfile('overwritefile.txt', False)
+overwrite_file.close()
+
+default_file = openfile('default', True)
+default_file.writeat('New default content.', 0)
+default_file.close()
+
+assert 'overwritefile.txt' not in listfiles()

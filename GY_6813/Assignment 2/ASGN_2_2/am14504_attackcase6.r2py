@@ -1,0 +1,28 @@
+'''
+    An attack case for opening an already opened file
+'''
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+# Create files
+
+test1 = openfile('testfile_1.txt', True)
+
+try:
+    test2 = openfile('testfile_1.txt', True)
+
+except FileInUseError:
+    pass
+
+except IOError:
+    pass
+
+except ValueError:
+    pass
+
+except Exception as e:  
+    log(e)
+
+finally:
+    test1.close()

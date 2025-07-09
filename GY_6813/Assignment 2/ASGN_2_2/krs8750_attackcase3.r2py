@@ -1,0 +1,25 @@
+#Make sure previously closed and now reopened files are not deleted when default is removed (with a slightly different order)
+
+# Create new default file
+if "default" in listfiles():
+  removefile("default")
+
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+if "test.txt" in listfiles():
+  removefile("test.txt")
+#Create a file using default
+myfile = openfile("test.txt", False)
+myfile.close()
+
+myfile = openfile("test.txt", False)
+removefile("default")
+assert myfile.readat(None, 0) == "TEMPLATE"
+myfile.close()
+removefile("test.txt")

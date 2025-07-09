@@ -1,0 +1,126 @@
+"""
+Louis Hwang
+lah501@nyu.edu
+CS 6813
+Assignment 2 reference monitor
+Version: Oct 6, 2024 11:56AM
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py
+
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+mycontext['file_names'] = {}      # Keeps track of open/closed files. True means file is closed
+mycontext['dic_names'] = []
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.name = filename
+        if create == False and 'default' in listfiles():
+            if filename in listfiles():
+                self.LPfile = openfile(filename, create)
+                add_file_name(filename)
+            else:
+                try:
+                    default_file = openfile('default', False)
+                except FileInUseError:
+                    default_file = mycontext['default_file']
+                content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                add_file_name(filename)
+        else:
+            if filename == 'default':
+                if filename not in listfiles():
+                    self.LPfile = openfile(filename, create)
+                    remove_files_default()
+                else:
+                    self.LPfile = openfile(filename, create)
+                mycontext['default_file'] = self.LPfile
+            else:
+                self.LPfile = openfile(filename, create)
+                add_file_name(filename)
+
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+        if self.name == 'default':
+            remove_files_default()
+
+    def close(self):
+        self.LPfile.close()
+        if self.name != 'default':
+            mycontext['file_names'][self.name] = True
+
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    removefile(filename)
+    if filename == 'default':
+        remove_files_default()
+    else:
+        if filename in mycontext['file_names']:
+            del mycontext['file_names'][filename]
+            mycontext['dic_names'].remove(filename)
+
+def add_file_name(file_name):
+    if file_name == 'default':
+        return
+    if file_name in mycontext['file_names']:
+        mycontext['file_names'][file_name] = False
+        return
+    mycontext['file_names'][file_name] = False
+    mycontext['dic_names'].append(file_name)
+
+def remove_files_default():
+    for file in mycontext['dic_names']:
+        if mycontext['file_names'][file] == True:
+            removefile(file)
+            del mycontext['file_names'][file]
+    mycontext['dic_names'] = [key for key in mycontext['file_names']]
+
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

@@ -1,0 +1,42 @@
+# Test cases for filename boundary conditions
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+max_name = "a" * 120
+try:
+    file1 = openfile(max_name, True)
+    file1.close()
+    removefile(max_name)
+except RepyArgumentError:
+    pass
+
+try:
+    too_long = "a" * 121
+    file2 = openfile(too_long, True)
+except RepyArgumentError:
+    pass
+
+try:
+    file3 = openfile("", True)
+except RepyArgumentError:
+    pass
+
+try:
+    file4 = openfile(".test", True) 
+except RepyArgumentError:
+    pass
+
+try:
+    file5 = openfile("..", True)  
+except RepyArgumentError:
+    pass
+
+invalid_chars = ["#", "$", "@", "&", "*"]
+for char in invalid_chars:
+    try:
+        file6 = openfile("test" + char + "file", True)
+    except RepyArgumentError:
+        pass

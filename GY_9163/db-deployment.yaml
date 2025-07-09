@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-container
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-container
+  template:
+    metadata:
+      labels:
+        app: mysql-container
+        tier: backend
+    spec:
+      containers:
+        - name: mysql-container
+          image: nyuappsec/assign3-db:v0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: django-mysql-secrets
+                  key: MYSQL_ROOT_PASSWORD
+
+            - name: MYSQL_DATABASE
+              value: GiftcardSiteDB
+
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-volume-mount
+              mountPath: /var/lib/mysql
+
+      volumes:
+        - name: mysql-volume-mount
+          persistentVolumeClaim:
+            claimName: mysql-pvc

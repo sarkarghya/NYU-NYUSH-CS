@@ -1,0 +1,26 @@
+'''
+    An attack case where reading happens at index beyond EOF
+'''
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+# Create a file
+
+test = openfile('testfile_1.txt', True)
+test.writeat('SOMETHING', 0)
+
+try:
+    test.readat(None, 20)
+
+except RepyArgumentError:
+    pass
+
+except IOError as e:
+    pass
+
+except ValueError as e:
+    pass
+
+except Exception as e:
+    log(e)

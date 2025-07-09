@@ -1,0 +1,51 @@
+# TestCase: openfile invalid filename
+
+try:
+  file1 = openfile(".", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file2 = openfile("..", True)
+except RepyArgumentError:
+  pass
+  
+try:
+  file3 = openfile("", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file4 = openfile(".abc", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file5 = openfile("$abc", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file6 = openfile("abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz_abcdefghijklmnpqrstuvwxyz", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file7 = openfile("UPPERCASE", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file8 = openfile("directory\file", True)
+except RepyArgumentError:
+  pass
+
+try:
+  file9 = openfile("abc", "not a boolean")
+except RepyArgumentError:
+  pass
+
+
+
+
+  

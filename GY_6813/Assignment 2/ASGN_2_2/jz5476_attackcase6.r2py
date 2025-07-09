@@ -1,0 +1,9 @@
+# Invalid data type
+my_file = openfile("invalid_type.txt", True)
+
+try:
+    my_file.writeat(100000, 0)
+except RepyArgumentError:
+    pass
+else:
+    log("ERROR - Invalid Input Type")

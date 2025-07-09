@@ -1,0 +1,18 @@
+#Attack Case 9: NameError 
+
+
+#opening a normal file 
+
+namefile = openfile("names.txt" , True)
+namefile.writeat("Just writing to test NameError" , 0)
+
+
+#closing a file that is not defined - name error 
+try:
+    #this will not work because thats not the name i used 
+    notname.close()
+except NameError:
+    pass
+else:
+    log("NameError was not caught correctly:")
+

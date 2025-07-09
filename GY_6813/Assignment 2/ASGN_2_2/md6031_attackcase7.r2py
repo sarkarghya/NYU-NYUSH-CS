@@ -1,0 +1,59 @@
+# md6031_attackcase7.r2py
+# This attack case attempts to exploit a potential race condition
+
+def race_thread(filename):
+    try:
+        for _ in range(1000):
+            f = openfile(filename, False)
+            f.writeat("RACE", 0)
+            f.close()
+            removefile(filename)
+    except Exception:
+        pass
+
+def check_thread(filename):
+    try:
+        for _ in range(1000):
+            f = openfile(filename, False)
+            content = f.readat(None, 0)
+            f.close()
+            if content != "TEMPLATE" and content != "RACE":
+                log("Security layer flaw: Inconsistent file state detected")
+                return
+    except Exception:
+        pass
+
+def attack_case7():
+    # Clean up if the files exist
+    if "default" in listfiles():
+        removefile("default")
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Create a default file
+    default = openfile("default", True)
+    default.writeat("TEMPLATE", 0)
+    default.close()
+
+    # Create the test file
+    testfile = openfile("testfile.txt", True)
+    testfile.close()
+
+    # Start multiple threads to create a race condition
+    createthread(race_thread, args=("testfile.txt",))
+    createthread(race_thread, args=("testfile.txt",))
+    createthread(check_thread, args=("testfile.txt",))
+
+    # Let the threads run for a while
+    sleep(5)
+
+    # Final check
+    if "testfile.txt" in listfiles():
+        f = openfile("testfile.txt", False)
+        content = f.readat(None, 0)
+        f.close()
+        if content != "TEMPLATE":
+            log("Security layer flaw: File content not reset after race condition")
+
+if callfunc == 'initialize':
+    attack_case7()

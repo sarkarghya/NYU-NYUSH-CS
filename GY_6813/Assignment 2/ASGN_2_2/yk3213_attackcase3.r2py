@@ -1,0 +1,12 @@
+try:
+    valid_file = LPFile("validfile", create=True)
+    valid_file.close()
+    
+    try:
+        data = valid_file.readat(10, 0)
+    except Exception as e:
+        pass  
+    else:
+        print("Attack failed: Reading from closed file was allowed.")
+except Exception as e:
+    print(f"Unexpected error: {e}")

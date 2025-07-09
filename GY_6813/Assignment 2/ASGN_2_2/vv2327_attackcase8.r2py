@@ -1,0 +1,12 @@
+# type: ignore  
+try:
+    myfile = openfile(".testfile", False)
+except RepyArgumentError:
+    assert ".testfile" not in listfiles()
+    pass
+else:
+    log("Unexpected Behaviour: Should not open a file whose name is Starting with .")
+    myfile.close()
+finally:
+    if ".testfile" in listfiles():
+        removefile(".testfile")

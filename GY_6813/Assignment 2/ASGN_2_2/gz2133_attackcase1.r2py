@@ -1,0 +1,22 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Open a file when default isn't closed
+try:
+  myfile = openfile("testfile.txt", False)
+  log ("Error: default still in use. \n")
+except (FileInUseError, FileNotFoundError) as expected_error:
+  pass
+
+# Close default
+default.close()
+

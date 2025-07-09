@@ -1,0 +1,30 @@
+def modify_default():
+    default_file = openfile("default", True)
+    default_file.writeat("Modified default content", 0)
+    default_file.close()
+
+def create_new_file():
+    new_file = openfile("new_file", True)
+    new_file.writeat("New file content", 0)
+    new_file.close()
+
+def test_concurrent_default_and_new():
+    default_file = openfile("default", True)
+    default_file.writeat("Initial default content", 0)
+    default_file.close()
+
+    createthread(modify_default)
+    createthread(create_new_file)
+
+    sleep(0.1)
+
+    default_file = openfile("default", False)
+    default_content = default_file.readat(None, 0)
+    default_file.close()
+    assert default_content == "Modified default content"
+
+    assert "new_file" not in listfiles()
+
+    removefile("default")
+
+test_concurrent_default_and_new()

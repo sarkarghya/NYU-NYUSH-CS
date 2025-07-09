@@ -1,0 +1,30 @@
+# md6031_attackcase1.r2py
+# This attack case tests file creation and default content setting
+
+def attack_case1():
+  # Clean up if the file exists
+  if "testfile1.txt" in listfiles():
+    removefile("testfile1.txt")
+
+  # Create a default file
+  default = openfile("default", True)
+  default.writeat("TEMPLATE", 0)
+  default.close()
+
+  # Create the test file
+  testfile = openfile("testfile1.txt", True)
+  testfile.close()
+
+  # Read the content of the newly created file
+  testfile = openfile("testfile1.txt", False)
+  content = testfile.readat(None, 0)
+  testfile.close()
+
+  # Check if the default content is set correctly
+  if content != "TEMPLATE":
+    log("Vulnerability 1: Default content not set correctly in new files")
+  else:
+    log("Attack case 1 passed: Default content set correctly")
+
+if callfunc == 'initialize':
+  attack_case1()

@@ -1,0 +1,20 @@
+def attack():
+    try:
+        try:
+            openfile("attackfile.txt", True)
+        except:
+            pass
+
+        try:
+            removefile('default')
+        except:
+            pass
+
+        try:
+            openfile("attackfile2.txt", True)
+        except:
+            pass
+    except Exception as e:
+        pass
+    finally:
+        exitall()

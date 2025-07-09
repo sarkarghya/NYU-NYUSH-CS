@@ -1,0 +1,13 @@
+# Check if FileNotFoundError thrown when not existing file created without default and create = False
+if "default" in listfiles():
+    removefile("default")
+if "test5_file1" in listfiles():
+    removefile("test5_file1")
+
+try:
+    file1 = openfile("test5_file1", False)
+except FileNotFoundError:
+    pass
+else:
+    file1.close()
+    log("**************************************************Failed Test 5****************************************************\n")

@@ -1,0 +1,7 @@
+try:
+    openfile("invalid!.txt", True)
+    log("Qahtans Attack 6 successful")
+except RepyArgumentError:
+    pass
+except Exception:
+    log("Qahtans Attack 6 successful")

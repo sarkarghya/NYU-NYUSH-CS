@@ -1,0 +1,17 @@
+
+import logging
+
+
+def test_modify_after_close():
+    try:
+        file_handle = openfile("testfile.txt", "w")
+        file_handle.write("Initial data")
+        closefile(file_handle)
+
+        file_handle.write("Attempt to modify")
+        logging.error("Modification attempted after closing the file, which should not be allowed.")
+        assert False, "Modification after closing the file should not be allowed."
+    except Exception as e:
+        log("Error encountered: %s", e)  # Log the exception details
+        assert "File is already closed" in str(e), f"Unexpected error: {e}"
+

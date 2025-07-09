@@ -1,0 +1,47 @@
+def write(filename, data, offset=0):
+    file = openfile(filename, True)
+    file.writeat(data, offset)
+    file.close()
+
+def read(filename):
+    try:
+        file = openfile(filename, False)
+        content = file.readat(None, 0)
+        file.close()
+        return content
+    except FileNotFoundError:
+        return None
+
+def t1():
+    for i in range(100):
+        write("default", "New default content " + str(i))
+        sleep(0.1)
+
+def t2():
+    for i in range(100):
+        filename = "testfile_" + str(i)
+        write(filename, "Content " + str(i))
+        sleep(0.01)
+
+def run_race_condition_test():
+    write("default", "Initial default content")
+
+    createthread(t1)
+    createthread(t2)
+
+    # equivalent to a threads.join()
+    sleep(3)
+
+    files_found = listfiles()
+    default_content = read("default")
+
+    for i in range(100):
+        assert "testfile_" + str(i) not in files_found, "Test6 FAILED, found testfile_" + str(i) + " in listfiles()"
+    
+    assert "default" in files_found, "Test6 FAILED, default NOT in listfiles()"
+
+    assert default_content and default_content.startswith("New default content"), "Test6 FAILED, default_content cotrrupted"
+
+    removefile("default")
+
+run_race_condition_test()

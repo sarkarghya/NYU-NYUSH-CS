@@ -1,0 +1,10 @@
+try:
+    if "default" in listfiles():
+        removefile("default")
+    d = openfile("default", True)
+    y = openfile("default", True)
+except FileInUseError as e:
+    pass
+
+except Exception as e:
+    log("this should not have happened")

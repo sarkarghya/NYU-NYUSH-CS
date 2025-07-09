@@ -1,0 +1,12 @@
+# test write to closed file
+
+my_file = openfile("testfile.txt", True)
+my_file.writeat("Write data", 0)
+my_file.close()
+
+try:
+    my_file.writeat("something", 0)
+except FileClosedError:
+    pass
+else:
+    log("ERROR - Allow me to write to closed file\n")

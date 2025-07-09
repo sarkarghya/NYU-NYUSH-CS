@@ -1,0 +1,17 @@
+if "default" in listfiles():
+    removefile("default")
+if "test1" in listfiles():
+    removefile("test1")
+
+default_1=openfile("default",True)
+default_1.writeat("This is test file", 0)
+default_1.close()
+
+
+test1=openfile("test1",False)
+
+default_1=openfile("default",True)
+default_1.writeat("This is 2nd test file", 0)
+default_1.close()
+
+assert "test1" in listfiles()

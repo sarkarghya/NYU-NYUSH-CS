@@ -1,0 +1,197 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+# TEST CASE: CHECK WHETEHR THE DEFAULT FILE IS OPEN AT THE START OF THE PROGRAM
+
+# if create == False and Default Exists: create new file and copy default onto the new file
+# if create == False and Default Does Not Exist: Throw the FileNotFoundError
+# if create == True and Default Exists: create new file, do not copy default
+# if create == True and Default Does Not Exists: create new file, do not copy default
+# if file already exists, just open file, do not create a new file
+# if default_file is created, written to, or deleted:
+#   1) All closed files that were previously created gets deleted; These files include both the ones that were created by using the default and not using the default
+#   2) Any files that are already open must be left unchanged.
+# If someone deletes default file, you delete default file along with all closed files that were created (Except if default file if opened, but that's just how it's supposed to work since all opened files cannot be deleted)
+# If someone writes to default file, then you do not delete default file (because default file must be opened to perform a write), but you delete all files that were created
+# If someone creates a default file, then you do not delete default file (because default file must be opened to perform a create), but you delte all files that were created
+
+
+class LPFile():
+    mycontext['closed_files'] = [] # will store the names of the closed files in a list
+    mycontext['opened_files'] = [] # will store the names of the opened files in a list
+    mycontext['created_by_default'] = [] # will store the names of the opened files in a list
+    mycontext['not_created_by_default'] = [] # will store the names of the opened files in a list
+    mycontext['max_file_handles'] = 10 # maximum number of files that can be opened
+    mycontext['file_handles_in_use'] = 0 # number of handles currently in use
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        # check for invalid file name:
+        val = validate_filename(filename)
+        if val == 0: # if file does not exist in directory
+            FileNotFoundError
+        elif val == 1 or not isinstance(create, bool): # invalid filename, cannot open or create is not a bool
+            raise RepyArgumentError
+        self.filename = filename
+        if val == 2: # if file exists in directory
+            if filename in mycontext['opened_files']: # file is already opened
+                raise FileInUseError
+            if mycontext['max_file_handles'] == mycontext['file_handles_in_use']: # if no handles are available
+                raise ResourceExhaustedError
+
+            self.LPfile = openfile(filename, False)
+            if filename in mycontext["closed_files"]:
+                mycontext["closed_files"].remove(filename)
+            if filename not in mycontext['opened_files']:
+                mycontext['opened_files'].append(filename)
+
+        elif create == False and 'default' in listfiles(): # if create is false, use default to create the file, only if default exists
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+            mycontext['opened_files'].append(filename)
+            
+        elif create == False and 'default' not in listfiles(): # create is false and default DNE, thus throw FileNotFoundError
+            raise FileNotFoundError
+        
+        elif create == True and 'default' in listfiles(): # create is true and default exists: create a new file only if the file already does not exist
+            if filename in listfiles(): # if the file already exists, then just open the already existing file
+                self.LPfile = openfile(filename, False)
+            else: # if the file does not exist, then create the file
+                self.LPfile = openfile(filename, True)
+            mycontext['opened_files'].append(filename)
+                
+        elif create == True and 'default' not in listfiles(): # create is true and default does not exist: create a new file only if the file already does not exist
+            if filename in listfiles(): # if the file already exists, then just open the already existing file
+                self.LPfile = openfile(filename, False)
+            else: # if the file does not exist, create the file
+                self.LPfile = openfile(filename, True)
+            mycontext['opened_files'].append(filename)
+        
+        else:
+            self.LPfile = openfile(filename, create)
+            mycontext['opened_files'].append(filename)
+            
+        self.filename = filename
+
+    def readat(self, num_bytes, offset): # method, can only be called on a LPFile object
+        if offset < 0: # if the offset is negative
+            raise RepyArgumentError
+        if self.filename in mycontext['closed_files']:
+            raise  FileClosedError
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset): # method, can only be called on a LPFile object
+        if offset < 0 or not isinstance(data, str):
+            raise RepyArgumentError
+        
+        if self.filename in mycontext['closed_files']:
+            raise FileClosedError
+
+        # if the file is aready opened, aka in the opened_files list, you don't need to do anything
+        self.LPfile.writeat(data, offset) # write to the file
+        
+        # if the file you wrote to was the default file, you must delete all files in closed_files
+        if self.filename == "default": 
+            for file_name in mycontext['closed_files']:
+                removefile(file_name)
+            # now that all the files have been removed from the directory, remove the files from the list, aka just reassign to a new list:
+            mycontext["closed_files"] = []
+            
+    def close(self): # method, can only be called on a LPFile object
+        if self.filename in mycontext['closed_files']: # if file is already closed
+            raise FileClosedError
+        if self.filename in mycontext["opened_files"]: # if the file is currently in the opened files list,
+            mycontext["opened_files"].remove(self.filename) # remove it
+            mycontext["closed_files"].append(self.filename) # and add it to the closed_files list
+            
+        # if the file is already in the closed_files list, do nothing
+        self.LPfile.close() # close the file
+        
+def validate_filename(filename):
+    invalid_characters = ["#", "%", "&", "{", "}", "<", ">", "*", "?", "/", " ", "$", "!", "'", '"', ":", "@", "+", "`", "|", "="]
+    if filename not in listfiles():
+        return 0 # if file does not exist in directory
+    for char in invalid_characters:
+        if char in filename:
+            return 1 # invalid file name, cannot open
+    if filename in listfiles():    
+        return 2 # file exists in directory
+        
+        
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    val = validate_filename(filename)
+    if val == 0: # File not in directory, aka DNE
+        raise FileNotFoundError
+    elif val == 1: # filename is invalid
+        raise RepyArgumentError
+    if filename in mycontext['opened_files']: # file is already open
+        raise FileInUseError
+    
+    if filename == 'default': # if the default is being removed, remove all closed files
+        count = 1
+        for file_name in mycontext['closed_files']:
+            # mycontext['closed_files'].remove(file_name) # remove from the list
+            removefile(file_name) # remove from the system
+            count+=1
+        # now that all the files have been removed from the directory, remove the files from the list, aka just reassign to a new list:
+        mycontext["closed_files"] = []
+
+        if filename not in mycontext['opened_files'] and filename in listfiles():
+            removefile(filename) # removes file if the first thing that attack does is remove
+    else: # if file being removed is not default, just remove that one file only if it is closed
+        for file_name_to_remove in mycontext["closed_files"]: # loop over all closed files
+            if file_name_to_remove == filename: # if there is a match, aka if the file is closed
+                removefile(file_name_to_remove) # remove that file
+        if filename not in mycontext['opened_files'] and filename in listfiles():
+            removefile(filename)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

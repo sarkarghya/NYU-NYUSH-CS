@@ -1,0 +1,17 @@
+# TEST CASE 5 - Double closing default file
+
+# file cleanup
+if "default" in listfiles():
+    removefile("default")
+
+# creating default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# attempt to close file again
+try:
+    default.close()
+    assert False
+except FileClosedError:
+    pass

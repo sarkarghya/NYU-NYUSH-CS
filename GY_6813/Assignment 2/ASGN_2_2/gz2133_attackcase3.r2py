@@ -1,0 +1,28 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", True)
+
+# Close the file
+myfile.close()
+
+# Recreates testfile.txt using default as template
+myfile2 = openfile("testfile.txt", False)
+
+if myfile2.readat(None, 0) != "TEMPLATE":
+    log("Error: file does not match default.\n")
+
+myfile2.close()

@@ -1,0 +1,24 @@
+# Test case checking default file rules 2
+
+if "default" in listfiles():
+    removefile("default")
+if "test1.txt" in listfiles():
+    removefile("test1.txt")
+    
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test1 = openfile("test1.txt", False)
+assert test1.readat(None, 0) == "TEMPLATE"
+
+default = openfile("default", True)
+default.writeat("NEW", 0)
+default.close()
+
+assert "test1.txt" in listfiles()
+assert test1.readat(None, 0) == "TEMPLATE"
+
+test1.close()
+
+assert "test1.txt" not in listfiles()

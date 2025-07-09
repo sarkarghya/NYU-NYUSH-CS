@@ -1,0 +1,18 @@
+# Attack case to test resource exhaustion
+
+try:
+    # Very large number of files to stress test resource management
+    for i in range(1000): 
+        f = openfile("file" + str(i), True)
+        writefile(f, "Data")
+        closefile(f)
+except Exception as e:
+    # Log any error that occurs during resource exhaustion
+    log("Error during resource exhaustion test: " + str(e))
+finally:
+    # Clean up: Try to remove all files
+    for i in range(1000):
+        try:
+            removefile("file" + str(i))
+        except Exception as e:
+            log("Error removing file" + str(i) + ": " + str(e))

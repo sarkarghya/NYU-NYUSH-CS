@@ -1,0 +1,61 @@
+try:
+    bypassInvalidCharFilename = openfile("testfile@attack.r2py", True)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassDotStartFilename = openfile(".testfile", True)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassEmptyFilename = openfile("", True)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassMultiDotFilename = openfile("testfile..bypass.r2py", True)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassSpaceFilename = openfile("test file.r2py", True)
+except RepyArgumentError:
+    pass
+
+try:
+    stringCreateBypass = openfile("testfile.r2py", "yes")
+except RepyArgumentError:
+    pass
+
+try:
+    intCreateBypass = openfile("testfile.r2py", 1)
+except RepyArgumentError:
+    pass
+
+try:
+    floatCreateBypass = openfile("testfile.r2py", 0.5)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassUppercaseFilename = openfile("TestFile.r2py", True)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassHyphenFilename = openfile("test-file.r2py", True)
+except RepyArgumentError:
+    pass
+
+try:
+    bypassDoubleDotStart = openfile("..testfile", True)
+except RepyArgumentError:
+    pass
+
+longFilename = "ncbjxqdjuexhtoehguqidcosxtzdmieceiipcraahitvpenrnzwuqejbyhnyhmnsghlnwdbuodjbxowldqmjakpboldkhystykrghwgqxmedczhdfjbzqulfh"
+try:
+    bypassLongFilename = openfile(longFilename, True)
+except RepyArgumentError:
+    pass
+

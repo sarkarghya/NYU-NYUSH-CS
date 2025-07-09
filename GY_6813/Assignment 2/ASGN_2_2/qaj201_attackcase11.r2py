@@ -1,0 +1,42 @@
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+def thread1():
+    myfile = openfile("testfile.txt", True)
+    try:
+        for i in range(50):
+            myfile.writeat("1", i)
+    finally:
+        myfile.close()
+
+def thread2():
+    myfile = openfile("testfile.txt", False)
+    try:
+        for i in range(50, 100):
+            myfile.writeat("2", i)
+    finally:
+        myfile.close()
+
+def thread3():
+    myfile = openfile("testfile.txt", False)
+    try:
+        for i in range(100):
+            myfile.readat(1, i)
+    finally:
+        myfile.close()
+
+try:
+    createthread(thread1)
+    createthread(thread2)
+    createthread(thread3)
+    # Wait for threads to complete
+    sleep(2)
+    
+    # Verify file content
+    myfile = openfile("testfile.txt", False)
+    content = myfile.readat(None, 0)
+    if content != "1" * 50 + "2" * 50:
+        log("Qahtans Final Attack successful")
+    myfile.close()
+except Exception:
+    log("Qahtans Final Attack successful")

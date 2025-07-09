@@ -1,0 +1,10 @@
+try:
+   if "default" in listfiles():
+      removefile("default")
+except PermissionError:
+    try:
+    	os.remove("default")
+    except Exception as e: 
+        pass
+except Exception as e:
+        pass

@@ -1,0 +1,34 @@
+# default file behavior
+
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+if "default" in listfiles():
+  removefile("default")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+file = openfile("testfile.txt", True)
+file.writeat("TEST", 0)
+file.close()
+
+default = openfile("default", True)
+content = default.readat(None, 0)
+
+assert "testfile.txt" in listfiles(), "Test failed: `testfile.txt` deleted when default was read"
+
+# Close default
+default.close()
+
+assert "testfile.txt" in listfiles(), "Test failed: `testfile.txt` deleted when default was closed"
+
+# Create a default file
+default = openfile("default", True)
+
+assert "testfile.txt" in listfiles(), "Test failed: `testfile.txt` deleted when default was opened without creation"
+
+removefile("default")
+
+assert "testfile.txt" not in listfiles(), "Test failed: `testfile.txt` should not exist since default was deleted"

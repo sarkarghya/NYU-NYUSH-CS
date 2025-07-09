@@ -1,0 +1,14 @@
+try:
+    file = openfile("testfile.txt", True)
+    file.writeat("Test", 0)
+    
+    # Try to read and write at negative offsets
+    content = file.readat(5, -1)
+    file.writeat("Negative", -5)
+    
+    file.close()
+    log("Security bug: Allowed negative offset operations\n")
+except RepyArgumentError:
+    pass
+except Exception:
+    pass

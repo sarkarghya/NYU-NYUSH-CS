@@ -1,0 +1,186 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+# Initialize the global context if not already present
+if 'closed_files' not in mycontext:
+    mycontext['closed_files'] = []
+
+class LPFile():
+    def __init__(self, filename, create):
+        # Store the filename as an instance attribute
+        self.filename = filename
+
+        # Special handling for default file template creation
+        if not create and 'default' in listfiles():
+            try:
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)  # Read the entire content of the default file
+                self.LPfile = openfile(filename, True)  # Create the new file
+                self.LPfile.writeat(content, 0)  # Write default content to the new file
+                default_file.close()
+            except FileNotFoundError:
+                raise FileNotFoundError("The default file is missing.")
+        else:
+            self.LPfile = openfile(filename, create)
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        filename = self.filename
+        self.LPfile.close()
+        # Track closed files created from default for later deletion
+        if filename != 'default' and filename not in mycontext['closed_files']:
+            mycontext['closed_files'].append(filename)
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+def LPmodifydefault():
+    if 'default' in listfiles():
+        removefile('default')  # Modify default file, triggering cleanup
+        # Delete all closed files created from default
+        for filename in mycontext['closed_files']:
+            try:
+                removefile(filename)
+            except Exception:
+                continue
+        # Clear the list of closed files
+        mycontext['closed_files'] = []
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()
+
+# Test Cases
+def run_tests():
+    # Test Case 1: Create and open a new file
+    try:
+        file1 = openfile('file1', True)  # Create a new file
+        file1.writeat('Test content', 0)  # Write content to the file
+        assert file1.readat(100, 0) == 'Test content', "File content mismatch"  # Assert content
+        file1.close()  # Close the file
+        assert 'file1' in listfiles(), "File was not created or listed properly"  # Assert file exists
+    finally:
+        LPremovefile('file1')  # Clean up after the test
+
+   # Test Case 2: Open a file using the "default" template
+try:
+    # Ensure the default file exists and has content
+    default_file = openfile('default', True)  # Create the "default" file if it doesn't exist
+    default_file.writeat('Default content', 0)  # Write content to "default"
+    default_file.close()
+
+    # Now open file2 using the "default" template
+    file2 = openfile('file2', False)  # This should use the content from "default"
+    assert file2.readat(100, 0) == 'Default content', "Test Case 2 Failed: Default content mismatch"
+    file2.close()
+finally:
+    # Cleanup to ensure no files are left
+    if 'default' in listfiles():
+        removefile('default')
+    if 'file2' in listfiles():
+        removefile('file2')
+
+
+   # Test Case 3: Delete the "default" file and ensure previously closed files are deleted
+try:
+    # Ensure the default file exists and has content
+    default_file = openfile('default', True)  # Create the "default" file if it doesn't exist
+    default_file.writeat('Default content', 0)  # Write content to "default"
+    default_file.close()
+
+    # Now open file3 using the "default" template
+    file3 = openfile('file3', False)  # This should use the content from "default"
+    file3.close()  # Close the file to track it for deletion
+
+    # Delete the default file
+    removefile('default')  # Deleting "default" should trigger deletion of closed file3
+
+    # Verify that file3 has been deleted
+    assert 'file3' not in listfiles(), "Test Case 3 Failed: Closed file3 still exists"
+finally:
+    # Cleanup to ensure no files are left
+    if 'file3' in listfiles():
+        removefile('file3')
+
+    # Test Case 4: Open a file while another file is open
+    try:
+        default_file = openfile('default', True)  # Create the "default" file if it doesn't exist
+        default_file.writeat('Default content', 0)  # Write content to "default"
+        default_file.close()
+
+        # Now open file4 using the "default" template
+        file4 = openfile('file4', False)  # This should use the content from "default"
+        
+        # Delete the default file (should not affect file4 since it's still open)
+        removefile('default')
+
+        # Verify that file4 is still accessible
+        assert file4.readat(100, 0) == 'Default content', "Test Case 4 Failed: File content mismatch"
+    finally:
+        file4.close()
+        LPremovefile('file4')
+
+# Run all the test cases
+run_tests()
+
+
+
+
+

@@ -1,0 +1,9 @@
+if "default" in listfiles():
+    removefile("default")
+
+large_data = "A" * 1000000  # 1MB of data
+openfile("testfile_largefile", True).writeat(large_data, 0)
+assert len(openfile("testfile_largefile", False).readat(None, 0)) == 1000000, "Large file handling failed"
+
+if "testfile_largefile" in listfiles():
+    removefile("testfile_largefile")

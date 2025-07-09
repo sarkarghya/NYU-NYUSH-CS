@@ -1,0 +1,34 @@
+# attack default integrity
+
+def bypass_default_integrity_attack():
+    try:
+        if "default" not in listfiles():
+            default_file = openfile("default", True)
+            default_file.writeat("Original content", 0)
+            default_file.close()
+
+        foo_file = openfile("foo.txt", False)  
+        foo_content = foo_file.readat(None, 0)
+
+        if foo_content != "Original content":
+            raise Exception("File 'foo.txt' did not use 'default' as template correctly.")
+        
+        foo_file.close()
+
+        default_file = openfile("default", False)
+        default_file.writeat("Corrupted content", 0)  
+        default_file.close()
+
+        bar_file = openfile("bar.txt", False)
+        bar_content = bar_file.readat(None, 0)
+
+        if bar_content == "Corrupted content":
+            raise Exception("File 'bar.txt' used tampered 'default' content.")
+
+        bar_file.close()
+
+    except Exception:
+        pass
+
+# Execute the attack
+bypass_default_integrity_attack()

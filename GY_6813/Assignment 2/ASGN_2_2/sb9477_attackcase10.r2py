@@ -1,0 +1,24 @@
+# Test opening non-existent files
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+try:
+    file1 = openfile("test.txt", False)
+    file1.close()
+except FileNotFoundError:
+    pass 
+
+default = openfile("default", True)
+default.writeat("content", 0)
+default.close()
+
+file1 = openfile("test.txt", False)
+file1.close()
+
+try:
+    file1.readat(None, 0) 
+except FileClosedError:
+    pass 

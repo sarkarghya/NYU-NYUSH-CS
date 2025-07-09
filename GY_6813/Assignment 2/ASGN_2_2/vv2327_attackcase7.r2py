@@ -1,0 +1,7 @@
+# type: ignore    
+default = openfile("default", True)
+default.writeat("Something ", 0)
+default.close()
+default = openfile("default", False)
+
+myfile1 = openfile("testfile.txt", False)

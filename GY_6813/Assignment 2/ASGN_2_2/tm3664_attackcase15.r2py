@@ -1,0 +1,193 @@
+
+def test_concurrent_file_access():
+    try:
+        # open the same file in two different handles simultaneously
+        f1 = openfile("concurrent.txt", create=True)
+        f2 = openfile("concurrent.txt", create=False)
+
+        # attempt to write using both handles at the same offset
+        f1.writeat("Hello", 0)
+        f2.writeat("World", 0)
+
+        # read back the contents to check for data corruption
+        content = f1.readat(None, 0)
+        if content != "World":
+            log("Security Flaw: Data corruption or improper synchronization.")
+        else:
+            log("Passed: File handles synchronization and data integrity maintained.")
+    except Exception as e:
+        log("Error during concurrent access test: " + str(e))
+    finally:
+        f1.close()
+        f2.close()
+        removefile("concurrent.txt")
+
+def test_permission_escalation():
+    try:
+        # attempt to create a file with default permissions
+        f = openfile("permissions.txt", create=True)
+        f.close()
+        
+        # attempt to reopen the file with escalated permissions or restricted actions
+        f = openfile("permissions.txt", create=False)
+        f.writeat("Test", 0)
+        log("Security Flaw: Managed to write to a file without proper permissions.")
+    except Exception as e:
+        log("Passed: Permission escalation prevented. Error: " + str(e))
+    finally:
+        removefile("permissions.txt")
+
+def test_improper_file_closure_handling():
+    try:
+        f = openfile("improper_close.txt", create=True)
+        raise Exception("Simulated error during file closure")
+    except:
+        log("Handled simulated error during file closure.")
+    finally:
+        # check if file is closed
+        try:
+            f.close()
+            log("Failed: The file should not be closeable again.")
+        except:
+            log("Passed: Proper handling of file closure with exceptions.")
+        removefile("improper_close.txt")
+
+def test_open_many_files():
+    files = []
+    try:
+        for i in range(100): 
+            files.append(openfile("exhaust_" + str(i) + ".txt", create=True))
+        log("Security Flaw: System allowed excessive resource allocation.")
+    except Exception as e:
+        log("Passed: Resource limits enforced properly. Error: " + str(e))
+    finally:
+        for file in files:
+            file.close()
+            removefile(file.filename)
+
+def test_unauthorized_default_access():
+    # creating a new file when 'default' does not exist
+    try:
+        if "default" not in listfiles():
+            f = openfile("testfile.txt", create=True)
+            content = f.readat(None, 0)
+            f.close()
+            log("Content of new file copied from non-existing 'default': " + content)
+    except Exception as e:
+        log("Failed to create 'testfile.txt': " + str(e))
+
+def test_unintended_file_deletion():
+    # check if writing to 'default' leads to unauthorized file deletion
+    openfile("tempfile.txt", create=True).close()
+    try:
+        d = openfile("default", create=True)
+        d.writeat("Trigger deletion", 0)
+        d.close()
+        if "tempfile.txt" in listfiles():
+            log("Security flaw: 'tempfile.txt' should have been deleted.")
+    except Exception as e:
+        log("Error handling 'default': " + str(e))
+
+def test_error_handling():
+    # test improper error handling
+    try:
+        f = openfile("nonexistent.txt", False)
+    except Exception as e:
+        log("Caught an error as expected when opening nonexistent file: " + str(e))
+
+def test_recovery_from_failure():
+    try:
+        f = openfile("will_fail.txt", create=False)  # Opening a non-existent file without creation
+    except Exception:
+        log("Passed: Properly handled attempt to open a non-existent file.")
+        try:
+            f.writeat("Should not work", 0)
+            log("Security Flaw: Wrote to an uninitialized file handle.")
+        except Exception as e:
+            log("Passed: Correctly prevented operations on an invalid file handle. Error: " + str(e))
+
+def test_lock_mechanism_integrity():
+    try:
+        f1 = openfile("lock_test.txt", create=True)
+        f2 = openfile("lock_test.txt", create=False)
+        
+        # simulate concurrent write operations
+        f1.writeat("Data1", 0)
+        f2.writeat("Data2", 0)
+        f1.close()
+        f2.close()
+        
+        # verify data integrity
+        f3 = openfile("lock_test.txt", create=False)
+        final_content = f3.readat(None, 0)
+        if final_content not in ["Data1", "Data2"]:
+            log("Failed: Lock mechanism did not prevent concurrent writes.")
+        f3.close()
+    except Exception as e:
+        log("Error during lock mechanism test: " + str(e))
+    finally:
+        removefile("lock_test.txt")
+
+def test_delayed_file_deletion():
+    try:
+        openfile("delayed_delete.txt", create=True).close()
+        default = openfile("default", create=True)
+        default.close()
+        if "delayed_delete.txt" in listfiles():
+            log("Failed: 'delayed_delete.txt' should have been deleted after closing 'default'.")
+    except Exception as e:
+        log("Error during delayed file deletion test: " + str(e))
+
+def test_resource_leakage_check():
+    initial_count = len(listfiles())
+    try:
+        f = openfile("leak_test.txt", create=True)
+        raise Exception("Simulated exception to test resource leakage")
+    except:
+        pass
+    finally:
+        f.close()
+        if len(listfiles()) != initial_count:
+            log("Failed: Resource leakage detected after handling an exception.")
+        removefile("leak_test.txt")
+
+def test_boundary_read_write_operations():
+    # create a file with initial content
+    f = LPopenfile("boundary_test.txt", True)
+    f.writeat("Hello World", 0)
+    f.close()
+
+    # attempt to read and write beyond the bounds of file content
+    try:
+        with LPopenfile("boundary_test.txt", False) as f:
+            f.readat(1000, 0)  
+            f.writeat("Oops", 50)  
+    except ValueError as e:
+        log("Passed: Boundary condition handled correctly.")
+    except Exception as e:
+        log("Failed: Improper error handling for boundary conditions.")
+
+def main():
+    # Basic permission and access control tests
+    test_unauthorized_default_access()
+    test_improper_file_closure_handling()
+    test_open_nonexistent_file()         # Newly added
+    test_default_file_creation_and_deletion()  # Newly added
+
+    # File integrity and error handling tests
+    test_error_handling()
+    test_recovery_from_failure()
+    test_unintended_file_deletion()
+    test_delayed_file_deletion()
+    test_lock_mechanism_integrity()
+
+    # Concurrency and resource management tests
+    test_concurrent_file_access()
+    test_open_many_files()
+    test_resource_leakage_check()
+    test_permission_escalation()
+    test_boundary_read_write_operations()
+
+
+if callfunc == 'initialize':
+    main()

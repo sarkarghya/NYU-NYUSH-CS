@@ -1,0 +1,26 @@
+# Test edge cases in reading
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+default.writeat("", 0)
+default.close()
+
+test = openfile("test.txt", False)
+
+assert test.readat(None, 0) == ""
+assert test.readat(1, 0) == ""
+
+test.writeat("A", 0)
+assert test.readat(None, 0) == "A"
+
+assert test.readat(5, 0) == "A" 
+
+try:
+    test.readat(1, -1) 
+    test.close()
+except RepyArgumentError:
+    pass

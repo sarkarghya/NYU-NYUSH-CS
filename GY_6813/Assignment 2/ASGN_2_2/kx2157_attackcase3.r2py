@@ -1,0 +1,29 @@
+def safe_remove_file(filename):
+    if filename in listfiles():
+        try:
+            removefile(filename)
+        except Exception as e:
+            pass
+
+def clean_up_test_files():
+    test_filenames = ["testfile.txt"]
+    for filename in test_filenames:
+        safe_remove_file(filename)
+
+# Create the file before running the test
+clean_up_test_files()
+try:
+    f1 = openfile("testfile.txt", True)
+    f1.writeat("Initial content", 0)
+    f1.close()
+except Exception as e:
+    pass
+
+try:
+    f1 = openfile("testfile.txt", True)
+    f2 = openfile("testfile.txt", True)
+except Exception as e:
+    pass
+finally:
+    f1.close()
+    clean_up_test_files()

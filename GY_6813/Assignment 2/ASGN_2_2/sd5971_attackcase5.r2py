@@ -1,0 +1,11 @@
+try:
+    d = openfile("default3", True)
+    d.close()
+    removefile("default3")
+    d.writeat("None", 4)
+except FileClosedError as e:
+    pass
+except Exception as e:
+    log("this should not have happened\n")
+    log(e)
+    log("\n")

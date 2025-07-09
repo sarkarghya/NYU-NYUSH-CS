@@ -1,0 +1,17 @@
+# invalid file names
+invalid_filenames = [
+    "invalid<>file.txt",  #'<' and '>'
+    "invalid file.txt",    #space
+    ".hiddenfile.txt",     #starts with a dot
+    "file@name.txt"       # @
+]
+
+# test for repy error
+for invalid_filename in invalid_filenames:
+    try:
+        openfile(invalid_filename, True)  
+        log("Fail: RepyArgumentError expected ")  # Log fail
+    except RepyArgumentError as e:
+        pass #expected
+    except Exception as e:
+        log("Unexpected Error")  # log any unexpected errors

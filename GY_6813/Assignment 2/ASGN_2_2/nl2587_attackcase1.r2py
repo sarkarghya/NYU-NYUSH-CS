@@ -1,0 +1,25 @@
+# Attack case to attempt deleting an open file
+def attack_delete_open_file():
+    # Clean up 'testfile' to ensure a fresh start
+    try:
+        removefile("testfile")
+    except Exception:
+        pass  # Ignore errors if 'testfile' does not exist
+
+    file = None
+    try:
+        # Create and open 'testfile'
+        file = openfile("testfile", True)
+        
+        # Attempt to remove 'testfile' while it is still open
+        try:
+            removefile("testfile")
+        except FileInUseError:
+            pass  # Expected behavior, suppress the error
+
+    finally:
+        if file:
+            file.close()
+
+# Execute the attack case
+attack_delete_open_file()

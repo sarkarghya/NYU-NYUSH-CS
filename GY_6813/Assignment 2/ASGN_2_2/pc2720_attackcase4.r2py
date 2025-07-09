@@ -1,0 +1,8 @@
+# Opening an Open File
+# Should raise error
+
+try:
+    file = openfile("test.txt", True)
+    file = openfile("test.txt", True)
+except FileInUseError:
+    pass

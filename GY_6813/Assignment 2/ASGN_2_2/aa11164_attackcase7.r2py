@@ -1,0 +1,52 @@
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile('default')
+if "test1" in listfiles():
+  removefile('test1')
+if "test2" in listfiles():
+  removefile('test2')
+
+try:
+  testfile0 = openfile('test0', False) #Try to open a file that doesn't exist using default file, should fail
+except FileNotFoundError:
+   pass
+
+ #Try to open a file that doesn't exist without default file, should pass
+testfile1 = openfile("test1", True)
+testfile1.writeat('test1Content', 0)
+testfile1.close()
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist, should pass now as default exists
+testsamplefile = openfile("testsample.txt", False)
+
+# should pass
+testfile2 = openfile("test2", True)
+# should pass
+testfile3 = openfile("test3", False)
+
+testfile2.close()
+
+# Create a default file again
+default = openfile("default", True)
+# All new files shouldve been deleted expect testfile3 since it was not closed
+default.close()
+
+testfile3.close()
+
+#should pass as we closed after modifying default and should not have been deleted
+testfileOpen = openfile('test3', False)
+
+try:
+  testfileClosed = openfile('test2', False) # should not pass as we closed this file before and should have been deleted
+except FileNotFoundError:
+   pass

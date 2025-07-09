@@ -1,0 +1,8 @@
+file1 = openfile('file1', True)
+
+default = openfile('default', True)
+default.writeat('write something', 0)
+default.close()
+
+assert 'file1' in listfiles(), "file1 should still exist!"
+file1.close()

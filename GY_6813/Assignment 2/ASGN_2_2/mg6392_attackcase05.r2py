@@ -1,0 +1,32 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("default")
+cleanup_files("testfile1.txt")
+cleanup_files("testfile2.txt")
+
+# Create a new default
+default = openfile("default", True)
+default.writeat('default message', 0)
+default.close()
+
+myfile = openfile("testfile.txt", True)
+myfile2 = openfile("testfile2.txt", False)
+removefile("default")
+
+# Close the testfile.txt. Create a new default
+# Testfile.txt should no longer be in files, but testfile2 should be
+myfile.close()
+
+default = openfile("default", True)
+default.writeat('new default message appearing!', 0)
+default.close()
+
+files = listfiles()
+assert "testfile.txt" not in files
+assert "testfile2.txt" in files
+
+myfile2.close()
+cleanup_files("testfile.txt")
+cleanup_files("testfile2.txt")

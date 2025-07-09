@@ -1,0 +1,240 @@
+"""
+Security Layer for Assignment 2
+
+Author: Ioane Kapanadze (ik2302)
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+FILENAME_DEFAULT = "default"
+
+
+class RWLock():
+    def __init__(self):
+        self._read_lock = createlock()
+        self._write_lock = createlock()
+        self._reader_count_lock = createlock()
+        self._reader_count = 0
+
+    def read_acquire(self):
+        self._read_lock.acquire(True)
+        self._reader_count_lock.acquire(True)
+        self._reader_count += 1
+        if self._reader_count == 1:
+            self._write_lock.acquire(True)
+        self._reader_count_lock.release()
+        self._read_lock.release()
+
+    def read_release(self):
+        self._reader_count_lock.acquire(True)
+        self._reader_count -= 1
+        if self._reader_count == 0:
+            self._write_lock.release()
+        self._reader_count_lock.release()
+
+    def write_acquire(self):
+        self._read_lock.acquire(True)
+        self._write_lock.acquire(True)
+
+    def write_release(self):
+        self._write_lock.release()
+        self._read_lock.release()
+
+
+class ClosedFileManager:
+    def __init__(self):
+        self._closed_files = {}
+        self._closed_files_lock = RWLock()
+
+    def add_closed_file(self, filename):
+        self._closed_files_lock.write_acquire()
+        try:
+            self._closed_files[filename] = True
+        finally:
+            self._closed_files_lock.write_release()
+
+    def is_closed_file(self, filename):
+        self._closed_files_lock.read_acquire()
+        try:
+            return filename in self._closed_files
+        finally:
+            self._closed_files_lock.read_release()
+
+    def remove_closed_file_if_exists(self, filename):
+        self._closed_files_lock.write_acquire()
+        try:
+            if filename in self._closed_files:
+                del self._closed_files[filename]
+        finally:
+            self._closed_files_lock.write_release()
+    
+    def delete_all_closed_files(self):
+        self._closed_files_lock.write_acquire()
+        try:
+            for filename in self._closed_files:
+                if filename != FILENAME_DEFAULT:
+                    removefile(filename)
+            self._closed_files = {}
+        finally:
+            self._closed_files_lock.write_release()
+
+
+class DefaultFileManager:
+    def __init__(self):
+        self._lock = createlock()
+
+    def exists(self):
+        return FILENAME_DEFAULT in listfiles()
+
+    def get_file_contents(self):
+        self._lock.acquire(True)
+        try:
+            default_file = openfile(FILENAME_DEFAULT, False)
+            content = default_file.readat(None, 0)
+            default_file.close()
+            return content
+        finally:
+            self._lock.release()
+    
+    def acquire_lock(self):
+        self._lock.acquire(True)
+
+    def release_lock(self):
+        self._lock.release()
+
+
+mycontext["default_file_manager"] = DefaultFileManager()
+mycontext["closed_file_manager"] = ClosedFileManager()
+
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        self._filename = filename
+        self._lock = RWLock()
+
+        self._lock.write_acquire()
+        _file_list = listfiles()
+        _already_existed = filename in _file_list
+
+        try:
+            if _already_existed or create:
+                self._LPfile = openfile(filename, create)
+                # if default file was created, delete all closed files
+                if not _already_existed and filename == FILENAME_DEFAULT:
+                    mycontext["closed_file_manager"].delete_all_closed_files()
+            else:  # does not exist and create is False
+                if filename == FILENAME_DEFAULT:
+                    raise FileNotFoundError
+                
+                self._LPfile = openfile(filename, True)
+
+                default_file_content = mycontext["default_file_manager"].get_file_contents()
+                self._LPfile.writeat(default_file_content, 0)
+
+            # update the closed file manager if everything has been successful
+            mycontext["closed_file_manager"].remove_closed_file_if_exists(filename)
+        finally:
+            self._lock.write_release()
+
+
+    def readat(self, num_bytes, offset):
+        self._lock.read_acquire()
+        if self._filename == FILENAME_DEFAULT:
+            mycontext["default_file_manager"].acquire_lock()
+            try:
+                return self._LPfile.readat(num_bytes, offset)
+            finally:
+                mycontext["default_file_manager"].release_lock()
+                self._lock.read_release()
+        else:
+            try:
+                return self._LPfile.readat(num_bytes, offset)
+            finally:
+                self._lock.read_release()
+        
+
+    def writeat(self, data, offset):
+        self._lock.write_acquire()
+        try:
+            if self._filename == FILENAME_DEFAULT:
+                mycontext["default_file_manager"].acquire_lock()
+                try:
+                    self._LPfile.writeat(data, offset)
+                    # if we successfully write to the default file, delete all closed files
+                    mycontext["closed_file_manager"].delete_all_closed_files()
+                finally:
+                    mycontext["default_file_manager"].release_lock()
+            else:
+                self._LPfile.writeat(data, offset)
+        finally:
+            self._lock.write_release()
+
+
+    def close(self):
+        self._lock.write_acquire()
+        if self._filename == FILENAME_DEFAULT:
+            mycontext["default_file_manager"].acquire_lock()
+            try:
+                self._LPfile.close()
+                mycontext["closed_file_manager"].delete_all_closed_files()
+            finally:
+                mycontext["default_file_manager"].release_lock()
+                self._lock.write_release()
+        else:
+            try:
+                self._LPfile.close()
+                mycontext["closed_file_manager"].add_closed_file(self._filename)
+            finally:
+                self._lock.write_release()
+
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    removefile(filename) 
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

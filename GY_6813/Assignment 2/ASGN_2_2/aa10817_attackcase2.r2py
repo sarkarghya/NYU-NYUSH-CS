@@ -1,0 +1,15 @@
+def test_remove_open_file():
+    myfile = openfile("removeme", True)
+    
+    try:
+        removefile("removeme")
+        assert False
+    except:
+        pass
+    
+    myfile.close()
+
+    if "removeme" in listfiles():
+        removefile("removeme")
+
+test_remove_open_file()

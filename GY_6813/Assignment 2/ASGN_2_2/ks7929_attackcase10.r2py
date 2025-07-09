@@ -1,0 +1,13 @@
+#--- CLeaning
+if "default" in listfiles():
+    removefile("default")
+
+#duplicate default files cant be present
+try:
+    default = openfile("default", True)
+    default.close()
+    default_new = openfile("default", False)
+    default_new.close()
+    assert False
+except FileInUseError:
+    assert True

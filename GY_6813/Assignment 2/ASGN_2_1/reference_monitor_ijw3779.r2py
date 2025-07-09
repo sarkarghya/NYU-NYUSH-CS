@@ -1,0 +1,166 @@
+#python repy.py restrictions.default encasementlib.r2py reference_monitor_ijw3779.r2py ijw3779_attackcase.r2py
+
+import os
+import sys
+import threading
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+# initialized CHILD_CONTEXT_DEF and mycontext if they have not been Initialized
+if 'CHILD_CONTEXT_DEF' not in globals():
+    CHILD_CONTEXT_DEF = {}
+if 'mycontext' not in globals():
+    mycontext = {}
+
+# set to collect files that has been closed
+closed_files = set()
+
+# limit the access to only access this repy_v2 file
+ALLOWED_DIRECTORY = 'C:\\Users\\ivywa\\repy_v2'
+def is_path_allowed(filepath):
+    abs_path = os.path.abspath(filepath)
+    return abs_path.startswith(os.path.abspath(ALLOWED_DIRECTORY))
+
+# use thread locking to prevents data loss
+filelocks = {}
+def thread_lock(thefile):
+    if thefile not in filelocks:
+        filelocks[thefile] = threading.Lock()
+    return filelocks[thefile]
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        self.filename = filename
+        self.is_closed = False
+        self.file_lock = get_file_lock(filename)
+        
+        with self.file_lock:
+            # check if the asking permitssion is in the allowed directory
+            if not is_path_allowed(filename):
+                raise Exception("Access to this path is denied")
+
+            if create == False and 'default' in listfiles():
+                try:
+                    default_file = openfile('default', False)
+                    content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+                    self.LPfile = openfile(filename, True)
+                    self.LPfile.writeat(content, 0)
+                    default_file.close()
+
+                except FileNotFoundError:
+                    # Raise FileNotFoundError if 'default' does not exist
+                    raise FileNotFoundError
+                except Exception as e:
+                    raise Exception("Failed to initialize file") from e
+            else: #create == True
+                try: 
+                    self.LPfile = openfile(filename, create)
+                except Exception as e:
+                    raise Exception("Failed to initialize file") from e
+        
+    def readat(self, num_bytes, offset):
+        with self.file_lock:
+            if(offset == 0):
+                raise ValueError("Cannot read that first bit")
+            if self.is_closed:
+                raise Exception("Failed to read from the closed file") 
+            try:
+                return self.LPfile.readat(num_bytes, offset)
+            except Exception as e:
+                raise Exception("Failed to read from file") from e
+
+    def writeat(self, data, offset):
+        with self.file_lock:
+            if self.is_closed:
+                raise Exception("Failed to write to the closed file") 
+            try:
+                self.LPfile.writeat(data, offset)
+            except Exception as e:
+                raise Exception("Failed to write to file") from e
+
+    def delete(self):
+        with self.file_lock:
+            if not self.is_closed:
+                raise Exception("Failed to delete open file") 
+            try:
+                removefile(self.filename)
+                closed_files.discard(self.filename)
+            except Exception as e:
+                raise Exception("Failed to delete file: ", self.filename) from e
+    
+    def close(self):
+        with self.file_lock:
+            try:
+                self.LPfile.close()
+                self.is_closed = True
+                if self.filename == 'default':
+                    default_created_actions()
+                else: # self.filename != 'default'
+                    closed_files.add(self.filename)
+
+            except Exception as e:
+                raise Exception("Failed to remove file") 
+            
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    try:
+        if filename == 'default':
+            raise Exception("Cannot delete default file directly")
+        else: #filename != 'default'
+            removefile(filename)
+            closed_files.discard(filename)
+    except Exception as e:
+        raise Exception("Failed to remove file") from e
+
+def default_created_actions():
+    # If default is created, written to, or deleted, then all closed files that were previously created gets deleted
+    # Any files that are already open must be left unchanged
+    try:
+        for file in closed_files:
+            try:
+                removefile(file)
+                closed_files.discard(file)
+            except Exception as e:
+                raise Exception ("Error deleting", file) from e
+    except Exception as e:
+        raise Exception("Failed to perfrom default required actions") from e
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

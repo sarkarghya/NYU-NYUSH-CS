@@ -1,0 +1,103 @@
+"""
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+#use mycontext shared global variable to track list of closed files used in the program for Specification 3. 
+#Initialized to empty list and will be expanded to add new file name on close file call. Do not add 'default' file to the list
+mycontext['closedfiles'] = []
+
+#help function to remove all closed files for Specification 3. Go over each item(file name) in global list above, mycontext['closedfiles'], and remove it.
+#reset global variable back to empty list
+def removeAllClosedFiles():
+    for fname in mycontext['closedfiles']:
+        removefile(fname)
+    mycontext['closedfiles'] = []	
+	
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.filename = filename # for Specification 3 - save the file name in each file object so that later can be added to general list or removed from there. 
+
+        #Specification 1 - Overwrite openfile() with new specifications
+        if create == True or filename in listfiles(): #case when file exists or create=True, then use native openfile() call
+            if filename == 'default' and 'default' not in listfiles(): #for Specification 3 - if 'default' file is created then remove all closed files
+                removeAllClosedFiles() 
+            self.LPfile = openfile(filename, create) #use native openfile() call
+            if filename in mycontext['closedfiles']: #if we open file again, it is not closed file anymore , therefore remove from global list
+                mycontext['closedfiles'].remove(filename)
+            
+        else: #case when create is False and file does not exist 
+            if 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                default_file.close()
+            else:
+                raise FileNotFoundError
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        if self.filename == 'default': #for Specification 3 - if 'default' file is written to then remove all closed files
+            removeAllClosedFiles()
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+        if self.filename != 'default':  #for Specification 3 - keep track of closed files in global list
+            mycontext['closedfiles'].append(self.filename) #add filename to the global list
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename == 'default': #for Specification 3 - if 'default' file is removed then remove all closed files
+        removeAllClosedFiles()
+    removefile(filename) 
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()
+

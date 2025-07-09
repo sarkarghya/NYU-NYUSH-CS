@@ -1,0 +1,16 @@
+try:
+    file_handle = openfile("default3", True)
+    file_handle.write_at("None", 10)
+    file_handle.write_at("None", 3)
+    file_handle.close()
+    file_handle = openfile("deafult3", True)
+    file_handle.close()
+
+except SeekPastEndOfFileError as error:
+    # Attempted to write past the end of the file, skipping operation
+    pass
+    
+except Exception as error:
+    log("An unexpected error occurred during file operation\n")
+    log(error)
+    log("\n")

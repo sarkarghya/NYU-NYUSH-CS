@@ -1,0 +1,14 @@
+import logging
+
+
+def test_open_file_limit():
+    try:
+       
+        for i in range(1000):
+            openfile(f"file_{i}.txt", "r")
+        logging.error("Opened too many files without hitting the limit.")
+        assert False, "Opening too many files should trigger a limit."
+    except Exception as e:
+        logging.info("Caught an exception when opening files: %s", e)
+        assert "File handle limit reached" in str(e), f"Unexpected error: {e}"
+

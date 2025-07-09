@@ -1,0 +1,36 @@
+# Test invalid operations
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+try:
+    nonexistent = openfile("nonexistent.txt", False)
+
+except FileNotFoundError:
+    pass
+
+default = openfile("default", True)
+default.writeat("content", 0)
+default.close()
+
+file1 = openfile("test.txt", False)
+
+try:
+    file1.readat(1, -1) 
+except RepyArgumentError:
+    pass
+
+try:
+    file1.writeat(None, 0) 
+except (TypeError, RepyArgumentError):
+    pass
+
+file1.close()
+
+removefile("default")
+try:
+    file2 = openfile("test.txt", False)
+except FileNotFoundError:
+    pass

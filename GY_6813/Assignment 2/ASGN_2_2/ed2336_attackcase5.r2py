@@ -1,0 +1,25 @@
+#Test to open a file again while it still in use 
+
+try:
+    # Open the file for the first time
+    myfile1 = openfile("testfile.txt", True)  # 'True' means create if it doesn't exist
+    myfile1.writeat("Initial data", 0)  # Write at the beginning of the file
+
+    # Attempt to open the file again while it's still open
+    myfile2 = openfile("testfile.txt", True)  # This should raise a FileInUseError
+
+    # If no exception is raised, log this as a failure
+    log("FAILURE: The reference monitor allowed the same file 'testfile.txt' to be opened multiple times.\n")
+
+except FileInUseError:
+    pass
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))
+
+finally:
+    # Ensure the file is closed if it was opened
+    try:
+        myfile.close()
+    except:
+        pass

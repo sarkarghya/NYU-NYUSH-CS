@@ -1,0 +1,29 @@
+try:
+    myfile=openfile("default",True)  #Create a file
+    myfile.close()
+
+    myfile=openfile("sam",True)  #Create a file
+    myfile.close()
+
+    myfile=openfile("fisher",True)  #Create a file
+    myfile.close()
+
+    myfile=openfile("namo",True)  #Create a file
+    myfile.close()
+
+    myfile=openfile("yash",True)  #Create a file
+    myfile.close()
+
+    myfile=openfile("prasda",True)  #Create a file
+    myfile.close()
+
+    myfile=openfile("default",True)  #Create a file
+    myfile.writeat("shreyashshye", 0)  #Create a file
+    myfile.close()
+
+    if "sam" in listfiles() or "fisher" in listfiles() or "namo" in listfiles() or "yash" in listfiles() or "prasda" in listfiles():
+        log("Attack passed\n\n\n")
+except Exception as e:
+    log(e)
+    log("weird exception\n")
+    pass

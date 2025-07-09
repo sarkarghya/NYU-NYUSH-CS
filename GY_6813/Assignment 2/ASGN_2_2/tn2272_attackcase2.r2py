@@ -1,0 +1,7 @@
+# tn2272_attackcase2.r2py
+
+try:
+    sock = createconnserver("127.0.0.1", 12345)
+    sock.close()
+except:
+    pass  

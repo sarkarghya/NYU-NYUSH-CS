@@ -1,0 +1,7 @@
+if "test1" in listfiles():
+    removefile("test1")
+
+t1=openfile("test1",True)
+t1.writeat("Helloworld",0)
+
+t2=openfile("test1",False)

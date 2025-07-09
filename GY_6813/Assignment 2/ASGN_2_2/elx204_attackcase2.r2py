@@ -1,0 +1,19 @@
+# test case 2: concurrent file access
+
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+
+def concurrent_access():
+    try:
+        concurrent_file = openfile("default", False)
+        concurrent_file.readat(None, 0)
+    except FileInUseError:
+        pass
+
+
+thread = createthread(concurrent_access)
+
+default.close()

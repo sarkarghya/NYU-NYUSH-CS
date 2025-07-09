@@ -1,0 +1,5 @@
+# Test attempting to create a file with an empty filename
+try:
+    lpfile = openfile("", True)
+except RepyArgumentError:
+    pass  # Expected: empty filename, should raise ValueError

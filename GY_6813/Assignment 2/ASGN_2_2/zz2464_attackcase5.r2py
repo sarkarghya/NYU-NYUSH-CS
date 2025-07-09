@@ -1,0 +1,37 @@
+# --- Attack 5: Seek Past End of File ---
+# The goal is to attempt reading from or writing to a file beyond its actual size.
+
+# Clean up any existing files before starting the test
+if "seek_test.txt" in listfiles():
+    removefile("seek_test.txt")
+
+# --- Attack Step 1: Create a file and write initial content ---
+test_file = openfile("seek_test.txt", True)  # Create file with create=True
+test_file.writeat("This is test content.", 0)  # Write some data to the file
+test_file.close()
+
+# --- Attack Step 2: Try to read past the end of the file ---
+try:
+    test_file = openfile("seek_test.txt", True)
+    file_size = len(test_file.readat(None, 0))  # Get the size of the file
+    test_file.readat(10, file_size + 10)  # Attempt to read beyond the file size
+except SeekPastEndOfFileError:
+    # Suppress expected SeekPastEndOfFileError
+    pass
+finally:
+    test_file.close()
+
+# --- Attack Step 3: Try to write past the end of the file ---
+try:
+    test_file = openfile("seek_test.txt", True)
+    file_size = len(test_file.readat(None, 0))  # Get the size of the file
+    test_file.writeat("Extra data", file_size + 10)  # Attempt to write past the end of the file
+except (SeekPastEndOfFileError):
+    # Suppress expected SeekPastEndOfFileError
+    pass
+finally:
+    test_file.close()
+
+# Clean up created file
+if "seek_test.txt" in listfiles():
+    removefile("seek_test.txt")

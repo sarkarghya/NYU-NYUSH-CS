@@ -1,0 +1,33 @@
+try:
+    # clean up if the file exists.
+    if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+    # create a file
+    myfile=openfile("testfile.txt",True)
+
+    # intial write to the file
+    myfile.writeat("12345678",0)
+
+    # attempt to overwrite the beginning of the file
+    myfile.writeat("Hi!",0)
+
+    # now, undo the previous write
+    myfile.undo()
+
+    # "funny" should not be writtened to the file since there is undo() after this... but in the results i see "nny" at the end
+    # but according to the code whole part of funny should be undone.
+    # when i called the undo in line 16 it was working alright.
+    myfile.writeat("funny",6)
+    myfile.undo()
+
+
+    # close the file
+    myfile.close()
+
+
+except Exception:
+    log("Exception Found in the security layer")
+else:
+    pass
+

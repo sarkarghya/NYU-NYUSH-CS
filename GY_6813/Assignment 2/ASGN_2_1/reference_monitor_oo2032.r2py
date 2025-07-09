@@ -1,0 +1,118 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+original_openfile = openfile
+original_removefile = removefile
+
+class LPFile():
+    def __init__(self, filename, create):
+        # Constructor for LPFile class
+        self.filename = filename
+        self.isOpen = True
+        self.createdWithDefault = False
+
+        # Case: Not creating a new file (using default)
+        if create == False:
+            # Case: Default file exists
+            if 'default' in listfiles():
+                # Open the default file and read its contents and then close
+                defaultFile = original_openfile('default', False)
+                content = defaultFile.readat(None, 0)
+                defaultFile.close()
+
+                # Create the new file 
+                self.LPfile = original_openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+
+                # Change state
+                self.createdWithDefault = True
+            # Raise error if default doesn't exist
+            else:
+                raise FileNotFoundError("Default template file not found.")
+        # Case: Creating a new blank file 
+        else:
+            self.LPfile = original_openfile(filename, create)
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    original_removefile(filename) 
+
+# Dictionary to store all files
+files = {
+    "openFiles": set(),
+    "closedFiles": set()
+}
+
+# Override openfile
+def openfile(filename, create):
+    newFile = LPopenfile(filename, create)
+    files["openFiles"].add(newFile)
+    return newFile
+
+# Override removefile
+def removefile(filename):
+    # Case: Deleting default file
+    if filename == "default":
+        # First find all files made with default 
+        filesCreatedWithDefault = []
+        for file in files["closedFiles"]:
+            if file.createdWithDefault:
+                filesCreatedWithDefault.append(file)
+        # Then delete all files made with default
+        for file in filesCreatedWithDefault:
+            LPremovefile(file.filename)
+            files["closedFiles"].discard(file)
+    # Case: Deleting any other file
+    else:
+        LPremovefile(filename)
+
+# Override closefile 
+def closefile(file):
+    file.close()
+    if file in files["openFiles"]:
+        files["openFiles"].remove(file)
+        files["closedFiles"].add(file)
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

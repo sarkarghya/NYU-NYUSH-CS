@@ -1,0 +1,14 @@
+### deafult written to -> all files deleted
+
+# Step 1: Create the 'default' file with some initial content
+default_file = openfile('default', True)
+default_file.writeat('This is a default template.', 0)
+assert default_file.readat(None,0) == "This is a default template."
+default_file.close()
+
+myfile = openfile('testfile1.txt', False)
+myfile.close()
+
+default_file = openfile('default', True)
+default_file.writeat('This is a default template.', 0)
+assert "testfile1.txt" not in listfiles() 

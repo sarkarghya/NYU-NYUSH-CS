@@ -1,0 +1,12 @@
+try:
+    if "default" in get_file_list():
+        removefile("default")
+    file_a = openfile("default", True)
+    file_b = openfile("default", True)
+    
+except FileInUseError as error:
+    # File is currently in use, skipping operation
+    pass
+
+except Exception as error:
+    log("Unexpected error occurred during file operation")

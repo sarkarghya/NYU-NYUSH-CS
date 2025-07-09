@@ -1,0 +1,20 @@
+# reference_monitor_awp251.r2py
+# reference_monitor_hl4779.r2py
+# reference_monitor_jw7769.r2py
+# reference_monitor_ls6588.r2py
+# reference_monitor_npd5883.r2py
+# reference_monitor_pc2720.r2py
+# reference_monitor_rvg9395.r2py
+# reference_monitor_sd5971.r2py
+# reference_monitor_sk12176.r2py
+# reference_monitor_vrb9112.r2py 
+
+
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+
+default.writeat("TEMPLATE", 0)
+
+default.close()

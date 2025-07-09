@@ -1,0 +1,28 @@
+def write(filename, data):
+    file = openfile(filename, True)
+    file.writeat(data, 0)
+    file.close()
+
+def read(filename, bytes_to_read, offset):
+    file = openfile(filename, False)
+    data = file.readat(bytes_to_read, offset)
+    file.close()
+    return data
+
+def run_timing_attack_test():
+    large_data = "A" * 1000000
+    write("large_file", large_data)
+
+    start = getruntime()
+    read("large_file", 100, 0)
+    elapsed_start = getruntime() - start
+
+    start = getruntime()
+    read("large_file", 100, 999900)
+    elapsed_end = getruntime() - start
+
+    assert abs(elapsed_end - elapsed_start) < 0.2, "Test9 FAILED, vulnerable to timing attacks"
+    
+    removefile("large_file")
+
+run_timing_attack_test()

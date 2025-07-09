@@ -1,0 +1,7 @@
+try:
+    lp_file = openfile("testfile.txt", True)
+    lp_file.readat(10, 10000)  # Attempt to read beyond EOF
+except SeekPastEndOfFileError:
+    pass
+else:
+    log("Test failed: Read beyond the end of the file was allowed. The reference monitor didn't stop it.")

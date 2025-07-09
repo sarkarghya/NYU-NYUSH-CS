@@ -1,0 +1,37 @@
+# reference_monitor_kn2501.r2py
+# reference_monitor_ml8419.r2py 
+# reference_monitor_qaj201.r2py
+# reference_monitor_sc10344.r2py 
+
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+if "test2.txt" in listfiles():
+    removefile("test2.txt")
+if "test3.txt" in listfiles():
+    removefile("test3.txt")
+
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test.txt", False)
+test.writeat("TEST FILE", 0)
+
+test2 = openfile("test2.txt", True)
+test2.close()
+
+test3 = openfile("test3.txt", False)
+
+default = openfile("default", True)
+default.writeat("NEW DEFAULT FILE CONTENT", 0)
+default.close()
+
+test.close()
+test3.close()
+
+if "test2.txt" in listfiles():
+    raise Exception("test2.txt should not exist because as a closed file, it should be deleted when the default file is modified")

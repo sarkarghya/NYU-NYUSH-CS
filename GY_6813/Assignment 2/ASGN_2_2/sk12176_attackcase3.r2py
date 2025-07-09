@@ -1,0 +1,23 @@
+def attack():
+    try:
+        if 'default' not in listfiles():
+            default_file = openfile('default', True)
+            default_file.writeat("Default content", 0)
+            default_file.close()
+
+        attack_file = openfile("attackfile5.txt", True)
+        attack_file.writeat("This file should be created.", 0)
+        attack_file.close()
+
+        attack_file = openfile("attackfile5.txt", False)
+        content = attack_file.readat(40, 0)
+        attack_file.close()
+
+        try:
+            removefile("default")
+        except Exception as e:
+            pass
+    except Exception as e:
+        pass
+    finally:
+        exitall()

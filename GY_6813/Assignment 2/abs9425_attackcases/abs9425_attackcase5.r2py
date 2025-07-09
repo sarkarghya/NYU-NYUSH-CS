@@ -1,0 +1,15 @@
+try:
+    file = openfile("testfile.txt", True)
+    file.close()
+    
+    # Try operations on closed file
+    file.writeat("Test", 0)
+    content = file.readat(5, 0)
+    
+    log("Security bug: Allowed operations on closed file\n")
+except FileClosedError:
+    pass
+    # log("Correctly handled closed file operations\n")
+except Exception:
+    pass
+    # log("Unexpected error in closed file test:\n")

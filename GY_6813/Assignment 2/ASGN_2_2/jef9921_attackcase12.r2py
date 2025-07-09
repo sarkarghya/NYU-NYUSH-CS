@@ -1,0 +1,57 @@
+# TestCase: concurrent threads opening/writing/deleting race condition with locks implemented in file
+# - Testing for FileInUseError and a FileNotFoundError, which should not occur in this case.
+
+if "default" in listfiles():
+    removefile("default")
+if "new_file.txt" in listfiles():
+    removefile("new_file.txt")
+
+# Concurrently open and write to the 'default' file and delete it after
+def thread_concurrent_default_file(data):
+    lock.acquire(True)
+    try:
+        for i in range(100):
+            if "default" in listfiles(): 
+                removefile("default")
+            default = openfile("default", True)
+            default.writeat(data, 0)
+            default.close()
+    except FileInUseError as e:
+        raise e
+    finally:
+        lock.release()
+
+# Open and write to a file created from 'default' and delete it after
+def thread_create_write_file(filename, data):
+    lock.acquire(True)
+    try:
+        for i in range(100):  
+            file1 = openfile(filename, False)  
+            file1.writeat(data, 0)  
+            file1.close()  
+            removefile(filename)
+    except FileNotFoundError as e:
+        raise e
+    finally:
+        lock.release()
+            
+# Helper closure function for createthread() function
+def thread_create_write_helper(function, args):
+    def closure():
+        function(*args)
+    return closure
+
+# create the initial "default" file
+default = openfile("default", True)
+default.writeat("new data", 0)
+default.close()
+
+lock = createlock()
+
+# Initialize the thread functions
+thread1function = thread_create_write_helper(thread_concurrent_default_file, ["thread 1 info"])
+thread2function = thread_create_write_helper(thread_create_write_file, ["new_file.txt", "info thread 2"])
+
+# Create threads for both functions
+createthread(thread1function)
+createthread(thread2function)

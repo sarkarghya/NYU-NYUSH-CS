@@ -1,0 +1,18 @@
+#Attack Case 4 - Testing creating a file using default as template before default exists
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+try:
+  testfile = openfile("testfile.txt", False)
+
+except FileNotFoundError:
+  pass
+
+else:
+  testfile.close()
+  raise Exception("FileNotFoundError was not raised when default doesn't exist\n")

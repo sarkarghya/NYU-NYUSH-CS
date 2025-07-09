@@ -1,0 +1,255 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+mycontext['open_files'] = []
+mycontext['current_directory'] = []
+filelock = createlock()
+mycontext['default_content'] = ""
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        filelock.acquire(True)
+        try:
+            #rasie error if filename is not a string or create is not a boolean
+            if type(filename) != str:
+                raise RepyArgumentError("Filename must be a string.")
+            if type(create) != bool:
+                raise RepyArgumentError("Create must be a boolean.")
+            validate_filename(filename)
+            
+            if filename in mycontext['open_files']:
+                raise FileInUseError("File is already open.")
+
+
+
+            mycontext['debug'] = False
+            self.size = 0
+            self.filename = filename
+            if create == False and filename not in mycontext['current_directory']:
+                if 'default' not in mycontext['current_directory']:
+                    raise FileNotFoundError
+                content = ""
+                if 'default' in mycontext['open_files']:
+                    content = mycontext['default_content']
+                else:
+                    default_file = openfile('default', False)
+                    content = default_file.readat(None, 0)
+                    default_file.close()
+                self.size = len(content)
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                
+                mycontext['open_files'].append(filename)
+                mycontext['current_directory'].append(filename)
+            else:
+                self.LPfile = openfile(filename, create)
+                if filename == 'default':
+                    mycontext['default_content'] = self.LPfile.readat(None, 0)
+                self.size = len(self.LPfile.readat(None, 0))
+                tmp = []
+                if filename == 'default' and 'default' not in mycontext['current_directory']:
+                    for file in mycontext['current_directory']:
+                        if file not in mycontext['open_files']:
+                            tmp.append(file)
+                            
+                for file in tmp:
+                    removefile(file)
+                    mycontext['current_directory'].remove(file)
+                if filename not in mycontext['open_files']:
+                    mycontext['open_files'].append(filename)
+                if filename not in mycontext['current_directory']:
+                    mycontext['current_directory'].append(filename)
+            
+        except:
+            raise
+        finally:
+            filelock.release()
+
+    def readat(self, num_bytes, offset):
+        
+        if not (type(num_bytes) == int or type(num_bytes) == long or num_bytes == None):
+            raise RepyArgumentError("num_bytes must be an integer or long or None.")
+        if type(offset) != int and type(offset) != long:
+            raise RepyArgumentError("offset must be an integer or long.")
+        if (num_bytes != None and num_bytes) < 0 or offset < 0:
+            raise RepyArgumentError("offset and num_bytes cannot be negative")
+        if self.filename not in mycontext['open_files']:
+            raise FileClosedError("File closed already.")
+        #SeekPastEndOfFileError is raised if trying to read past the end of the file.
+
+        if offset > self.size or (num_bytes != None and num_bytes + offset > self.size):
+            raise SeekPastEndOfFileError("Offset is greater than file size.")
+        filelock.acquire(True)
+        filedata = ""
+        try:
+            filedata = self.LPfile.readat(num_bytes, offset)
+        except:
+            raise
+        finally:
+            filelock.release()
+        return filedata
+
+    def writeat(self, data, offset):
+        #RepyArgumentError is raised if the offset is negative or the data is not
+        #a string.
+        
+        if type(data) != str:
+            raise RepyArgumentError("Data must be a string.")
+        if offset == None or type(offset) != int and type(offset) != long:
+            raise RepyArgumentError("Offset must be an integer or long.")
+        if offset < 0:
+            raise RepyArgumentError("Offset cannot be negative.")
+        if self.filename not in mycontext['current_directory']:
+            raise FileClosedError("File does not exist.")
+        if self.filename not in mycontext['open_files']:
+            raise FileClosedError("File closed already.")
+        if self.size < offset:
+            raise SeekPastEndOfFileError("Offset is greater than file size.")
+        filelock.acquire(True)
+        try:
+
+
+            self.LPfile.writeat(data, offset)
+            if self.filename == 'default':
+                mycontext['default_content'] = self.LPfile.readat(None, 0)
+            if offset == self.size:
+                self.size = self.size + len(data)
+            else:
+                newSize = offset + len(data)
+                if newSize > self.size:
+                    self.size = newSize
+            tmp = []
+            if self.filename == 'default':
+                for file in mycontext['current_directory']:
+                    if file not in mycontext['open_files']:
+                        tmp.append(file) # so right error gets triggered
+                        
+            for file in tmp:
+                removefile(file)
+                mycontext['current_directory'].remove(file)
+            
+        except:
+            raise
+        finally:
+            filelock.release()
+            
+    def close(self):
+        filelock.acquire(True)
+        try:
+            if self.filename not in mycontext['current_directory']:
+                raise FileNotFoundError("File doesnt exists.")
+            if self.filename not in mycontext['open_files']:
+                raise FileClosedError("File closed already.")
+            
+            self.LPfile.close()
+            if self.filename == 'default':
+                mycontext['default_content'] = ""
+            mycontext['open_files'].remove(self.filename)
+        except FileClosedError as e:
+            raise
+        except Exception as e:
+            raise
+        finally:
+            filelock.release()
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if type(filename) != str or filename == None:
+        raise RepyArgumentError("Filename must be a string.")
+    filelock.acquire(True)
+    try:
+        validate_filename(filename)
+        if filename not in mycontext['current_directory']:
+            raise FileNotFoundError("File does not exist.")
+        if filename in mycontext['open_files']:
+            raise FileInUseError("File is open.")
+        tmp = []
+        
+        if filename == 'default':
+            removefile(filename)
+            if filename in mycontext['current_directory']:
+                mycontext['current_directory'].remove(filename)
+            for file in mycontext['current_directory']:
+                if file not in mycontext['open_files']: 
+                    #default file also gets removed
+                    tmp.append(file)
+                    
+            for file in tmp:
+                removefile(file)
+                mycontext['current_directory'].remove(file)
+        else:
+            removefile(filename)
+            if filename in mycontext['current_directory']:
+                mycontext['current_directory'].remove(filename)
+    
+        
+    except:
+        raise
+    finally:
+        filelock.release()
+
+def validate_filename(filename):
+    #invalid cases
+    if filename == "":
+        raise RepyArgumentError("Filename cannot be blank.")
+    if filename == ".":
+        raise RepyArgumentError("Filename cannot be '.' or '..'.")
+    if filename == "..":
+        raise RepyArgumentError("Filename cannot be '..'.")
+    if filename[0] == ".":
+        raise RepyArgumentError("Filenames cannot start with a period.")
+
+    if len(filename) > 120:
+        raise RepyArgumentError("Filename must be 120 characters or less.")
+
+    allowed = ".-_0123456789abcdefghijklmnopqrstuvwxyz"
+    for char in filename:
+        if char not in allowed:
+            raise RepyArgumentError("Filenames can only contain lowercase letters, numbers, hyphen, underscore, and period.")
+
+    return True
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

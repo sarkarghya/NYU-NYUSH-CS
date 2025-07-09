@@ -1,0 +1,11 @@
+
+def test_modify_access_permissions():
+    try:
+        
+        chmod("protected_file.txt", "777")
+        
+        assert False, "Modifying access permissions of protected file should be denied."
+    except Exception as e:
+        log("Error encountered while trying to modify access permissions: %s", e)  
+        assert "Permission denied" in str(e), f"Unexpected error: {e}"
+

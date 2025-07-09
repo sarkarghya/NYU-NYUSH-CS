@@ -1,0 +1,23 @@
+# Test multiple writes
+
+if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+myfile = openfile("testfile.txt", True)
+
+# Initial write to the file
+myfile.writeat("12345678", 0)
+
+# Overwrite with "Hi!"
+myfile.writeat("Hi!", 0)
+
+myfile.writeat("hello",0)
+
+try:
+    assert myfile.readat(8, 0) == "Hi!45678"
+    pass
+
+except Exception:
+        log("Attackcase SUCCESS : failed at multiple write operations \n")
+
+myfile.close()

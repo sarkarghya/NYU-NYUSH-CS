@@ -1,0 +1,15 @@
+# Create File w/ default
+# Should run normally
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+try:
+    file = openfile("test.txt", False)
+    file.close()
+except FileNotFoundError:
+    pass
+
+
+

@@ -1,0 +1,34 @@
+#Ensure file is not deleted if default changes while file is open
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close Default
+default.close()
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", False)
+
+# Open default file again
+default2 = openfile("default", True)
+
+# Write to default
+default2.writeat("Edited Templete", 0)
+
+# Close the file
+default2.close()
+
+#testfile.txt should not be deleted as it is open when default changed
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close the file
+myfile.close()

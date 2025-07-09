@@ -1,0 +1,38 @@
+# Test cases for file deletion scenarios
+
+if "default" in listfiles():
+    removefile("default")
+if "test1.txt" in listfiles():
+    removefile("test1.txt")
+if "test2.txt" in listfiles():
+    removefile("test2.txt")
+
+default = openfile("default", True)
+default.writeat("content", 0)
+default.close()
+
+file1 = openfile("test1.txt", False) 
+file2 = openfile("test2.txt", False) 
+file1.close()
+file2.close()
+
+new_default = openfile("default", True)
+assert "test1.txt" not in listfiles()
+assert "test2.txt" not in listfiles()
+new_default.close()
+
+test_file = openfile("test3.txt", True)
+try:
+    removefile("test3.txt") 
+except FileInUseError:
+    pass
+finally:
+    test_file.close()
+    if "test3.txt" in listfiles():
+        removefile("test3.txt")
+
+for i in range(3):
+    default = openfile("default", True)
+    default.writeat("content" + str(i), 0)
+    default.close()
+    removefile("default")

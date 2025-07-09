@@ -1,0 +1,17 @@
+# attack to trigger FileNotFoundError
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "thing1.txt" in listfiles():
+    removefile("thing1.txt")
+
+# open file with False flag but default doesn't exist!
+try:
+  thing1 = openfile("thing1.txt", False)
+except FileNotFoundError:
+  pass
+except:
+  log("An unexpected error occured\n")
+else:
+  log("Test failed. Expected FileNotFoundError\n")

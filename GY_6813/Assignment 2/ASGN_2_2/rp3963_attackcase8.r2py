@@ -1,0 +1,16 @@
+if "default" in listfiles():
+    removefile("default")
+
+open_files = []
+try:
+    for i in range(1000):  # Attempt to open many files
+        open_files.append(openfile("testfile_manyfiles%d" % i, True))
+except ResourceExhaustedError:
+    pass
+finally:
+    for f in open_files:
+        f.close()
+
+for filename in ["testfile3", "testfile4"]:
+    if filename in listfiles():
+        removefile(filename)

@@ -1,0 +1,16 @@
+# attack by invalid file closure
+
+def unauthorized_file_closure_attack():
+    try:
+        file = openfile("multi_close_file.txt", True)
+        file.writeat("File to be closed", 0)
+
+        file.close()
+
+        file.close()  
+
+    except Exception:
+        pass
+
+# Execute the attack
+unauthorized_file_closure_attack()

@@ -1,0 +1,20 @@
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("default")
+cleanup_files("testfile5.txt")
+
+default = openfile("default", True)
+default.writeat("new v2 default_message", 0)
+default.close()
+
+# Open files remain unaffected after default changes
+
+# Open a file and keep it open
+myfile5 = openfile("testfile5.txt", False)
+assert myfile5.readat(None, 0) == "new v2 default_message"
+
+myfile5.close()
+cleanup_files("testfile5.txt")
+

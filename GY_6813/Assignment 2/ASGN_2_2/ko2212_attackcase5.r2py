@@ -1,0 +1,8 @@
+try:
+    lp_file = openfile("testfile.txt", True)
+    lp_file.close()
+    lp_file.readat(10, 0)  # try to read after closing the file
+except FileClosedError:
+    pass
+else:
+    log("Test failed: Operation on closed file was allowed. The reference monitor didn't block it.")

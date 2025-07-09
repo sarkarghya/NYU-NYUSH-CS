@@ -1,0 +1,10 @@
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+test = openfile("test.txt", True)
+test.writeat("TEST FILE CONTENT", 0)
+test.close()
+
+test = openfile("test.txt", True)
+assert test.readat(None, 0) == "TEST FILE CONTENT", "File content inconsistent after reopening"
+test.close() 

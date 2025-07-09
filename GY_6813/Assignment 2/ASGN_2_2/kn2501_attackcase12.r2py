@@ -1,0 +1,13 @@
+try:
+    # Open and close a file
+    file1 = openfile("testfile.txt", True)
+    file1.writeat("Some content", 0)
+    file1.close()
+
+    # Attempt to close it again (should raise an error)
+    file1.close()
+except FileClosedError:
+    pass
+except Exception:
+    log("attacked")
+    

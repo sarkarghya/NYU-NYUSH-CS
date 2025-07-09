@@ -1,0 +1,42 @@
+try:
+    # Clean up existing files
+    if "default" in listfiles():
+        removefile("default")
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+    # Create default 
+    default = openfile("default", True)
+    default.writeat("This is the template.", 0)
+    default.close()
+except Exception as e:
+    assert False
+# Create new files, one closed, one left open
+try: 
+    open_file = openfile("file1.txt", False)
+    closed_file = openfile("file2.txt", False)
+    closed_file.close()
+except Exception as e:
+    assert False
+# Delete the default file
+try:
+    removefile("default")
+except Exception as e:
+    assert False
+# Check status of new files
+try:
+    # Check open file acts as expected
+    try:
+        open_file.writeat("Update", 0)
+    except FileNotFoundError:
+        assert False
+    # Check closed file acts as expected
+    try: 
+        open_file = openfile("file2.txt", False)
+        log("Closed file still exists unexpectedly.")
+        assert False
+    except FileNotFoundError:
+        assert True
+except Exception as e:
+    assert False
+
+    

@@ -1,0 +1,41 @@
+default_file = openfile("default", True)
+default_file.writeat("Default content", 0)
+default_file.close()
+
+try:
+    openfile("invalid/file", True)
+except:
+    pass
+
+test_file = openfile("test_file", True)
+try:
+    test_file.writeat(12345, 0)  
+except:
+    pass
+test_file.close()
+
+try:
+    test_file.readat(None, 0)
+except:
+    pass
+
+open_file = openfile("open_file", True)
+try:
+    removefile("open_file")
+except:
+    pass
+
+try:
+    open_file.readat(10, -1)
+except:
+    pass
+
+filesize = len(open_file.readat(None, 0))
+
+try:
+    open_file.readat(10, filesize + 1)
+except:
+    pass
+
+open_file.close()
+removefile("default")

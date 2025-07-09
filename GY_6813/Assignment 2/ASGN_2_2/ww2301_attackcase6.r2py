@@ -1,0 +1,27 @@
+# reference_monitor_aa10817.r2py
+# reference_monitor_as17872.r2py
+# reference_monitor_ks7929.r2py
+# reference_monitor_rp3963.r2py
+# reference_monitor_si2502.r2py
+
+
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+testFile = openfile("test.txt", True)
+
+testFile.close()
+
+try:
+    testFile.close()
+except FileClosedError:
+    pass
+except Exception as e:
+    if isinstance(e, NameError):
+        raise Exception("Wrong/Unexpected Error is raised: NameError is rasied")
+    if isinstance(e, KeyError):
+        raise Exception("Wrong/Unexpected Error is raised: KeyError is rasied")
+    pass
+else:
+    raise Exception("testFile should not be closed twice, FileClosedError should be raised")
+

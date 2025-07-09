@@ -1,0 +1,238 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, 
+repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py 
+[security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+mycontext['default_content'] = None
+mycontext['default_lock'] = createlock()
+
+# Create a shared lock to manage access to shared resources (open_files and closed_files)
+shared_lock = createlock()
+
+def update_default_content(file):
+    """
+    Update the cached content of 'default' by reading its entire content using readat().
+
+    Args:
+        file: The open file object for 'default'.
+    """
+    # Acquire the lock to ensure thread-safe access to the cache
+    mycontext['default_lock'].acquire(True)
+    try:
+        # Read the entire content of 'default'
+        
+        default_file = openfile('default', False)
+        content = default_file.readat(None, 0)
+        default_file.close()
+        mycontext['default_content'] = content
+    finally:
+        mycontext['default_lock'].release()
+
+def verify_filename(filename):
+    """
+    Ensure filename is sane
+    """
+    if len(filename) > 120:
+        raise RepyArgumentError("Filename is too long.")
+    if filename == '' or filename == '.' or filename == '..':
+        raise RepyArgumentError("Filename is invalid.")
+    if len(filename) > 0 and filename[0] == '.':
+        raise RepyArgumentError("Filename cannot start with a period.")
+    allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789-_.'
+    for char in filename:
+        if char not in allowed_chars:
+            raise RepyArgumentError("Filename contains invalid character: " + char)
+    return True
+
+
+def remove_closed_files():
+    """
+    Remove all files that have been closed to enforce security policy
+    ASSUME SHARED LOCK IS HELD
+    """
+
+    for filename in list(LPFile.closed_files):
+        removefile(filename)
+    LPFile.closed_files.clear()
+
+
+class LPFile():
+
+    open_files = set()
+    closed_files = set()
+
+    def __init__(self, filename, create):
+
+        verify_filename(filename)
+
+        self.filename = filename
+        self.is_closed = False
+        self.file_lock = createlock()
+
+        shared_lock.acquire(True)
+        try:
+            if filename in LPFile.open_files:
+                raise FileInUseError("File is already open")
+            if filename in LPFile.closed_files:
+                # Reopen the closed file
+                LPFile.closed_files.remove(filename)
+                self.file = openfile(filename, False)
+                LPFile.open_files.add(self.filename)
+                return  # Initialization complete
+        finally:
+            shared_lock.release()
+
+        if create:
+            # Acquire shared_lock to modify shared resources
+            shared_lock.acquire(True)
+            try:
+                # Double-check to prevent race conditions
+                if filename in LPFile.open_files or filename in LPFile.closed_files:
+                    raise FileInUseError("File already exists")
+                self.file = openfile(filename, True)
+                LPFile.open_files.add(self.filename)
+            finally:
+                shared_lock.release()
+        else:
+            # create == False and file does not exist
+
+            if 'default' not in listfiles():
+                raise FileNotFoundError("Default file not found")
+
+            # Open 'default' and read its content without holding shared_lock
+            content = mycontext['default_content']
+
+            # Acquire shared_lock to create the new file and update shared resources
+            shared_lock.acquire(True)
+            try:
+                # Create the new file using 'default' as a template
+                self.file = openfile(filename, True)
+                self.file.writeat(content, 0)
+                LPFile.open_files.add(self.filename)
+            finally:
+                shared_lock.release()
+
+    def readat(self, num_bytes, offset):
+        if self.is_closed:
+            raise FileClosedError("Cannot read from closed file")
+
+        # Acquire the file-specific lock before reading to ensure thread safety
+        self.file_lock.acquire(True)
+        try:
+            return self.file.readat(num_bytes, offset)
+        finally:
+            self.file_lock.release()
+
+    def writeat(self, data, offset):
+        if self.is_closed:
+            raise FileClosedError("Cannot write to closed file")
+        if self.filename == 'default':
+            # Acquire shared_lock first to prevent deadlocks
+            shared_lock.acquire(True)
+            try:
+                # Now acquire the file-specific lock
+                self.file_lock.acquire(True)
+                try:
+                    remove_closed_files() 
+                    self.file.writeat(data, offset)
+                finally:
+                    self.file_lock.release()
+            finally:
+                shared_lock.release()
+        else:
+            # For other files, only need the file-specific lock
+            self.file_lock.acquire(True)
+            try:
+                self.file.writeat(data, offset)
+            finally:
+                self.file_lock.release()
+
+    def close(self):
+        if self.is_closed:
+            raise FileClosedError("Cannot close an already closed file")
+        # Acquire shared_lock first to prevent deadlocks
+        shared_lock.acquire(True)
+        try:
+            # Now acquire the file-specific lock
+            self.file_lock.acquire(True)
+            try:
+                self.file.close()
+                self.is_closed = True
+                if self.filename == 'default':
+                    update_default_content(self)
+                LPFile.open_files.remove(self.filename)
+                LPFile.closed_files.add(self.filename)
+            finally:
+                self.file_lock.release()
+        finally:
+            shared_lock.release()
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    verify_filename(filename)
+    shared_lock.acquire(True)
+    try:
+        if filename in LPFile.open_files:
+            raise FileInUseError("Cannot remove an open file")
+        if filename == 'default':
+            mycontext['default_lock'].acquire(True)
+            try:
+                mycontext['default_content'] = None
+            finally:
+                mycontext['default_lock'].release()
+            remove_closed_files()
+        else:
+            LPFile.closed_files.discard(filename)
+            removefile(filename) 
+        
+    finally:
+        shared_lock.release()
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": 
+Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, 
+long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, 
+"return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

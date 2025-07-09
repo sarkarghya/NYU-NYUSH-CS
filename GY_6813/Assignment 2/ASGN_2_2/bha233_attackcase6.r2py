@@ -1,0 +1,18 @@
+# Check if file creation takes default as template
+if "default" in listfiles():
+    removefile("default")
+if "test2_file1" in listfiles():
+    removefile("test2_file1")
+
+default = openfile("default", True)
+
+default.writeat("I am template", 0)
+
+default.close()
+
+file1 = openfile("test2_file1", False)
+
+if file1.readat(None, 0) != "I am template":
+    log("**************************************************Failed Test 6****************************************************\n")
+
+file1.close()

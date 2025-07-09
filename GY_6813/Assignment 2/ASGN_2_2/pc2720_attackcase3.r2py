@@ -1,0 +1,5 @@
+# Create Empty File 
+# Should run normally
+
+file = openfile("test.txt", True)
+file.close()

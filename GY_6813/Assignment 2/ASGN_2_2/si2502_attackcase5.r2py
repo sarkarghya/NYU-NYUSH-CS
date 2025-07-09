@@ -1,0 +1,14 @@
+#File not found error
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "cat.txt" in listfiles():
+    removefile("cat.txt")
+
+# No default file
+try:
+  openfile("cat.txt", False)
+  assert False
+except FileNotFoundError:
+  assert True

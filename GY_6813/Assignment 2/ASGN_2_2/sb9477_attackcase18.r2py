@@ -1,0 +1,38 @@
+# Test cases for threading scenarios
+
+if "default" in listfiles():
+    removefile("default")
+if "test1.txt" in listfiles():
+    removefile("test1.txt")
+if "test2.txt" in listfiles():
+    removefile("test2.txt")
+
+def thread1():
+    default = openfile("default", True)
+    default.writeat("thread1", 0)
+    sleep(0.1)
+    default.close()
+
+def thread2():
+    sleep(0.05)
+    file1 = openfile("test1.txt", False)
+    file1.close()
+
+def thread3():
+    sleep(0.15)
+    default = openfile("default", True)
+    default.writeat("thread3", 0)
+    default.close()
+
+createthread(thread1)
+createthread(thread2)
+createthread(thread3)
+
+sleep(0.5)
+
+if "default" in listfiles():
+    removefile("default")
+if "test1.txt" in listfiles():
+    removefile("test1.txt")
+if "test2.txt" in listfiles():
+    removefile("test2.txt")

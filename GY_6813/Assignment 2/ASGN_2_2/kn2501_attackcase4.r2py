@@ -1,0 +1,8 @@
+# writing to a file at a negative offset or beyond file size is handled correctly.
+try:
+    lpfile = openfile("somefile", True)
+    lpfile.writeat("data", 999999)  # Write at negative offset
+except SeekPastEndOfFileError:
+    pass  # Expected behavior: negative offset should raise an error.
+except Exception as e:
+    log("attacked")

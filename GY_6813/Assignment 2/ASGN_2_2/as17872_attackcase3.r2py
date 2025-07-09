@@ -1,0 +1,24 @@
+default_content = "This is the default content."
+default_file = openfile("default", True)
+default_file.writeat(default_content, 0)
+default_file.close()
+
+file1 = openfile("file1", True)
+content1 = file1.readat(None, 0)
+assert content1 == "", "Test3 FAILED. file does NOT have empty content"
+file1.close()
+
+file1 = openfile("file1", True)
+file1.writeat("File1 content", 0)
+file1.close()
+file1 = openfile("file1", True)
+content1 = file1.readat(None, 0)
+assert "File1 content" == content1, "Test3 FAILED. file1 does not have the content previously written to it"
+file1.close()
+
+file2 = openfile("file2", False)
+content2 = file2.readat(None, 0)
+assert content2 == default_content, "Test3 FAILED. file2's conrtents don't match default"
+file2.close()
+
+removefile("default")

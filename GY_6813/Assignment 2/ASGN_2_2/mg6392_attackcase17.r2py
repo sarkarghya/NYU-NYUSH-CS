@@ -1,0 +1,17 @@
+
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("testfile12.txt")
+
+# Edge Case: Simultaneous open of the same file (FileInUseError)
+myfile12 = openfile("testfile12.txt", True)
+try:
+    myfile13 = openfile("testfile12.txt", True)  # Trying to open the same file again
+    assert False  # Should not reach here
+except FileInUseError:
+    assert True
+
+myfile12.close()
+cleanup_files("testfile12.txt")

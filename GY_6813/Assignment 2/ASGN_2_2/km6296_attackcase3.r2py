@@ -1,0 +1,19 @@
+if "default" in listfiles():
+    removefile("default")
+if "file1.txt" in listfiles():
+    removefile("file1.txt")
+
+default = openfile("default", True)
+default.writeat("DEFAULT_CONTENT", 0)
+default.close()
+
+file1 = openfile("file1.txt", False)
+
+removefile("default")
+
+file1.writeat("MODIFY_FILE1_CONTENT", 0)
+file1.close()
+
+file1 = openfile("file1.txt", False)
+assert file1.readat(None, 0) == "MODIFY_FILE1_CONTENT", "Expected file1.txt content to be updated after modification."
+file1.close()

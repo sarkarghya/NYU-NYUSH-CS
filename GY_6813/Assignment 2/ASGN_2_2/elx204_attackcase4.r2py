@@ -1,0 +1,14 @@
+# test case 4: try to delete a file in use
+
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+
+try:
+    removefile("default")
+except FileInUseError:
+    pass
+
+default.close()

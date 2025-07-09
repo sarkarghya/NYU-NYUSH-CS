@@ -1,0 +1,21 @@
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+l = listfiles()
+for i in range(2000):
+    tmp = "foo" + str(i)
+    if tmp in l:
+        removefile(tmp)
+
+try:
+    for i in range(2000):
+        openfile("foo" + str(i), False)   
+except ResourceExhaustedError:
+    pass
+finally:
+    l = listfiles()
+    for i in range(2000):
+        tmp = "foo" + str(i)
+        if tmp in l:
+            removefile(tmp)

@@ -1,0 +1,24 @@
+# CASE 10: Multiple threads accessing file simultaneously to check for lock safety
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+myfile = openfile("testfile.txt",True)
+
+# Creates and runs threads to write and read testfile
+def thread1():
+    for i in range(100):
+        myfile.writeat("1", i)
+def thread2():
+    for i in range(1,101):
+        myfile.writeat("2", i)
+def thread3():
+    for i in range(1,100):
+        myfile.readat(1, i)
+
+# Should not raise any errors during execution if locking mechanisms are correctly implemented
+createthread(thread1)
+createthread(thread2)
+createthread(thread3)
+sleep(1)
+myfile.close()
+
+# END OF CASE 10

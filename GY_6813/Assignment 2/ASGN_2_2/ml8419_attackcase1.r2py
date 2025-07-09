@@ -1,0 +1,16 @@
+
+# This attack case attempts to read from a file that was previously closed
+
+def attackcase_1():
+    try:
+        testfile = openfile("testfile", True)
+        testfile.close()
+        
+        test = testfile.readat(10, 0)  
+    
+    except FileClosedError:
+        log("FileClosedError: Attempted to read a closed file.")
+    except RepyArgumentError as e:
+        log("RepyArgumentError: Unexpected argument error")
+
+attackcase_1()

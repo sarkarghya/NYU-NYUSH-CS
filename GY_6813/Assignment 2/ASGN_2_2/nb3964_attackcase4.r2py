@@ -1,0 +1,13 @@
+try:
+    file_handle = openfile("maitry", True)
+    file_handle.close()
+    file_handle.close()
+
+except FileClosedError as error:
+    # Attempted to close an already closed file, skipping operation
+    pass
+    
+except Exception as error:
+    log("An unexpected error occurred during file operation\n")
+    log(error)
+    log("\n")

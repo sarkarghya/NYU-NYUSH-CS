@@ -1,0 +1,20 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'bigfile.txt' in listfiles():
+    removefile('bigfile.txt')
+
+large_content = 'LargeData' * 1250
+default_file = openfile('default', True)
+default_file.writeat(large_content, 0)
+default_file.close()
+
+big_file = openfile('bigfile.txt', False)
+file_content = big_file.readat(None, 0)
+assert file_content == large_content
+big_file.close()
+
+default_file = openfile('default', False)
+default_file.writeat('Smaller content.', 0)
+default_file.close()
+
+assert 'bigfile.txt' not in listfiles()

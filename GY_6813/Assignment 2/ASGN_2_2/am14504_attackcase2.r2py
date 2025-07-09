@@ -1,0 +1,21 @@
+'''
+    An attack case to check if the file 'default' exists or not before creating a file using 'default' as template
+'''
+
+if 'default' in listfiles():
+    removefile('default')
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+try:
+    file = openfile('testfile_1.txt', False)
+
+except RepyArgumentError:
+    pass
+
+except FileNotFoundError:
+    pass
+
+except Exception as e:
+    log(e)

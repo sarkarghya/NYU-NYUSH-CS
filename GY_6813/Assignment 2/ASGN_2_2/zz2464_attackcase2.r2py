@@ -1,0 +1,28 @@
+# Attack 2: File Handle Exhaustion
+
+# Set a large number to exhaust file handles
+max_files = 50
+file_handles = []
+
+try:
+    # Step 1: Open multiple files in succession without closing them
+    for i in range(max_files):
+        try:
+            filename = "file_exhaustion_test_" + str(i) + ".txt"
+            file_handle = openfile(filename, True)  # Try to open a new file
+            file_handles.append(file_handle)  # Store the file handle
+        except ResourceExhaustedError:
+            # Expected error when reaching the file handle limit; suppress this
+            break
+
+finally:
+    # Step 3: Close all opened file handles and clean up
+    for file_handle in file_handles:
+        file_handle.close()
+
+    # Clean up created files
+    for i in range(len(file_handles)):
+        filename = "file_exhaustion_test_" + str(i) + ".txt"
+        removefile(filename)
+
+

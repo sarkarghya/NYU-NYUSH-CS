@@ -1,0 +1,14 @@
+if "default" in listfiles():
+    removefile("default")
+
+openfile("default", True).writeat("CONSISTENT", 0)
+file1 = openfile("testfile_consistent1", False)
+file2 = openfile("testfile_consistent2", False)
+assert file1.readat(None, 0) == "CONSISTENT", "File content changed unexpectedly"
+assert file2.readat(None, 0) == "CONSISTENT", "File content changed unexpectedly"
+file1.close()
+file2.close()
+
+for filename in ["default", "testfile_consistent1", "testfile_consistent2"]:
+    if filename in listfiles():
+        removefile(filename)

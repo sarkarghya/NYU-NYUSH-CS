@@ -1,0 +1,12 @@
+'''
+    An attack case to check if the filename is in the acceptable format.
+'''
+
+try:
+    file1 = openfile('ALL_CAPS.txt', True)
+
+except RepyArgumentError:
+    pass
+
+except Exception as e:
+    log(e)

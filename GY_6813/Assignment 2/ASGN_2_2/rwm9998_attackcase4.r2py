@@ -1,0 +1,20 @@
+#Try creating a file from default when default does not exist
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+#ensure the filenotfound error occurs
+try:
+    # Open a file that doesn't exist
+    myfile = openfile("testfile.txt", False)
+
+    # Close the file
+    myfile.close()
+except:
+    pass
+
+if "testfile.txt" in listfiles():
+    raise Exception("File was created when it should not exist")

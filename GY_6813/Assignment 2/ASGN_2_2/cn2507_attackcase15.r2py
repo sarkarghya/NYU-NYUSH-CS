@@ -1,0 +1,23 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'newfile.txt' in listfiles():
+    removefile('newfile.txt')
+
+# Create 'default' and 'newfile.txt'
+default_file = openfile('default', True)
+default_file.writeat('Original default content.', 0)
+default_file.close()
+
+new_file = openfile('newfile.txt', False)
+new_file.close()
+
+# Delete 'default'
+removefile('default')
+
+# Re-create 'default'
+default_file = openfile('default', True)
+default_file.writeat('Re-created default content.', 0)
+default_file.close()
+
+# Verify that 'newfile.txt' is deleted due to 'default' recreation
+assert 'newfile.txt' not in listfiles()

@@ -1,0 +1,55 @@
+# Testing if modifying default file deletes all closed files and does not delete open files
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile('default')
+if "test1" in listfiles():
+  removefile('test1')
+if "test3" in listfiles():
+  removefile('test3')  
+
+try:
+  testfile0 = openfile('test0', False) #Try to open a file that doesn't exist using default file, should fail
+except FileNotFoundError:
+   pass
+
+ #Try to open a file that doesn't exist without default file, should pass
+testfile1 = openfile("test1", True)
+testfile1.writeat('test1Content', 0)
+testfile1.close()
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+# Open a file that doesn't exist, should pass now as default exists
+testsamplefile = openfile("testsample.txt", False)
+
+# should pass
+testfile2 = openfile("test2", True)
+# should pass
+testfile3 = openfile("test3", False)
+
+testfile2.close()
+
+# Create a default file again with new template
+default = openfile("default", True)
+default.writeat("TEMPLATE2", 0)
+# All new files shouldve been deleted except testfile3 since it was not closed
+default.close()
+
+testfile3.close()
+
+testfile2 = openfile('test2', False) # should contain new template
+assert testfile2.readat(None, 0) == "TEMPLATE2"
+
+#should pass as we closed after modifying default and should not have been deleted and should contain old template
+testfile3 = openfile('test3', True)
+assert testfile3.readat(None, 0) == "TEMPLATE"
+
+

@@ -1,0 +1,30 @@
+# Test cases for resource exhaustion
+
+if "default" in listfiles():
+    removefile("default")
+
+open_files = []
+try:
+    for i in range(100):
+        fname = "test_file_" + str(i)
+        open_files.append(openfile(fname, True))
+except ResourceExhaustedError:
+    pass
+finally:
+    for f in open_files:
+        f.close()
+    for i in range(100):
+        fname = "test_file_" + str(i)
+        if fname in listfiles():
+            removefile(fname)
+
+try:
+    large_file = openfile("large_file", True)
+    large_data = "a" * (1024 * 1024)
+    large_file.writeat(large_data, 0)
+    large_file.close()
+except RepyIOError:
+    pass
+finally:
+    if "large_file" in listfiles():
+        removefile("large_file")

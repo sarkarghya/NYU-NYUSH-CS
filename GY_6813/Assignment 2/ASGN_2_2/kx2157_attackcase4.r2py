@@ -1,0 +1,64 @@
+def safe_remove_file(filename):
+    if filename in listfiles():
+        try:
+            removefile(filename)
+        except Exception as e:
+            pass
+
+def clean_up_test_files():
+    test_filenames = [
+        "testfile1.txt",
+        "testfile2.txt",
+        "open_testfile1.txt",
+        "open_testfile2.txt",
+        "default"
+    ]
+    for filename in test_filenames:
+        safe_remove_file(filename)
+
+clean_up_test_files()
+
+def test_default_modification_triggers_file_deletion():
+    # Create and close some files
+    file1 = openfile("testfile1.txt", True)
+    file1.writeat("Some content", 0)
+    file1.close()
+
+    file2 = openfile("testfile2.txt", True)
+    file2.writeat("Some more content", 0)
+    file2.close()
+
+    # Keep some files open
+    open_file1 = openfile("open_testfile1.txt", True)
+    open_file2 = openfile("open_testfile2.txt", True)
+
+    # Ensure files exist before default modification
+    assert "testfile1.txt" in listfiles(), "testfile1.txt should exist"
+    assert "testfile2.txt" in listfiles(), "testfile2.txt should exist"
+    assert "open_testfile1.txt" in listfiles(), "open_testfile1.txt should exist"
+    assert "open_testfile2.txt" in listfiles(), "open_testfile2.txt should exist"
+
+    # Trigger action on default (writing to it)
+    default_file = openfile("default", True)
+    default_file.writeat("MODIFIED", 0)
+    default_file.close()
+
+    # Verify closed files are deleted
+    assert "testfile1.txt" not in listfiles(), "Closed testfile1.txt should have been deleted"
+    assert "testfile2.txt" not in listfiles(), "Closed testfile2.txt should have been deleted"
+
+    # Verify open files remain
+    assert "open_testfile1.txt" in listfiles(), "Open testfile1.txt should still exist"
+    assert "open_testfile2.txt" in listfiles(), "Open testfile2.txt should still exist"
+
+    # Clean up open files
+    open_file1.close()
+    open_file2.close()
+    try:
+        safe_remove_file("open_testfile1.txt")
+        safe_remove_file("open_testfile2.txt")
+        safe_remove_file("default")
+    except Exception as e:
+        pass
+
+test_default_modification_triggers_file_deletion()

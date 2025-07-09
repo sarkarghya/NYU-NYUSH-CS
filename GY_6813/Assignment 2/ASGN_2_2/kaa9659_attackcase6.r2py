@@ -1,0 +1,14 @@
+testfiles = ['testa', 'testb', 'testc', 'testd']
+if "default" in listfiles():
+    removefile("default")
+for f in testfiles:
+    if f in listfiles():
+        removefile(f)
+
+try: 
+    myfile1 = openfile('testa', False)
+    myfile2 = openfile('testb', False)
+    myfile3 = openfile('testc', False)
+    myfile4 = openfile('testd', False)
+except FileNotFoundError:
+    pass

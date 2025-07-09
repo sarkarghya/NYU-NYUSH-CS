@@ -1,0 +1,12 @@
+if "default" in listfiles():
+    removefile("default")
+
+try:
+    openfile("testfile_nonexistent", False)
+    assert False, "Failed to raise exception for non-existent file"
+except FileNotFoundError:
+    pass
+openfile("default", True).writeat("DEFAULT CONTENT", 0)
+
+if "default" in listfiles():
+    removefile("default")

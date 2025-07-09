@@ -1,0 +1,50 @@
+# TestCase: concurrent threads opening/writing/deleting race condition without lock implemented in file 
+# - Locks should be implemented within the reference monitor to avoid both a FileInUseError and a FileNotFoundError from triggering
+
+if "default" in listfiles():
+    removefile("default")
+if "new_file.txt" in listfiles():
+    removefile("new_file.txt")
+
+# Concurrently open and write to the 'default' file and delete it after
+def thread_concurrent_default_file(data):
+    try:
+        for i in range(1000):
+            if "default" in listfiles(): 
+                removefile("default")
+            default = openfile("default", True)
+            default.writeat(data, 0)
+            default.close()
+    except FileInUseError as e:
+        raise e
+
+# Open and write to a file created from 'default' and delete it after
+def thread_create_write_file(filename, data):
+    try:
+        for i in range(1000):  
+            file1 = openfile(filename, False)  
+            file1.writeat(data, 0)  
+            file1.close()  
+            removefile(filename)
+    except FileNotFoundError as e:
+        raise e
+            
+def thread_create_write_helper(function, args):
+    def closure():
+        function(*args)
+    return closure
+
+# create the initial "default" file
+default = openfile("default", True)
+default.writeat("new data", 0)
+default.close()
+
+# Initialize the thread functions
+thread1function = thread_create_write_helper(thread_concurrent_default_file, ["thread 1 info"])
+thread2function = thread_create_write_helper(thread_create_write_file, ["new_file.txt", "info thread 2"])
+
+# Create threads for concurrent writing to the same file
+createthread(thread1function)
+createthread(thread2function)
+
+

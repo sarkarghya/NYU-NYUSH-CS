@@ -1,0 +1,19 @@
+if "default" in listfiles():
+    removefile("default")
+
+myfile = openfile("default", True)
+
+try:
+    myfile.writeat("12345678\n    ", 0)
+    content = myfile.readat(14, 0)
+    if content != "12345678\n        ":
+        log("Qahtans Attack 7 successful")
+    
+    myfile.writeat("\n1", 14)
+    content = myfile.readat(17, 0)
+    if content != "12345678\n        \n    1":
+        log("Qahtans Attack 7 successful")
+except Exception:
+    log("Qahtans Attack 7 successful")
+finally:
+    myfile.close()

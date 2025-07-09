@@ -1,0 +1,26 @@
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+try:
+    default = openfile("default", True)
+    default.writeat("DEFAULT CONTENT", 0)
+    default.close()
+except Exception:
+
+
+
+try:
+    default = openfile("default", False)  
+    assert default.readat(None, 0) == "DEFAULT CONTENT"
+    default.close()
+except Exception:
+    pass  
+
+
+try:
+    default = openfile("default", False)
+    default.writeat("UNAUTHORIZED WRITE", 0)
+except Exception:
+    pass  

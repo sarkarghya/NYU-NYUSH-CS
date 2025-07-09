@@ -1,0 +1,22 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'openfile.txt' in listfiles():
+    removefile('openfile.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('Template content.', 0)
+default_file.close()
+
+open_file = openfile('openfile.txt', True)
+open_file.writeat('Persistent content.', 0)
+open_file.close()
+
+open_file = openfile('openfile.txt', False)
+
+removefile('default')
+
+assert 'openfile.txt' in listfiles()
+
+open_file.close()
+
+assert 'openfile.txt' in listfiles()

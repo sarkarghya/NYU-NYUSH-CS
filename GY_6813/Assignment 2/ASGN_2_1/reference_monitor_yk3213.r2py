@@ -1,0 +1,175 @@
+mycontext = {}
+CHILD_CONTEXT_DEF = {}
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+mycontext['files'] = [] 
+
+def listfiles():
+    return mycontext.get('files',[])  
+
+def openfile(filename, create):
+    if create:
+        return open(filename, 'w+')
+    elif filename in listfiles():
+        return open(filename, 'r')
+    else:
+        return None 
+
+def removefile(filename):
+    try:
+        repy.remove_file(filename)  
+    except Exception as e:
+        pass
+    if filename in mycontext['files']:
+        mycontext['files'].remove(filename) 
+
+class LPFile:
+    def __init__(self, filename, create):
+        mycontext['debug'] = False
+        self.filename = filename  
+
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.read()  
+            self.LPfile = openfile(filename, True)
+            self.LPfile.write(content)
+            default_file.close()
+        else:
+            self.LPfile = openfile(filename, create)
+
+    def readat(self, num_bytes, offset):
+        if self.LPfile:
+            self.LPfile.seek(offset)
+            return self.LPfile.read(num_bytes)
+        return None
+
+    def writeat(self, data, offset):
+        if self.LPfile:
+            self.LPfile.seek(offset)
+            self.LPfile.write(data)
+            if self.filename == 'default':  
+                for file in mycontext['closed_files']:
+                    removefile(file)
+                mycontext['closed_files'] = []
+
+    def close(self):
+        if self.LPfile:
+            self.LPfile.close()
+            mycontext['closed_files'].append(self.filename)
+            if self.filename == 'default': 
+                for file in mycontext['closed_files']:
+                    removefile(file)
+                mycontext['closed_files'] = []
+
+def LPopenfile(filename, create):
+    file_obj = openfile(filename, create)
+    if file_obj is None:
+        pass
+        return None
+    return LPFile(filename, create)
+
+def secure_dispatch_module():
+    pass
+
+def LPremovefile(filename):
+    removefile(filename)
+    if filename == 'default':
+        for file in mycontext['closed_files']:
+            removefile(file)
+        mycontext['closed_files'] = []
+long = int 
+
+def run_tests():
+    if 'closed_files' not in mycontext:
+        mycontext['closed_files'] = []
+
+    # Test Cases for Specification 1
+    # File exists and is readable
+    f1 = LPopenfile("testfile.txt", False)
+    if f1 is not None:
+        assert f1.readat(100, 0) is not None, "Failed: File should be readable."
+    else:
+        pass
+
+    # File does not exist and create=False
+    f2 = LPopenfile("nonexistent.txt", False)
+    assert f2 is None, "Failed: Non-existent file without create should return None."
+
+    # File does not exist and create=True
+    f3 = LPopenfile("newfile.txt", True)
+    assert f3 is not None, "Failed: New file should be created."
+    f3.writeat("Hello World", 0)
+    assert f3.readat(100, 0) == "Hello World", "Failed: File content does not match."
+
+    # File is removed
+    LPremovefile("newfile.txt")
+    f4 = LPopenfile("newfile.txt", False)
+    assert f4 is None, "Failed: Removed file should not exist."
+
+    # Test Cases for Specification 2
+    # Default file exists and is readable
+    f5 = LPopenfile("default", True)
+    f5.writeat("Default content", 0)
+    assert f5.readat(100, 0) == "Default content", "Failed: Default file content mismatch."
+
+    # Default file does not exist
+    try:
+        f5 = LPopenfile("notdefault.txt", False)
+    except Exception:
+        pass  # Non-default file opening without creation success case
+
+    # File already exists and create=True
+    f6 = LPopenfile("testfile.txt", True)
+    assert f6 is not None, "Failed: Existing file should be opened with create=True."
+
+    # Test Cases for Specification 3
+    # Successful creation of default file
+    f7 = LPopenfile("default", True)
+    assert f7 is not None, "Failed: Default file should be created."
+
+    # Successful write to default file
+    f7.writeat("Test content", 0)
+    assert f7.readat(100, 0) == "Test content", "Failed: Default file content mismatch."
+
+    # Successful removal of default file
+    LPremovefile("default")
+    try:
+        f8 = LPopenfile("default", False)
+    except Exception:
+        pass 
+
+run_tests()
+
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

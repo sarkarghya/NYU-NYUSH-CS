@@ -1,0 +1,45 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+#Test reading pass the end of the file
+
+try:
+   # Open the file for reading
+    myfile = openfile("testfile.txt", True)  
+
+    # Write some data to the file 
+    myfile.writeat("Sample data", 0)
+
+    # Close and reopen the file for reading
+    myfile.close()
+    
+    myfile = openfile("testfile.txt", False)  # Reopen without creating
+
+    # Try to read 100 bytes from an offset that is beyond the file length
+    data = myfile.readat(100, 50)
+
+    # If no exception is raised, log this as a failure
+    log("FAILURE: The reference monitor allowed reading past the end of the file 'testfile.txt'.\n")
+
+except SeekPastEndOfFileError:
+    pass
+except Exception as e:
+    # Log any unexpected exceptions for review
+    log("ERROR: An unexpected exception occurred: %s\n" % str(e))
+
+finally:
+    # Ensure the file is closed if it was opened
+    try:
+        myfile.close()
+    except:
+        pass

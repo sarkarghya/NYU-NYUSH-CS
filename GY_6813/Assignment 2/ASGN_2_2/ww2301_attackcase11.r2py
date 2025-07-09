@@ -1,0 +1,25 @@
+# reference_monitor_gpd264.r2py
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test.txt", False)
+
+removefile("default")
+
+test.close()
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+
+if "test.txt" in listfiles():
+    raise Exception("test.txt should not exist because as a closed file, it should be deleted when the default file is modified")

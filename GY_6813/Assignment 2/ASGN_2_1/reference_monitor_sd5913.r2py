@@ -1,0 +1,99 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"  
+# Encapsulate closed_files in a mutable dictionary to avoid the need for global or nonlocal
+context = {
+    "closed_files": ()  # Using a tuple to ensure immutability
+}
+
+def add_closed_file(filename):
+    """Adds a file to the closed files tuple by creating a new tuple."""
+    context["closed_files"] = context["closed_files"] + (filename,)  # Create a new tuple with the added filename
+
+def remove_closed_files():
+    """Removes all closed files from the filesystem."""
+    for filename in context["closed_files"]:
+        if filename in listfiles():
+            removefile(filename)
+    context["closed_files"] = ()  # Clear the tuple after removing the files
+
+def clear_closed_files():
+    """Clears the closed files list by setting it to an empty tuple."""
+    context["closed_files"] = ()
+
+# Define the LPFile class in the global scope
+class LPFile():
+    _open_files =[]
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.filename = filename
+        self.is_open = True
+
+        if create == False:
+            if 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)  # Read the whole content from "default"
+                self.LPfile = openfile(filename, True)  # Create the new file using the "default" template
+                self.LPfile.writeat(content, 0)
+                default_file.close()
+                LPFile._open_files.append(filename)
+        else:
+            self.LPfile = openfile(filename, create)
+            LPFile._open_files.append(filename)
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.is_open = False
+        # Securely add file to the closed files tuple using the closure
+        add_closed_file(self.filename)
+        if self.filename in LPFile._open_files:
+            LPFile._open_files.remove(self.filename)
+        self.LPfile.close()
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename == "default":
+        # When "default" is removed, securely remove all closed files using the closure
+        remove_closed_files()
+    removefile(filename)
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

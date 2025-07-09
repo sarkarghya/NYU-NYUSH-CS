@@ -1,0 +1,19 @@
+#Attack Case 1: testing if FileNotFoundError works
+#in terms of opening a False file and having to return default but there is no defualt file 
+
+# Clean up if the files exist
+if "default" in listfiles():
+ removefile("default")
+if "testfile.txt" in listfiles():
+   removefile("testfile.txt")
+
+
+#try, except, else to check for an FileNotFoundError in default
+
+try:
+   # Open a file that doesn't exist
+   myfile = openfile("testfile.txt", False)
+except FileNotFoundError as f:
+   pass
+else:
+   assert False, "the error was not caught"

@@ -1,0 +1,61 @@
+# The goal of Attack 1 is to bypass the default template requirement when creating new files in the security layer.
+
+# Clean up any existing files before starting the test
+if "default" in listfiles():
+    removefile("default")
+
+if "bypass_test.txt" in listfiles():
+    removefile("bypass_test.txt")
+
+# --- Attack Step 2: Try creating a file with create=False without 'default' ---
+try:
+    # Attempt to open a file with create=False when 'default' doesn't exist
+    attack_file = openfile("bypass_test.txt", False)
+    attack_file.close()  # Close the file properly if opened
+except FileNotFoundError:
+    # Suppress the expected FileNotFoundError, since 'default' is missing
+    pass
+
+# --- Attack Step 3: Create a file with create=True, delete it, then try create=False ---
+try:
+    # Create a file with create=True
+    exploit_file = openfile("bypass_test.txt", True)
+    exploit_file.writeat("This is a test content.", 0)
+    exploit_file.close()
+
+    # Delete the file immediately after closing
+    removefile("bypass_test.txt")
+
+    # Now try to open the same file with create=False
+    exploit_file = openfile("bypass_test.txt", False)
+    exploit_file.close()  # Close the file properly
+except FileNotFoundError:
+    # Suppress expected FileNotFoundError (e.g., file not found after deletion)
+    pass
+
+# --- Attack Step 4: Simulate a race condition without threading for Default Template Bypass ---
+def simulate_race_condition():
+    # Attempt 1: Try to create a file with create=False while default is missing
+    try:
+        attack_file1 = openfile("bypass_test_race1.txt", False)
+        attack_file1.close()  # Close the file properly if opened
+    except FileNotFoundError:
+        # Suppress expected FileNotFoundError since the default is missing
+        pass
+
+    # Attempt 2: Immediately try another operation to simulate a race condition
+    try:
+        attack_file2 = openfile("bypass_test_race2.txt", False)
+        attack_file2.close()  # Close the file properly if opened
+    except FileNotFoundError:
+        # Suppress expected FileNotFoundError
+        pass
+
+simulate_race_condition()
+
+# Clean up created files
+if "bypass_test_race1.txt" in listfiles():
+     removefile("bypass_test_race1.txt")
+
+if "bypass_test_race2.txt" in listfiles():
+    removefile("bypass_test_race2.txt")

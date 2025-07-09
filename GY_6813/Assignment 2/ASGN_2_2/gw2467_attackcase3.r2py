@@ -1,0 +1,21 @@
+
+
+
+
+import logging
+
+
+def test_restricted_file_access():
+    with pytest.raises(PermissionError) as excinfo:
+        with open("restricted_file.txt", "r") as file_handle:
+            pass  # Attempting to read the file should raise an error
+    
+    
+    if "Permission denied" in str(excinfo.value):
+        logging.info("PermissionError raised as expected: %s", excinfo.value)
+    else:
+        logging.error("Unexpected error: %s", excinfo.value)
+    
+    assert "Permission denied" in str(excinfo.value), f"Unexpected error: {excinfo.value}"
+
+

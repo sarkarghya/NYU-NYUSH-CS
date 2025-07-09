@@ -1,0 +1,28 @@
+# 1. Attempt to open a non-existent file without creating it (should use 'default' as template)
+    
+#log(listfiles())
+testfile1 = openfile('testfile1.txt', False)
+content1 = testfile1.readat(None, 0)
+testfile1.close()
+
+     
+
+# 3. Open another file without creating it (should now use the new 'default' content)
+     
+testfile2 = openfile('testfile2.txt', False)
+content2 = testfile2.readat(None, 0)
+    
+testfile2.close()
+
+     
+
+# 4. Modify 'default' to trigger deletion of closed files
+     
+default_file = openfile('default', True)
+default_file.writeat("Modified default content.", 0)
+default_file.close()
+    
+     
+# 5. Try to open 'testfile1.txt' again to see if it has been deleted
+if "testfile1.txt" in listfiles():
+    raise FileError("File Exist even after modification of default")

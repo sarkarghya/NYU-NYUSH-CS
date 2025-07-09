@@ -1,0 +1,28 @@
+# Test concurrent operation errors
+
+if "default" in listfiles():
+    removefile("default")
+
+try:
+    removefile("default")
+except FileNotFoundError:
+    pass
+
+default = openfile("default", True)
+default.writeat("content", 0)
+
+try:
+    removefile("default")
+except FileInUseError:
+    pass
+
+default.close()
+
+default = openfile("default", True)
+try:
+    default2 = openfile("default", True)
+    default2.close()
+except FileInUseError:
+    pass
+
+default.close()

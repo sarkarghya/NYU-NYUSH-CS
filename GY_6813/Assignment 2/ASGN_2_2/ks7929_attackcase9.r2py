@@ -1,0 +1,21 @@
+#--- CLeaning
+if "default" in listfiles():
+    removefile("default")
+if "cat.txt" in listfiles():
+    removefile("cat.txt")
+if "dog.txt" in listfiles():
+    removefile("dog.txt")
+
+cat = openfile("cat.txt", True)
+dog = openfile("dog.txt", True)
+dog.close()
+cat.close()
+
+cat = openfile("cat.txt", True)
+default = openfile("default", True)
+default.close()
+removefile("default")
+
+#default removed, so deleted closed file
+assert "dog.txt" not in listfiles()
+assert "cat.txt" in listfiles()

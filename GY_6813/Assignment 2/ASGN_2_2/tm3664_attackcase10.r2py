@@ -1,0 +1,24 @@
+def test_concurrent_file_access():
+    try:
+        # open the same file in two different handles simultaneously
+        f1 = openfile("concurrent.txt", create=True)
+        f2 = openfile("concurrent.txt", create=False)
+
+        # attempt to write using both handles at the same offset
+        f1.writeat("Hello", 0)
+        f2.writeat("World", 0)
+
+        # read back the contents to check for data corruption
+        content = f1.readat(None, 0)
+        if content != "World":
+            log("Security Flaw: Data corruption or improper synchronization.")
+        else:
+            log("Passed: File handles synchronization and data integrity maintained.")
+    except Exception as e:
+        log("Error during concurrent access test: " + str(e))
+    finally:
+        f1.close()
+        f2.close()
+        removefile("concurrent.txt")
+
+test_concurrent_file_access()

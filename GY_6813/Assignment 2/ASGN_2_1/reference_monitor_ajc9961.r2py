@@ -1,0 +1,175 @@
+"""
+This security layer implements a more secure handling of file operations
+to defend against potential attacks while respecting the specifications provided.
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py, and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+"""
+Two defense strategies are implemented in this security layer:
+1. File operations are protected by a lock
+2. File operations are restricted to a safe file name (defending against path traversal)
+"""
+
+# track list of files
+files = set() # list of LPFile instances
+
+class LPFile():
+    def __init__(self, filename, create):
+        # global
+        mycontext['debug'] = False
+        
+        # initial vars
+        self.filename = self._sanitize_filename(filename)
+        self.is_opened = True # track if file open
+        
+        # create lock
+        self.lock = createlock()
+        self.lock.acquire(True)
+        
+        try:
+            if create == False:
+                if 'default' in listfiles():
+                    default_file = openfile('default', False)
+                    content = default_file.readat(None, 0)  # Read from the file using the sandbox's readat
+                    self.LPfile = openfile(self.filename, True)
+                    self.LPfile.writeat(content, 0)
+                    default_file.close()
+                else:
+                    self.LPfile = None # set to none if default file does not exist
+            else:
+                self.LPfile = openfile(self.filename, create)
+        finally:
+            # release lock
+            self.lock.release()
+        
+    def readat(self, num_bytes, offset):
+        # check valid offset
+        if offset < 0:
+            raise RepyArgumentError
+        
+        # acquire lock
+        self.lock.acquire(True)
+        try:
+            if self.LPfile is not None:
+                return self.LPfile.readat(num_bytes, offset)
+            return "" # return empty if file does not exist
+        finally:
+            # release lock
+            self.lock.release()
+
+    def writeat(self, data, offset):
+        # check valid offset
+        if offset < 0:
+            raise RepyArgumentError
+        
+        # acquire lock
+        self.lock.acquire(True)
+        try:
+            if self.LPfile is not None:
+                # write to file
+                self.LPfile.writeat(data, offset)
+        finally:
+            # release lock
+            self.lock.release()
+
+    def close(self):
+        # acquire lock
+        self.lock.acquire(True)
+        try:
+            if self.LPfile is not None:
+                # close file
+                self.LPfile.close()
+                self.is_opened = False # changed to closed
+        finally:
+            # release lock
+            self.lock.release()
+
+    def is_open(self):
+        return self.is_opened 
+
+    def _sanitize_filename(self, filename):
+        # check if file name is safe and prevent against path traversal
+        if "../" in filename or "..\\" in filename:
+            return "default" # return default file if unsafe
+        return filename
+
+def LPopenfile(filename, create):
+    file = LPFile(filename, create)
+    files.add(file)
+    return file
+
+def LPremovefile(filename):
+    # create lock
+    file_operation_lock = createlock()
+    file_operation_lock.acquire(True)
+    try:
+        # check if it's the default file
+        if 'default' in listfiles() and filename == 'default':
+            handle_default_file()
+        
+        # remove file
+        for file in files:
+            if file.filename == filename:
+                files.remove(file)
+                file.close()
+        removefile(filename)
+    finally:
+        # release lock
+        file_operation_lock.release()
+
+
+def handle_default_file():
+    # create lock
+    file_operation_lock = createlock()
+    file_operation_lock.acquire(True)
+    
+    try:
+        # delete all closed files that were previously created
+        if 'default' in listfiles():
+            for file in files:
+                if not file.is_open():
+                    removefile(file.filename)
+                    files.remove(file)
+    finally:
+        # release lock
+        file_operation_lock.release()
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

@@ -1,0 +1,9 @@
+def test_open_nonexistent_file():
+    try:
+        non_existent = LPopenfile("ghost.txt", False)
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        log("Failed: Unexpected exception for non-existent file: " + str(e))
+
+test_open_nonexistent_file()

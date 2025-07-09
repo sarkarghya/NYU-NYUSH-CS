@@ -1,0 +1,58 @@
+# --- Attack Step 0: Ensure the tamper_test.txt file exists ---
+
+initial_file = openfile("tamper_test.txt", True)
+initial_file.writeat("Initial content for tamper testing.", 0)
+initial_file.close()
+
+
+# --- Attack Step 1: Open and Close the Same File Repeatedly ---
+
+try:
+    for i in range(100):
+        attack_file = openfile("tamper_test.txt", True)  # Open the file
+        attack_file.writeat("Test write to file.", 0)
+        attack_file.close()  # Close the file immediately
+except ResourceExhaustedError:
+    pass
+
+
+# --- Attack Step 2: Manipulate File State ---
+
+try:
+    # Step 1: Open the file
+    tamper_file = openfile("tamper_test.txt", True)
+    tamper_file.writeat("Testing file state tampering.", 0)
+
+    # Step 2: Close the file
+    tamper_file.close()
+
+    # Step 3: Try reopening the same file without triggering proper security checks
+    tamper_file = openfile("tamper_test.txt", False)  # Using create=False this time
+    read_data = tamper_file.readat(None, 0)
+
+    # Step 4: Validate if the reopening worked correctly
+    tamper_file.close()
+
+except FileInUseError:
+    # Do not suppress errors here to detect any issues with file deletion or accessibility
+    raise
+
+
+# --- Attack Step 3: Simulated Concurrent File Access via Quick Succession Loops ---
+
+try:
+    # Simulate concurrent open/close by opening/closing multiple files in rapid succession
+    for i in range(50):
+        # Open a file
+        file = openfile("tamper_test_concurrent.txt", True)
+        file.writeat("Testing rapid open/close.", 0)
+        file.close()
+except ResourceExhaustedError:
+    pass
+
+
+# Clean up created files
+if "tamper_test.txt" in listfiles():
+    removefile("tamper_test.txt")
+if "tamper_test_concurrent.txt" in listfiles():
+    removefile("tamper_test_concurrent.txt")

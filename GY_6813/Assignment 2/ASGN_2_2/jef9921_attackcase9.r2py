@@ -1,0 +1,9 @@
+# TestCase: file_not_present removefile - FileNotFoundError
+
+if "file_not_present" in listfiles():
+  removefile("file_not_present")
+
+try:
+  removefile("file_not_present")
+except FileNotFoundError:
+  pass

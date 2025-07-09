@@ -1,0 +1,21 @@
+# Double write
+
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+test = openfile("test.txt", True)
+
+def write_test_file_1():
+    test.writeat("1234567890", 0)
+
+def write_test_file_2():
+    test.writeat("abcdefghij", 0)
+
+t1 = createthread(write_test_file_1)
+t2 = createthread(write_test_file_2)
+
+sleep(0.1)
+
+content = test.readat(None, 0)
+
+assert content == "abcdefghij" or content == "1234567890", "Test failed: `test.txt` content is incorrect"

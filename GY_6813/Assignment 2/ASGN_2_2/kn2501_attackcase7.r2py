@@ -1,0 +1,6 @@
+# Test creating a file with a filename longer than 120 characters
+long_filename = "a" * 121  # Create a filename with 121 'a' characters
+try:
+    lpfile = openfile(long_filename, True)
+except RepyArgumentError:
+    pass  # Expected: filename exceeds length limit, should raise ValueError

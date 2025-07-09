@@ -1,0 +1,9 @@
+myfile1 = openfile("testfile.txt", True)
+myfile1.writeat("data1", 0)
+
+
+myfile2 = openfile("testfile.txt", False)
+try:
+    myfile2.writeat("data2", 0)
+except FileInUseError:
+    pass  

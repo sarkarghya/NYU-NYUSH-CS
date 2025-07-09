@@ -1,0 +1,38 @@
+repeat = 2000
+
+# Clean up if the files exist
+for i in range(repeat):
+	name = "test" + str(i)
+	if name in listfiles():
+		removefile(name)
+
+if "default" in listfiles():
+  removefile("default")
+
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+default.close()
+
+testlist = []
+
+# checks if ResourceExhaustedError is raised
+# linux can only 1024 active file handles
+# per process by default
+try:
+	for i in range(repeat):
+		name = "test" + str(i)
+		testlist.append(openfile(name, True))
+except Exception("ResourceExhastedError"):
+	a = 1
+except ResourceExhaustedError:
+	a = 1
+
+# closes the files
+for test in testlist:
+	test.close()
+
+

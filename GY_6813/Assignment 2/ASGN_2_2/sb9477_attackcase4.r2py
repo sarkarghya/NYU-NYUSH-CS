@@ -1,0 +1,22 @@
+# Test removal and reopening of files
+
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+default = openfile("default", True)
+default.writeat("ORIGINAL", 0)
+default.close()
+
+testfile = openfile("testfile.txt", False)
+content = testfile.readat(None, 0)
+assert content == "ORIGINAL"
+testfile.close()
+
+removefile("default")
+default = openfile("default", True)
+default.writeat("NEW", 0)
+default.close()
+
+assert "testfile.txt" not in listfiles()

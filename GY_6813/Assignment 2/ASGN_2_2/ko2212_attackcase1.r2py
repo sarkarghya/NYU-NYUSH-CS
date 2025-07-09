@@ -1,0 +1,7 @@
+try:
+    lp_file_1 = openfile("testfile.txt", True)
+    lp_file_2 = openfile("testfile.txt", True)
+except FileInUseError:
+    pass
+else:
+    log("Test failed: The file was opened twice. Reference monitor didn't enforce file access restrictions.")

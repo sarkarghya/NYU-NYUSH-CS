@@ -1,0 +1,28 @@
+# Test edge cases for seeking
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+default.writeat("", 0) 
+default.close()
+
+test = openfile("test.txt", False)
+
+try:
+    test.readat(1, 0) 
+except SeekPastEndOfFileError:
+    pass
+
+test.writeat("a", 0)
+
+try:
+    test.readat(1, 1) 
+except SeekPastEndOfFileError:
+    pass
+
+assert test.readat(1, 0) == "a" 
+
+test.close()

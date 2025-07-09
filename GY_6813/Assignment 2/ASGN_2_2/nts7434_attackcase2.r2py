@@ -1,0 +1,14 @@
+filename = "testfile.txt"
+file = openfile(filename, True)
+
+offset = 100
+data = "This is an attack attempt with an offset that's larger than the current size."
+
+# Try to write at an invalid offset
+try:
+    file.writeat(data, offset)
+except Exception as e:
+    # Log caught exceptions
+    log("Caught exception while writing at an invalid offset: " + str(e))
+
+file.close()

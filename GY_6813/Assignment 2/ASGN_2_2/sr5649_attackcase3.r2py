@@ -1,0 +1,36 @@
+
+"""
+test case 3 removes the default file, which removes all closed files.
+
+"""
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "file1" in listfiles():
+  removefile("file1")
+if "file2" in listfiles():
+  removefile("file2")
+
+# Create a default file
+default = openfile("default", True)
+# Initial write to default
+default.writeat("i am learning info sec",0)
+default.close()
+
+myfile1 = openfile("file1", False)
+myfile1.close()
+
+myfile1 = openfile("file2", True)
+myfile1.writeat("info sec",0)
+myfile1.close()
+
+
+removefile("default")
+
+folder_files= listfiles()
+if "file1" in folder_files:
+    log("error: file1 file should not exist")
+if "file2" in folder_files:
+    log("error: file2 file should not exist")
+

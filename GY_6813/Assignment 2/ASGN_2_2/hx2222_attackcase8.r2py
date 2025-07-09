@@ -1,0 +1,17 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+###
+# Test for writing to closed file
+# should output FileClosedError
+###
+try:
+   myfile = openfile("testfile.txt", False)
+except FileNotFoundError:
+   pass
+else:
+   log("Cannot open file that does not exist")
+# Close the file
+

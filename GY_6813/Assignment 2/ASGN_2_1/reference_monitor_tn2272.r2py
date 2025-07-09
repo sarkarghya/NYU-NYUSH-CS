@@ -1,0 +1,177 @@
+# reference_monitor_tn2272.r2py
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+closed_files = set()
+
+MAX_OPEN_FILES = 100  
+open_files_count = [0]
+
+MAX_FILE_SIZE = 10 * 1024 * 1024 
+
+def is_valid_filename(filename):
+
+    if not isinstance(filename, str):
+        return False
+    if len(filename) == 0 or len(filename) > 120:
+        return False
+    if filename in ['.', '..']:
+        return False
+    if filename.startswith('.'):
+        return False
+
+    allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789-_.'
+
+    for char in filename:
+        if char not in allowed_chars:
+            return False
+
+    return True
+
+def invalidate_closed_files():
+    for fname in list(closed_files):
+        if fname in listfiles():
+            removefile(fname)
+        closed_files.remove(fname)
+
+class LPFile():
+    def __init__(self, filename, create):
+        if open_files_count[0] >= MAX_OPEN_FILES:
+            raise Exception("Maximum number of open files reached")
+
+        if not isinstance(filename, str):
+            raise TypeError("filename must be a string")
+        if not is_valid_filename(filename):
+            raise ValueError("Invalid filename")
+        if not isinstance(create, bool):
+            raise TypeError("create must be a boolean")
+
+        self._file_name = filename
+        self._is_default = (filename == 'default')
+        self._is_valid = True
+
+        if not create and filename not in listfiles():
+            if 'default' in listfiles():
+                # Open 'default' and read its content
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)
+                default_file.close()
+                # Create the new file and write the default content into it
+                self._file_obj = openfile(filename, True)
+                self._file_obj.writeat(content, 0)
+                self._file_obj.close()
+                # Reopen the file in read-write mode
+                self._file_obj = openfile(filename, False)
+            else:
+                raise Exception("File does not exist and 'default' file not found.")
+        else:
+            self._file_obj = openfile(filename, create)
+
+        open_files_count[0] += 1
+
+
+    def _check_valid(self):
+        if not self._is_valid:
+            raise Exception("File is invalid due to default modification")
+
+    def invalidate(self):
+        self._is_valid = False
+
+    def readat(self, num_bytes, offset):
+        self._check_valid()
+        if num_bytes is not None and not isinstance(num_bytes, (int, long)):
+            raise TypeError("num_bytes must be int, long, or None")
+        if not isinstance(offset, (int, long)):
+            raise TypeError("offset must be int or long")
+        return self._file_obj.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self._check_valid()
+        if not isinstance(data, str):
+            raise TypeError("data must be a string")
+        if not isinstance(offset, (int, long)):
+            raise TypeError("offset must be int or long")
+
+        new_size = offset + len(data)
+        if new_size > MAX_FILE_SIZE:
+            raise Exception("File size limit exceeded")
+
+        self._file_obj.writeat(data, offset)
+
+        if self._file_name == 'default':
+            # Delete all closed files without invalidating open files
+            invalidate_closed_files()
+
+    def close(self):
+        self._file_obj.close()
+        if not self._is_default:
+            closed_files.add(self._file_name)
+        open_files_count[0] -= 1
+
+def safe_openfile(filename, create):
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a string")
+    if not is_valid_filename(filename):
+        raise ValueError("Invalid filename")
+    if not isinstance(create, bool):
+        raise TypeError("create must be a boolean")
+    # Check if 'default' is being created
+    if filename == 'default' and create:
+        # Delete all closed files without invalidating open files
+        invalidate_closed_files()
+    return LPFile(filename, create)
+
+def safe_removefile(filename):
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a string")
+    if not is_valid_filename(filename):
+        raise ValueError("Invalid filename")
+    # Check if 'default' is being removed
+    if filename == 'default':
+        # Delete all closed files without invalidating open files
+        invalidate_closed_files()
+    removefile(filename)
+    # Remove from closed_files if present
+    if filename in closed_files:
+        closed_files.remove(filename)
+
+def LPopenfile(filename, create):
+    return safe_openfile(filename, create)
+
+def LPremovefile(filename):
+    safe_removefile(filename)
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

@@ -1,0 +1,33 @@
+# attack default deletes closed files mechanism
+
+def attack_default_deletes_closed_files():
+    try:
+        open_file1 = openfile("open_file1.txt", True)
+        closed_file1 = openfile("closed_file1.txt", True)
+        closed_file2 = openfile("closed_file2.txt", True)
+        
+        open_file1.writeat("This file is open", 0)
+        closed_file1.writeat("This file will be closed", 0)
+        closed_file2.writeat("This file will also be closed", 0)
+
+        closed_file1.close()
+        closed_file2.close()
+
+        
+        if "default" in listfiles():
+            removefile("default")
+        
+        default_file = openfile("default", True)
+        default_file.writeat("Trigger file deletion for closed files", 0)
+        default_file.close()
+        
+        if "closed_file1.txt" in listfiles() or "closed_file2.txt" in listfiles():
+            raise Exception("Closed files were not deleted as expected.")
+        
+        open_file1.writeat("This file is still open", 0)
+
+    except Exception:
+        pass 
+
+# Execute the attack
+attack_default_deletes_closed_files()

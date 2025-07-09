@@ -1,0 +1,12 @@
+# tn2272_attackcase5.r2py
+
+try:
+    f = openfile('truncatefile.txt', True)
+    f.writeat('This is some content', 0)
+    f.close()
+
+    f = openfile('truncatefile.txt', False)
+    f.truncate(0)
+    f.close()
+except:
+    pass  

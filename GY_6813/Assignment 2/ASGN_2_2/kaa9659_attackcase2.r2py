@@ -1,0 +1,13 @@
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+notAllowed = ["", ".", "..", "#$%^&*", "J", "*"]
+for n in notAllowed:
+    try:
+        openfile(n, True)
+    except RepyArgumentError:
+        continue

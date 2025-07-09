@@ -1,0 +1,9 @@
+if "default" in listfiles():
+    removefile("default")
+
+openfile("testfile2", True).writeat("TESTFILE2 CONTENT", 0)
+openfile("default", True).writeat("NEW DEFAULT", 0)
+assert "testfile2" not in listfiles(), "Closed file not deleted after modifying default"
+
+if "default" in listfiles():
+    removefile("default")

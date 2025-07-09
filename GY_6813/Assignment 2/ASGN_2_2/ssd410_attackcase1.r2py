@@ -1,0 +1,23 @@
+# Clean up if the files exist
+# this file shouldn't exist
+if "???" in listfiles():
+    removefile("???")
+
+# checks if RepyArgumentError is raised for an invalid
+# file name
+
+# should stay false
+created = False
+
+try:
+	test = openfile("???", True)
+except Exception("RepyArgumentError"):
+	a = 1
+except RepyArgumentError:
+	a = 1
+	
+
+# closes the file if its created
+# even though it shouldn't be created
+if created:
+	test.close()

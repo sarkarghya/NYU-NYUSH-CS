@@ -1,0 +1,17 @@
+if "default" in listfiles():
+    removefile("default")
+if "file1.rxt" in listfiles():
+    removefile("file1.txt")
+
+def f1():
+    default = openfile("default", True)
+    default.writeat("CONTENT1", 0)
+
+def f2():
+    
+    file2 = openfile("file1.txt", False)
+    file2.close()
+
+createthread(f1)
+createthread(f2)
+sleep(1)

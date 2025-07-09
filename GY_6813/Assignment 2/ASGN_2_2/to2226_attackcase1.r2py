@@ -1,0 +1,26 @@
+# Clean up if the files exist
+if "default" in listfiles():  
+    # Remove the default file if it already exists
+    removefile("default")
+if "fileA" in listfiles():  
+    # Remove fileA if it already exists
+    removefile("fileA")
+
+# Create a new file named 'default'
+default = openfile("default", True)
+
+# Write "TEMPLATE" to the default file at the beginning (offset 0)
+default.writeat("TEMPLATE", 0)
+
+# Close the 'default' file after writing
+default.close()
+
+# Attempt to open 'fileA', which does not exist (False means not to create the file if missing)
+myfile = openfile("fileA", False)
+
+# Read the entire content of 'fileA' starting from the beginning (offset 0)
+# Expect to read the string "TEMPLATE" from the file
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+# Close 'fileA' after reading
+myfile.close()

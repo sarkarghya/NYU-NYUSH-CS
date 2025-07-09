@@ -1,0 +1,34 @@
+try:
+    # according to this code the textfile is supossed to be empty
+
+    # clean up if the file exists.
+    if "testfile.txt" in listfiles():
+      removefile("testfile.txt")
+
+    # create a file
+    myfile=openfile("testfile.txt",True)
+
+    # intial write to the file
+    myfile.writeat("12345678",0)
+
+    # now, undo the previous write
+    myfile.undo()
+
+    # attempt to overwrite the beginning of the file
+    #myfile.writeat("Hi!",0)
+
+    # now, undo the previous write
+    myfile.undo()
+
+    # after this undo is not working as intended.
+    myfile.writeat("funny",6)
+    myfile.undo()
+
+   # close the file
+    myfile.close()
+
+except Exception:
+    log("Exception Found in the security layer")
+else:
+    pass
+

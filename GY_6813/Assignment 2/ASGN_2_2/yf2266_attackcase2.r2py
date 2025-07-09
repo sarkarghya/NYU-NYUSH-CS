@@ -1,0 +1,20 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile1.txt" in listfiles():
+    removefile("testfile1.txt")
+
+default = openfile("default", True)             # Create a default file
+default.writeat("TEMPLATE", 0)                  # Initial write to default
+default.close()                                 # Close default
+
+testfile1 = openfile("testfile1.txt", False)
+assert testfile1.readat(None, 0) == "TEMPLATE"
+                             # closed file we want to delete
+
+testfile1.close()                               # closed file we want to delete
+
+# TEST CASE 2 - REMOVAL OF DEFAULT - should remove (testfile1.txt)
+if "default" in listfiles():                    # checks if default file exists
+    removefile("default")                       # deletes default file
+assert testfile1 not in listfiles()             # checks if default file is deleted

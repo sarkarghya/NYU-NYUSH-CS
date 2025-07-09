@@ -1,0 +1,40 @@
+# Test case checking default file rules 1
+
+if "default" in listfiles():
+    removefile("default")
+if "test1.txt" in listfiles():
+    removefile("test1.txt")
+if "test2.txt" in listfiles():
+    removefile("test2.txt")
+
+try:
+    file1 = openfile("test1.txt", False)
+    file1.close()
+except FileNotFoundError:
+    pass
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+file1 = openfile("test1.txt", False)
+assert file1.readat(None, 0) == "TEMPLATE" 
+
+file2 = openfile("test2.txt", True)
+file2.writeat("ORIGINAL", 0)
+
+file2.close()
+
+default = openfile("default", True)
+default.writeat("NEW", 0)
+default.close()
+
+assert "test2.txt" not in listfiles()
+assert "test1.txt" in listfiles()
+
+try:
+    assert file1.readat(None, 0) == "TEMPLATE"
+except:
+    pass
+
+file1.close()

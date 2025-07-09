@@ -1,0 +1,28 @@
+default_file = openfile("default", True)
+default_file.writeat("Initial default content", 0)
+default_file.close()
+
+file1 = openfile("file1", True)
+file1.writeat("Content of file1", 0)
+file1.close()
+
+file2 = openfile("file2", True)
+file2.writeat("Content of file2", 0)
+file2.close()
+
+# file3 is ketp open
+file3 = openfile("file3", True)
+file3.writeat("Content of file3", 0)
+
+default_file = openfile("default", False)
+default_file.writeat("Modified default content", 0)
+default_file.close()
+assert "file1" not in listfiles(), "Test2 FAILED, file1 is NOT deleted after modifying default"
+
+assert "file2" not in listfiles(), "Test2 FAILED, file2 is NOT deleted after modifying default"
+
+file3_content = file3.readat(None, 0)
+assert "Content of file3" == file3_content, "Test2 FAILED, file3 contents mismatch" 
+
+file3.close()
+removefile("default")

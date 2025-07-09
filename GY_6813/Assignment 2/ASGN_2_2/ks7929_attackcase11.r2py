@@ -1,0 +1,16 @@
+#--- CLeaning
+if "default" in listfiles():
+    removefile("default")
+if "cat.txt" in listfiles():
+    removefile("cat.txt")
+if "dog.txt" in listfiles():
+    removefile("dog.txt")
+
+default = openfile("default", True)
+default.writeat("DOG TEMPLATE", 0)
+dog = openfile("dog.txt", False)
+default.writeat("CAT", 0)
+cat = openfile("cat.txt", False)
+
+assert dog.readat(None, 0) == "DOG TEMPLATE"
+assert cat.readat(None, 0) == "CAT TEMPLATE"

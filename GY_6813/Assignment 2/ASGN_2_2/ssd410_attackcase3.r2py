@@ -1,0 +1,19 @@
+# Clean up if the files exist
+if "test" in listfiles():
+    removefile("test")
+
+# should stay false
+created = False
+
+# checks if FileInUseError is raised
+try:
+	test = openfile("test", True)
+	test = openfile("test", True)
+except Exception("FileInUseError"):
+	a = 1
+except FileInUseError:
+	a = 1
+
+# closes the file
+if created:
+	test.close()

@@ -1,0 +1,30 @@
+if 'default' in listfiles():
+    removefile('default')
+
+for i in range(1, 4):
+    fname = 'file%s.txt' % i  # Replaced f-string with old-style formatting
+    if fname in listfiles():
+        removefile(fname)
+
+default_file = openfile('default', True)
+default_file.writeat('Initial template.', 0)
+default_file.close()
+
+file1 = openfile('file1.txt', False)
+assert file1.readat(None, 0) == 'Initial template.'
+file1.close()
+
+file2 = openfile('file2.txt', False)
+assert file2.readat(None, 0) == 'Initial template.'
+file2.close()
+
+default_file = openfile('default', False)
+default_file.writeat('Modified template.', 0)
+default_file.close()
+
+file3 = openfile('file3.txt', False)
+assert file3.readat(None, 0) == 'Modified template.'
+file3.close()
+
+assert 'file1.txt' not in listfiles()
+assert 'file2.txt' not in listfiles()

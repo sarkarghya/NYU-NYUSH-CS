@@ -1,0 +1,20 @@
+try:
+
+    # Attempt to create multiple files simultaneously
+    file1 = openfile("testfile1.txt", True)
+    file2 = openfile("testfile2.txt", True)
+    file3 = openfile("testfile3.txt", True)
+
+    # Try to read/write concurrently
+    file1.writeat("Data1", 0)
+    file2.writeat("Data2", 0)
+    file3.writeat("Data3", 0)
+
+    # Close files
+    file1.close()
+    file2.close()
+    file3.close()
+
+    # log("Concurrency test passed\n")
+except Exception:
+    log("Security Bug: Concurrency handling\n")

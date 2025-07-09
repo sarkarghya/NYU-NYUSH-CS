@@ -1,0 +1,20 @@
+# attack by illegal write
+
+def bypass_closed_file():
+    try:
+        filename = "testfile.txt"
+        file = openfile(filename, True)
+        file.writeat("Initial content", 0)
+        file.close()
+
+        file.writeat("Trying to write to a closed file", 0)
+
+        file = openfile(filename, False) 
+        file.writeat("Writing after reopening", 0)
+        file.close()
+        
+    except Exception:
+        pass 
+
+# Execute the attack
+bypass_closed_file()

@@ -1,0 +1,164 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+class DefaultHandler():
+    def handle_default_change(self):
+        # Delete all files that are not currently open and were created from the 'default' file
+        default_files_to_remove = []
+
+        if 'files_created' not in mycontext:
+            try:
+                raise FileNotFoundError("There are no files to remove")
+            except FileNotFoundError:
+                return 
+
+        # Get all files that were created from the default and are not currently open
+        for filename, made_from_default in mycontext['files_created'].items():
+            if made_from_default and filename not in mycontext['files_open']:
+                default_files_to_remove.append(filename)
+
+        # Delete those files from the VM and remove them from mycontext
+        for filename in default_files_to_remove:
+            removefile(filename)
+            del mycontext['files_created'][filename]
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals 
+        if 'files_open' not in mycontext:
+            mycontext['files_open'] = {}
+        if 'files_created' not in mycontext:
+            mycontext['files_created'] = {}
+        
+        # variable self.filename for close() function to remove that filename from mycontext['files_open']
+        self.filename = filename
+        
+        if create == False:
+            if filename in listfiles():
+                # filename exists in VM 
+                self.LPfile = openfile(filename, False) 
+            elif 'default' in listfiles(): 
+                # filename does not exist, but the 'default' file exists in VM
+                default_file = openfile('default', False)
+
+                # Read all of the 'default' file's contents
+                content = default_file.readat(None, 0)
+
+                default_file.close() 
+
+                # Cache the last default value
+                mycontext['last_default'] = content
+
+                # Create a new file for filename 
+                self.LPfile = openfile(filename, True)  
+
+                # Write the 'default' file content into the new file
+                self.LPfile.writeat(content, 0)  
+                
+                # Note if the file was created (Boolean) from the 'default' file
+                mycontext['files_created'][filename] = True
+            else:
+                try:
+                    raise FileNotFoundError("The 'default' template file does not exist.")
+                except FileNotFoundError:
+                    return 
+        else:
+            # Make a brand new file and note that it was created without the 'default' file
+            self.LPfile = openfile(filename, True)
+            mycontext['files_created'][filename] = False  
+
+        # Note the current filename as open with a reference to itself
+        mycontext['files_open'][filename] = self
+
+    def readat(self, num_bytes, offset):
+        try:
+            return self.LPfile.readat(num_bytes, offset)
+        except:
+            return ""
+
+    def writeat(self, data, offset):
+        # Deal with the 'default' file edit case and remove the file from VM
+        if self.filename == 'default':
+            DefaultHandler().handle_default_change()
+        try:
+            self.LPfile.writeat(data, offset)
+        except:
+            return 
+
+    def close(self):
+        # Remove the file from the open list and close the file
+        if self.filename in mycontext['files_open']:
+            del mycontext['files_open'][self.filename]
+        try:
+            self.LPfile.close()
+
+            if 'default' in listfiles() and 'last_default' in mycontext:
+                default_file = openfile('default', False)
+
+                # Read all of the 'default' file's contents
+                content = default_file.readat(None, 0)
+
+                default_file.close() 
+                
+                if content != mycontext['last_default']:
+                    removefile(self.filename)
+        except FileClosedError:
+            return 
+        
+def LPopenfile(filename, create):
+    # Refers back to __init__ of the class
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    # Deal with the 'default' file deletion case and remove the file from VM
+    if filename == 'default':
+        DefaultHandler().handle_default_change()
+    try:
+        removefile(filename)
+    except:
+        return 
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

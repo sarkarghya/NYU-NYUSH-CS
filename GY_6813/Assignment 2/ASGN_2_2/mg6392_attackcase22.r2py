@@ -1,0 +1,12 @@
+# Edge Case: Simultaneous access to the default file
+default1 = openfile("default", True)
+default1.writeat("new default message", 0)
+
+# Trying to open the default file again while it's open should throw an error
+try:
+    default2 = openfile("default", False)
+    assert False  # Should not reach here
+except FileInUseError:
+    assert True
+
+default1.close()

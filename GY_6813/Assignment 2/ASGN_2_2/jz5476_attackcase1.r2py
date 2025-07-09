@@ -1,0 +1,8 @@
+# invalid file name
+
+try:
+    my_file = openfile("testfile@.txt", True)
+except RepyArgumentError:
+    pass
+else:
+    log("ERROR - Allow invalid file name")

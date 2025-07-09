@@ -1,0 +1,23 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+
+### Check that writing to default does not delete previously created files that are open ###
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Create file using default as template
+myfile = openfile("testfile.txt", False)
+
+# Delete default file
+default = openfile("default", True)
+default.writeat("OVERWRITE", 0)
+default.close()
+myfile.close()
+
+# Check if testfile.txt is not deleted
+assert "testfile.txt" in listfiles()

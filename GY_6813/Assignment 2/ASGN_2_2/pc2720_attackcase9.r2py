@@ -1,0 +1,12 @@
+# Write to Closed File
+# Should raise error
+
+try:
+    file = openfile("test.txt", True)
+    file.close()
+    file.writeat("HELLO", 0)
+except FileClosedError:
+    pass
+
+
+

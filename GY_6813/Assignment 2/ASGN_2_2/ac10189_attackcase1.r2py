@@ -1,0 +1,22 @@
+# Clean up any existing files
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file with malicious content
+default = openfile("default", True)
+default.writeat("EXPLOITED_CONTENT", 0)
+default.close()
+
+# Open a file that doesn't exist
+testfile = openfile("testfile.txt", False)
+
+# Read from the file. Suppress any error without checking the content.
+try:
+    content = testfile.readat(None, 0)
+except Exception:
+    pass  # Suppress any expected errors
+
+# Close the test file
+testfile.close()

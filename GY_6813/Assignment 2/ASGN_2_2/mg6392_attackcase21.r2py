@@ -1,0 +1,8 @@
+
+# Edge Case: File with maximum length name + 1 character (should raise error)
+long_filename_exceed = 'a' * 121  # 1 character over the 120-character limit
+try:
+    longfile_exceed = openfile(long_filename_exceed, True)
+    assert False  # Should not reach here
+except RepyArgumentError:
+    assert True

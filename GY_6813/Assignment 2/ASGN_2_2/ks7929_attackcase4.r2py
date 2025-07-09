@@ -1,0 +1,11 @@
+#--- CLeaning
+if "default" in listfiles():
+    removefile("default")
+
+#default file create false argument case
+try:
+    default_f = openfile("default", False)
+    default_f.close()
+    assert False
+except FileNotFoundError:
+    assert True

@@ -1,0 +1,8 @@
+# remove an unknown file
+
+try:
+    removefile("randomfile.txt")
+except FileNotFoundError:
+    pass
+else:
+    log("ERROR - Allow me to remove unknown file")

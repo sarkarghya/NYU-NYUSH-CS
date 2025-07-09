@@ -1,0 +1,17 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'oldfile.txt' in listfiles():
+    removefile('oldfile.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('Initial content.', 0)
+default_file.close()
+
+old_file = openfile('oldfile.txt', False)
+old_file.close()
+
+default_file = openfile('default', False)
+default_file.writeat('Modified content.', 0)
+default_file.close()
+
+assert 'oldfile.txt' not in listfiles()

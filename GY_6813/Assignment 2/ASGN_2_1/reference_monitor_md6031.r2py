@@ -1,0 +1,102 @@
+"""
+This security layer inadequately handles LeftPad writeat()s that strictly append
+
+
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+    """ 
+TYPE="type"
+ARGS="args"
+RETURN="return"
+EXCP="exceptions"
+TARGET="target"
+FUNC="func"
+OBJC="objc"
+
+o = createlock()
+
+class LPFile():
+  def __init__(self,filename,create):
+    self.LPfile = openfile(filename,create)
+    self.length = len(self.LPfile.readat(None,0))
+
+  def readat(self, bytes, offset):
+    o.acquire(True)
+
+    read_output = ""
+    try:
+      read_output = self.LPfile.readat(bytes, offset)
+    except:
+      raise
+    finally:
+      o.release()
+
+    return read_output
+
+  def writeat(self, data, offset):
+    o.acquire(True)
+    try:   
+      if offset == self.length:
+      
+        if '\n' not in data:
+          self.LPfile.writeat(data,offset)
+          self.length = max(self.length,len(data)+offset)
+        
+        elif '\n' in data:
+          counter = data.count('\n')
+          if counter > 1:
+            raise RepyArgumentError
+          else:
+           loc = data.find('\n')
+           self.LPfile.writeat(data[:(loc+1)]+"    "+data[(loc+1):],offset)
+           self.length = len(data)+offset+4
+   
+      else:
+          self.LPfile.writeat(data,offset)
+          self.length = max(offset+len(data),self.length)
+    except:
+      raise
+    finally:
+      o.release()  
+
+  
+  def close(self):
+    self.LPfile.close()
+
+
+def LPopenfile(filename, create):
+  return LPFile(filename,create)
+
+
+
+
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

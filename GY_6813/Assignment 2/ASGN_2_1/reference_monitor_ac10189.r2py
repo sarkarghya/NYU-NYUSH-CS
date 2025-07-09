@@ -1,0 +1,191 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+
+from repy import *
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+# Limit to 10 seconds CPU time and 100MB memory
+MAX_CPU_TIME_LIMIT = 10
+MAX_MEMORY_USAGE_LIMIT = 100 * 1024 * 1024
+
+# Enable multiple threads to safely access file
+lock = createlock()
+
+# Track states of files (open vs closed)
+track_open = set()
+track_closed = set()
+
+
+class LPFile():
+    @staticmethod
+    def check_limits():  
+        # Retrieves dicts representing resource limits, usage, and stoptimes array
+        resources = getresources()
+
+        # If CPU time or memory usage goes beyond defined limit, raise exception
+        # Ideally prevents DoS attacks
+        if resources['cpu_time'] > MAX_CPU_TIME_LIMIT:
+            raise Exception("Exceeded max CPU time")
+        if resources['memory_usage'] > MAX_MEMORY_USAGE_LIMIT:
+            raise Exception("Exceeded max memory usage")
+    
+    def __init__(self, filename, create):
+        # globals
+        # Disable debug functionality
+        mycontext['debug'] = False
+
+        # Check resource limits before handling files
+        LPFile.check_limits()
+
+        # If 'default' exists and trying to open a file without creating...
+        # ...copy content (open, read, write, close)
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+
+            # Add opened file to open set (to be tracked)
+            lock.acquire()
+            try:
+                track_open.add(filename)
+            finally:
+                lock.release()
+
+        # Else if trying to open a file and creating it...
+        # ...Create new empty file and add to open set
+        elif create:
+            self.LPfile = openfile(filename, create)
+            
+            lock.acquire()
+            try:
+                track_open.add(filename)
+            finally:
+                lock.release()
+        
+        # Else, if 'default' does not exist and trying to open file without creating...
+        # ...raise an error
+        else:
+            raise FileNotFoundError("Cannot open file")
+    
+    def readat(self, num_bytes, offset):
+        # Acquire the lock (ensures thread safety)
+        lock.acquire()
+        # Check resource limits
+        LPFile.check_limits()
+        # THEN, read file data
+        try:
+            return self.LPfile.readat(num_bytes, offset)
+        # Release the lock
+        finally:
+            lock.release()
+
+    @staticmethod
+    def remove_closed_files():
+        # Iterate through set of closed files, remove (from VM and set)
+        for closed_file in list(track_closed):
+            removefile(closed_file)
+            track_closed.remove(closed_file)
+
+    def writeat(self, data, offset):
+        # Acquire the lock (ensures thread safety)
+        lock.acquire()
+        # Check resource limits
+        LPFile.check_limits()
+        # THEN, write data to file
+        try:
+            # If writing to 'default'...
+            # ...delete closed files that were previously created
+            if self.LPfile.getname() == 'default':
+                self.remove_closed_files()
+            self.LPfile.writeat(data, offset)
+        # Release the lock
+        finally:
+            lock.release()
+
+    def close(self):
+        # Acquire the lock (ensures thread safety)
+        lock.acquire()
+        # Check resource limits
+        LPFile.check_limits()
+        # THEN, close file
+        # Remove file from open set, add to closed set (to be tracked)
+        try:
+            self.LPfile.close()
+            lock.acquire()
+            try:
+                track_open.remove(self.LPfile.getname())
+                track_closed.add(self.LPfile.getname())
+            finally:
+                lock.release()
+        # Release the lock
+        finally:
+            lock.release()
+        
+def LPopenfile(filename, create):
+    # Check resource limits
+    LPFile.check_limits()
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    # Check resource limits
+    LPFile.check_limits()
+    # If 'default' is being deleted
+    if filename == 'default':
+        # Remove closed files previously created
+        LPFile.remove_closed_files()
+    # If not 'default', remove only specific file (from VM and set)
+    else:
+        removefile(filename)  
+
+        # Check if file in closed set, remove if so
+        lock.acquire()  # Acquire lock before modifying track_closed
+        try:
+            if filename in track_closed:  # Check if filename is in track_closed
+                track_closed.remove(filename)  # Remove it
+        finally:
+            lock.release()  # Release lock  
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

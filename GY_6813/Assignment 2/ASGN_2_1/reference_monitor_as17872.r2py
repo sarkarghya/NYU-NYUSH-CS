@@ -1,0 +1,161 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+mycontext["opened"] = set()
+mycontext["created"] = set()
+mycontext["default_lock"] = createlock()
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.filename = filename
+        self.LPfile = None
+        self.closed = False
+        self.lock = createlock()
+
+        if create:
+            self.LPfile = openfile(filename, True)
+            mycontext["created"].add(filename)
+            if filename == 'default':
+                self._remove_closed()
+        elif filename in mycontext["created"]:
+            self.LPfile = openfile(filename, False)
+        else:
+            mycontext["default_lock"].acquire(True)
+            try:
+                if 'default' not in mycontext["created"]:
+                        raise FileNotFoundError("'default' file not found")
+                default_content = self._read_default_content()
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(default_content, 0)
+            finally:
+                mycontext["default_lock"].release()
+            mycontext["created"].add(filename)
+    
+        mycontext["opened"].add(filename)
+
+    def readat(self, num_bytes, offset):
+        self.lock.acquire(True)
+        try:
+            if self.closed:
+                raise FileClosedError("file is closed")
+            if offset < 0:
+                raise RepyArgumentError("negative offset!")
+            if num_bytes is not None and num_bytes < 0:
+                raise RepyArgumentError("negative num_bytes!")
+            filesize =  len(self.LPfile.readat(None, 0))
+            if offset > filesize:
+                raise SeekPastEndOfFileError("offset more than file size!")
+            return self.LPfile.readat(num_bytes, offset)
+        finally:
+            self.lock.release()
+
+    def writeat(self, data, offset):
+        self.lock.acquire(True)
+        try:
+            if offset < 0:
+                raise RepyArgumentError("negative offset!")
+            if self.closed:
+                raise FileClosedError("file is closed!")
+            if not isinstance(data, str):
+                raise RepyArgumentError("non strings not supported!")
+            self.LPfile.writeat(data, offset)
+            if self.filename == 'default':
+                self._remove_closed()
+        finally:
+            self.lock.release()
+
+    def close(self):
+        self.lock.acquire(True)
+        try:
+            if not self.closed:
+                self.LPfile.close()
+                self.closed = True
+            mycontext["opened"].discard(self.filename)
+        finally:
+            self.lock.release()
+
+    def _remove_closed(self):
+        mycontext["default_lock"].acquire(True)
+        try:
+            for f in list(mycontext["created"]):
+                if f != 'default' and f not in mycontext["opened"]:
+                    try:
+                        removefile(f)
+                        mycontext["created"].discard(f)
+                    except FileNotFoundError:
+                        pass
+        finally:
+            mycontext["default_lock"].release()
+
+    def _read_default_content(self):
+        default_file = openfile("default", False)
+        try:
+            return default_file.readat(None, 0)
+        finally:
+            default_file.close()
+
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename in mycontext["opened"]:
+        raise FileInUseError("file is in use!")
+    
+    if filename == 'default':
+        for c in list(mycontext['created']):
+            if c != 'default' and c not in mycontext["opened"]:
+                try:
+                    removefile(c)
+                    mycontext["created"].discard(c)
+                except FileNotFoundError:
+                    pass
+
+    removefile(filename)
+    mycontext["created"].discard(filename)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

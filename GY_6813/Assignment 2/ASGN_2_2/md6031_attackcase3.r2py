@@ -1,0 +1,44 @@
+# md6031_attackcase3.r2py
+# This attack case tests partial writes and writes beyond file length
+
+def attack_case3():
+    # Clean up if the file exists
+    if "testfile3.txt" in listfiles():
+        removefile("testfile3.txt")
+
+    # Create the test file
+    testfile = openfile("testfile3.txt", True)
+    testfile.close()
+
+    # Test partial write
+    testfile = openfile("testfile3.txt", False)
+    testfile.writeat("PART", 0)
+    testfile.close()
+
+    # Check content after partial write
+    testfile = openfile("testfile3.txt", False)
+    content = testfile.readat(None, 0)
+    testfile.close()
+
+    if content != "TEMPLATE":
+        log("Vulnerability 3a: Partial write not handled correctly")
+    else:
+        log("Attack case 3a passed: Partial write handled correctly")
+
+    # Test write beyond file length
+    testfile = openfile("testfile3.txt", False)
+    testfile.writeat("BEYOND", 10)
+    testfile.close()
+
+    # Check content after write beyond length
+    testfile = openfile("testfile3.txt", False)
+    content = testfile.readat(None, 0)
+    testfile.close()
+
+    if content != "TEMPLATE":
+        log("Vulnerability 3b: Write beyond file length not handled correctly")
+    else:
+        log("Attack case 3b passed: Write beyond file length handled correctly")
+
+if callfunc == 'initialize':
+    attack_case3()

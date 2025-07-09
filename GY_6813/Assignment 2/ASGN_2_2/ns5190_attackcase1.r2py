@@ -1,0 +1,47 @@
+# This test ensures that the reference monitor can handle concurrent file operations
+# involving the default template without any race conditions
+
+import threading
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "thread_testfile.txt" in listfiles():
+    removefile("thread_testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Define a thread function that opens, reads, writes, and closes a file
+def thread_function(thread_id):
+    try:
+        myfile = openfile(f"thread_testfile_{thread_id}.txt", False)
+        assert myfile.readat(None, 0) == "TEMPLATE"
+        myfile.writeat(f"THREAD{thread_id}", len("TEMPLATE"))
+    except Exception as e:
+        log(f"Error in thread {thread_id}: {str(e)}")
+    finally:
+        myfile.close()
+
+# Create and start threads
+threads = []
+for i in range(5):
+    thread = threading.Thread(target=thread_function, args=(i,))
+    threads.append(thread)
+    thread.start()
+
+# Wait for all threads to finish
+for thread in threads:
+    thread.join()
+
+# Verify all files are correctly written
+try:
+    for i in range(5):
+        myfile = openfile(f"thread_testfile_{i}.txt", False)
+        assert myfile.readat(None, 0) == "TEMPLATE" + f"THREAD{i}"
+        myfile.close()
+except Exception as e:
+    log(f"Error in verifying files: {str(e)}")
+

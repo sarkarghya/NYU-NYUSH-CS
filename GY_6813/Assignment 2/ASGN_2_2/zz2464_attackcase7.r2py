@@ -1,0 +1,41 @@
+# --- Attack 7: Test Memory/Resource Exhaustion via Large Writes ---
+# Clean up any existing files before starting the test
+if "resource_exhaust_test.txt" in listfiles():
+    removefile("resource_exhaust_test.txt")
+
+# --- Attack Step 1: Create a file ---
+test_file = openfile("resource_exhaust_test.txt", True)
+test_file.writeat("Initial data.", 0)
+test_file.close()
+
+# --- Attack Step 2: Attempt large writes to exhaust memory/resources ---
+try:
+    large_data = "A" * 10**7  # Writing a large string of 10 million characters (approx 10 MB)
+
+    # Attempt to write the large data multiple times
+    for i in range(5):  # Try writing large data 5 times to push resource limits
+        test_file = openfile("resource_exhaust_test.txt", True)  # Open the file again
+        test_file.writeat(large_data, i * len(large_data))
+        test_file.close()  # Close after writing
+
+except ResourceExhaustedError:
+    # Suppress expected ResourceExhaustedError
+    pass
+
+# --- Attack Step 3: Check for file corruption or errors ---
+try:
+    test_file = openfile("resource_exhaust_test.txt", False)
+    content = test_file.readat(None, 0)  # Read the entire file
+    test_file.close()
+
+except ResourceExhaustedError:
+    # Suppress expected ResourceExhaustedError
+    pass
+
+# Clean up created files
+try:
+    if "resource_exhaust_test.txt" in listfiles():
+        removefile("resource_exhaust_test.txt")
+except FileNotFoundError:
+    # Suppress expected FileNotFoundError during cleanup
+    pass

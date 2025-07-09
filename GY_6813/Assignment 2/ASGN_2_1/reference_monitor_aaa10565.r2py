@@ -1,0 +1,205 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python.
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py
+"""
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+maxOpenFiles = 1
+validFileChars = "abcdefghijklmnopqrstuvwxyz0123456789._-"
+openFiles = set()
+
+resourceTracker = {
+    'fileread': 0,
+    'filewrite': 0,
+}
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        
+        self.LPfile = None  
+        self.closed = False  
+        self.content = None
+
+        mycontext['debug'] = False
+
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+        else:
+            self.LPfile = openfile(filename, create)
+            
+    def readat(self, num_bytes, offset):
+       
+        if self.LPfile is None:
+            raise FileClosedError("The file is closed and cannot be read.")
+
+        if offset < 0:
+            raise RepyArgumentError("Offset cannot be negative.")
+
+        if num_bytes is not None and num_bytes < 0:
+            raise RepyArgumentError("Number of bytes to read cannot be negative.")
+
+        fullFileContent = self.LPfile.readat(None, 0) 
+        currentFileSize = len(fullFileContent)
+
+        if offset >= currentFileSize:
+            if num_bytes > 0:  # If trying to read past EOF
+                raise SeekPastEndOfFileError("You attempted to read past the end of the file.")
+            return ""  # If reading 0 bytes at EOF, return empty string
+
+        if num_bytes is None:
+            data = fullFileContent[offset:]
+        else:
+            data = fullFileContent[offset:offset + num_bytes]
+            
+        bytesRead = len(data)
+        resourceTracker['fileread'] += max(4096, (bytesRead // 4096 + 1) * 4096)
+
+        return data
+
+    def writeat(self, data, offset):
+        
+        if self.LPfile is None:
+            raise FileClosedError("The file is already closed.")
+
+        if offset < 0:
+            raise RepyArgumentError("Offset cannot be negative.")
+        
+        if not isinstance(data, str):
+            raise RepyArgumentError("Data must be a string.")
+
+        if self.content is None:
+            self.content = self.LPfile.readat(None, 0)  # Cache the content on the first write
+
+        currentFileSize = len(self.content)
+
+        if offset > currentFileSize:
+            raise SeekPastEndOfFileError("Attempted to write past the end of the file.")
+
+        if offset + len(data) > currentFileSize:
+            self.content = self.content.ljust(offset + len(data), '\0') 
+
+        newFileContent = self.content[:offset] + data + self.content[offset + len(data):]
+     
+        if len(newFileContent) % 4096 != 0:
+            newFileContent = newFileContent.ljust(((len(newFileContent) // 4096) + 1) * 4096, '\0')
+
+        self.LPfile.writeat(newFileContent, 0) 
+        resourceTracker['filewrite'] += (len(newFileContent) // 4096 + 1) * 4096  
+        self.content = newFileContent  
+
+    def close(self):
+        if self.LPfile is None: 
+            raise FileClosedError("The file is already closed.")  # Raise if already closed
+        self.LPfile.close()  # Close the underlying file handle
+        self.LPfile = None  # Set to None to indicate the file is now closed
+
+def LPopenfile(filename, create):
+    
+    if '/' in filename or '\\' in filename:  
+        raise RepyArgumentError("Filenames may only be in the current directory.")
+
+    if not isinstance(filename, str):
+        raise RepyArgumentError("Filename must be a string.")
+    
+    if len(filename) == 0 or len(filename) > 120:
+        raise RepyArgumentError("Filename must be between 1 and 120 characters long.")
+    
+    for char in filename:
+        if char not in validFileChars:
+            raise RepyArgumentError("Invalid filename '%s': contains invalid characters." % filename)
+
+    if filename.startswith('.') or filename in ['.', '..']:
+        raise RepyArgumentError("Invalid filename '%s': cannot start with a period, be '.' or '..'." % filename)
+
+    if filename in openFiles:
+        raise FileInUseError("The file '%s' is already open." % filename)
+    
+    if not create and filename not in listfiles():
+        raise FileNotFoundError("The file '%s' does not exist." % filename)
+
+    if len(openFiles) >= maxOpenFiles:
+        raise ResourceExhaustedError("You cannot open more than one file, limit reached.")
+
+    if create:
+        resourceTracker['filewrite'] += 4 * 1024  # 4K in bytes
+        fileObj = LPFile(filename, True)  # Create the file if it doesn't exist
+    else:
+        resourceTracker['fileread'] += 4 * 1024  # 4K in bytes
+        fileObj = LPFile(filename, False)  # Attempt to open the existing file
+
+    openFiles.add(filename)  # Track the opened file
+
+    return fileObj
+
+def LPremovefile(filename):
+ 
+    if not isinstance(filename, str):
+        raise RepyArgumentError("Filename must be a string.")
+    
+    if len(filename) == 0 or len(filename) > 120:
+        raise RepyArgumentError("Filename must be between 1 and 120 characters long.")
+
+    for char in filename:
+        if char not in validFileChars:
+            raise RepyArgumentError("Invalid filename '%s': contains invalid characters." % filename)
+
+    if filename.startswith('.') or filename in ['.', '..']:
+        raise RepyArgumentError("Invalid filename '%s': cannot start with a period, be '.' or '..'." % filename)
+
+    if filename not in listfiles():
+        raise FileNotFoundError("The file '%s' does not exist." % filename)
+
+    if filename in openFiles:  
+        raise FileInUseError("The file '%s' is already open." % filename)
+
+    removefile(filename)
+    
+    resourceTracker['fileread'] += 4096  # Consume 4K for fileread
+    resourceTracker['filewrite'] += 4096  # Consume 4K for filewrite
+    
+    return None
+    
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

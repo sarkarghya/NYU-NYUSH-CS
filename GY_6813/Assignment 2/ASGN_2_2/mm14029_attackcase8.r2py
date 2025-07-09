@@ -1,0 +1,13 @@
+# checking for negative offset
+
+if "test8.txt" in listfiles():
+    removefile("test8.txt")
+
+myfile = openfile("test8.txt", True)
+myfile.writeat("TEMPLATE", 0)
+try:
+    myfile.readat(None, -5) == "TEMPLATE"
+except (RepyArgumentError, SeekPastEndOfFileError, IndexError, ValueError) as e:
+    pass
+
+myfile.close()

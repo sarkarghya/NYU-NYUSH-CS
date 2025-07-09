@@ -1,0 +1,23 @@
+# Test attempting to create a file with an invalid filename (starts with a period)
+try:
+    lpfile = openfile(" hiddenfile", True)
+except RepyArgumentError:
+    pass  # Expected: filename is invalid, monitor should raise RepyArgumentError
+except Exception as e:
+    log("attacked")
+
+
+try:
+    lpfile = openfile(".hiddenfile", True)
+except RepyArgumentError:
+    pass  # Expected: filename is invalid, monitor should raise RepyArgumentError
+except Exception as e:
+    log("attacked")
+
+
+try:
+    lpfile = openfile("..hiddenfile", True)
+except RepyArgumentError:
+    pass  # Expected: filename is invalid, monitor should raise RepyArgumentError
+except Exception as e:
+    log("attacked")

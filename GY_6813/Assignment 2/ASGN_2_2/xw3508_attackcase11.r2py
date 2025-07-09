@@ -1,0 +1,10 @@
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+try:
+    f = openfile("testfile.txt", True)
+    f.writeat("write something", 0)
+    f.close()
+    f.writeat("continue to write something", 9)
+except FileClosedError:
+    pass

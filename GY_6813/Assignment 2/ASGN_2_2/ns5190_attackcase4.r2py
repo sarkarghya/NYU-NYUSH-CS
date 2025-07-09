@@ -1,0 +1,34 @@
+# This test ensures that reading from an empty file and interacting with default produces consistent results
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "emptyfile.txt" in listfiles():
+    removefile("emptyfile.txt")
+
+# Create an empty default file
+default = openfile("default", True)
+default.close()
+
+# Open a new file using the empty default template
+try:
+    emptyfile = openfile("emptyfile.txt", False)
+    assert emptyfile.readat(None, 0) == ""
+    log("Reading from empty file created with empty default works as expected.")
+finally:
+    emptyfile.close()
+
+# Write to the default file and check if future file creation uses this template
+default = openfile("default", False)
+default.writeat("NEW TEMPLATE", 0)
+default.close()
+
+try:
+    newfile = openfile("newfile.txt", False)
+    assert newfile.readat(None, 0) == "NEW TEMPLATE"
+    log("newfile.txt was created using the updated default template.")
+finally:
+    newfile.close()
+
+
+

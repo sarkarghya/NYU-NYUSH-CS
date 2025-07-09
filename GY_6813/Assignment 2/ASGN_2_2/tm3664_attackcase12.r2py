@@ -1,0 +1,14 @@
+def test_resource_leakage_check():
+    initial_count = len(listfiles())
+    try:
+        f = openfile("leak_test.txt", create=True)
+        raise Exception("Simulated exception to test resource leakage")
+    except:
+        pass
+    finally:
+        f.close()
+        if len(listfiles()) != initial_count:
+            log("Failed: Resource leakage detected after handling an exception.")
+        removefile("leak_test.txt")
+
+ test_resource_leakage_check()

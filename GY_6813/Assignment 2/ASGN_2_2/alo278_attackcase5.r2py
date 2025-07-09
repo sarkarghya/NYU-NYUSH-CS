@@ -1,0 +1,16 @@
+# Check that even if default is left open in the attack, we can still use it as a template for a created file
+
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("DEFAULT TEMP", 0)
+
+# Create test files that we don't write to
+testfile = openfile("testfile.txt", False)
+
+default.close()
+testfile.close()

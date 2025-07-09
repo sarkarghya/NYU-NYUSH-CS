@@ -1,0 +1,15 @@
+# test case 3: try modify file while it's being read
+
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+
+try:
+    data = default.readat(None, 0)
+    default.writeat("NEW DATA", 0)
+except FileInUseError:
+    pass
+
+default.close()

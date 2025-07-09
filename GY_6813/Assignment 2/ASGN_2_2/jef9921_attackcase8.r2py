@@ -1,0 +1,24 @@
+# TestCase: Multiple files being opened at once - ResourceExhaustedError
+
+res = []
+
+try:
+  for i in range(500):
+    filename = "file_" + str(i) + ".txt"
+    if filename in listfiles():
+      removefile(filename)
+    curr_file = openfile(filename, True)
+    res.append(curr_file)
+except ResourceExhaustedError:
+  pass
+finally:
+  for curr_file_close in res:
+    curr_file_close.close()
+
+  for i in range(500):
+    filename = "file_" + str(i) + ".txt"
+    if filename in listfiles():
+      removefile(filename)
+
+
+

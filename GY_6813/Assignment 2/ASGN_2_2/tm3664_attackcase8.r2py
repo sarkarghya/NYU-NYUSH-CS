@@ -1,0 +1,11 @@
+def test_delayed_file_deletion():
+    try:
+        openfile("delayed_delete.txt", create=True).close()
+        default = openfile("default", create=True)
+        default.close()
+        if "delayed_delete.txt" in listfiles():
+            log("Failed: 'delayed_delete.txt' should have been deleted after closing 'default'.")
+    except Exception as e:
+        log("Error during delayed file deletion test: " + str(e))
+
+test_delayed_file_deletion()

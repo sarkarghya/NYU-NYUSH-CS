@@ -1,0 +1,15 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+#False argument
+myfile = openfile("testfile.txt", False)
+assert myfile.readat(None, 0) == "TEMPLATE"
+
+myfile.close()

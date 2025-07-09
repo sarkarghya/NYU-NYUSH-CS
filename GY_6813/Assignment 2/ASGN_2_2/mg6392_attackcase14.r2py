@@ -1,0 +1,18 @@
+
+def cleanup_files(filename):
+    if filename in listfiles():
+        removefile(filename)
+
+cleanup_files("testfile9.txt")
+
+# Edge Case: Writing past end of file
+myfile9 = openfile("testfile9.txt", True)
+myfile9.writeat("data", 0)
+try:
+    myfile9.writeat("past the end", 10000)  # Trying to write far beyond EOF
+    assert False  # Should not reach here
+except SeekPastEndOfFileError:
+    assert True
+
+myfile9.close()
+cleanup_files("testfile9.txt")

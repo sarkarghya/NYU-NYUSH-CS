@@ -1,0 +1,15 @@
+if "default" in listfiles():
+    removefile("default")
+
+try:
+    file = openfile("testfile_exception_test", True)
+    file.writeat("BEFORE", 0)
+    raise Exception("Simulated error")
+except:
+    pass
+finally:
+    file.close()
+assert openfile("testfile_exception_test", False).readat(None, 0) == "BEFORE", "File not properly written after exception"
+
+if "testfile_exception_test" in listfiles():
+    removefile("testfile_exception_test")

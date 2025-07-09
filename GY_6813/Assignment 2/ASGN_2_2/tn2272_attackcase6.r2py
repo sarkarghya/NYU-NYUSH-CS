@@ -1,0 +1,11 @@
+# tn2272_attackcase6.r2py
+
+try:
+    createdir('recursivedir')
+    f = openfile('recursivedir/file.txt', True)
+    f.writeat('File inside directory', 0)
+    f.close()
+
+    removedir('recursivedir')
+except:
+    pass 

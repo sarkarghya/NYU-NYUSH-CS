@@ -1,0 +1,16 @@
+def test_write_beyond_length():
+    myfile = openfile("boundary", True)
+    myfile.writeat("Short", 0)
+    
+    try:
+        myfile.writeat("Beyond", 10)
+        assert False
+    except:
+        pass
+    
+    myfile.close()
+
+    if "boundary" in listfiles():
+        removefile("boundary")
+
+test_write_beyond_length()

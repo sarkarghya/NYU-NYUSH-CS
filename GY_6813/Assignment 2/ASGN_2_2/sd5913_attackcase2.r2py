@@ -1,0 +1,21 @@
+# Clean up if 'default' or 'Filenew.txt' already exist
+if "default" in listfiles():
+    removefile("default")
+if "Filenew.txt" in listfiles():
+    removefile("Filenew.txt")
+
+# Step 1: Create and write content to the 'default' file
+default = openfile("default", True)
+default.writeat("DEFAULT_CONTENT", 0)
+default.close()
+
+# Step 2: Attempt to open 'Filenew.txt', which should use 'default' as a template
+# However, once 'default' is removed, 'Filenew.txt' should be deleted
+Filenew = openfile("Filenew.txt", False)
+Filenew.close()
+
+# Step 3: Remove the 'default' file, which should trigger the deletion of 'Filenew.txt'
+removefile("default")
+
+# Step 4: Verify that 'Filenew.txt' has been deleted after 'default' was removed
+assert "Filenew.txt" not in listfiles(), "Expected Filenew.txt to be deleted after 'default' was removed."

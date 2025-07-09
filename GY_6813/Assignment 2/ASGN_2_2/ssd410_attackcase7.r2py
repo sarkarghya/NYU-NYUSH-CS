@@ -1,0 +1,29 @@
+# Clean up if the file exists
+if 'test' in listfiles():
+	removefile('test')
+
+if "default" in listfiles():
+  removefile("default")
+
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test", True)
+
+# checks if RepyArgumentError
+# is raised for negative values
+try:
+	test.readat(-100, -100)
+except Exception("RepyArgumentError"):
+	a = 1
+except RepyArgumentError:
+	a = 1
+
+# closes the files
+test.close()
+

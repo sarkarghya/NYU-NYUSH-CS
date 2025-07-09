@@ -1,0 +1,11 @@
+some_file = openfile("another_file", True)
+some_file.writeat("Writing a random text", 0)
+
+try:
+    some_file = openfile("another_file", True)
+except FileInUseError:
+    pass
+else:
+    log("Did not catch error")
+    
+some_file.close()

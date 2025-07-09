@@ -1,0 +1,6 @@
+if "default" in listfiles():
+    removefile("default")
+
+for i in range(5):
+    openfile("testfile_rapid%d" % i, True).writeat("RAPID%d" % i, 0)
+    removefile("testfile_rapid%d" % i)

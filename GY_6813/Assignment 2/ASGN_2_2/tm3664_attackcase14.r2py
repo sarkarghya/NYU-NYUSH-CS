@@ -1,0 +1,17 @@
+def test_boundary_read_write_operations():
+    # create a file with initial content
+    f = LPopenfile("boundary_test.txt", True)
+    f.writeat("Hello World", 0)
+    f.close()
+
+    # attempt to read and write beyond the bounds of file content
+    try:
+        with LPopenfile("boundary_test.txt", False) as f:
+            f.readat(1000, 0)  
+            f.writeat("Oops", 50)  
+    except ValueError as e:
+        log("Passed: Boundary condition handled correctly.")
+    except Exception as e:
+        log("Failed: Improper error handling for boundary conditions.")
+
+test_boundary_read_write_operations()

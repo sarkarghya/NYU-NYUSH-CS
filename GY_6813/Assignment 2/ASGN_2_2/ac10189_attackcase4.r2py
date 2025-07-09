@@ -1,0 +1,51 @@
+import time
+from threading import Thread
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Inject fixed malicious content into the default file
+exploit = "EXPLOITED_CONTENT"
+default.writeat(exploit, 0)
+
+# Close default
+default.close()
+
+# Create an empty testfile.txt
+testfile = openfile("testfile.txt", True)
+testfile.writeat("", 0)  # Writing empty content
+testfile.close()
+
+# Function that performs file opening attack_function
+def attack_thread():
+    time.sleep(0.5)  # Slight delay
+    try:
+        testfile = openfile("testfile.txt", False)
+        try:
+            if testfile.readat(None, 0) != exploit:
+                pass  # Do nothing if the attack did not succeed
+        except Exception:
+            pass  # Suppress any expected errors
+        # Close file after reading
+        testfile.close()
+    except Exception:
+        pass  # Suppress any unexpected errors
+
+# Initialize a list to keep track of thread objects
+threads = []
+
+# Create and start multiple threads to execute the attack concurrently
+for _ in range(5):
+    thread = Thread(target=attack_thread)
+    threads.append(thread)
+    thread.start()
+
+# Ensure all threads have completed execution
+for thread in threads:
+    thread.join()

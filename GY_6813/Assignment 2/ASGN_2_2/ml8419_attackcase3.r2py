@@ -1,0 +1,25 @@
+
+# This attack case tries to reopen a closed file and tries to write to it again
+
+def attackcase3():
+    try:
+        testfile = openfile("testfile", True)
+        testfile.writeat("blah blah blah", 0)
+        
+        testfile.close()
+        testfileReopened = openfile("testfile", False)
+    
+        testfileReopened.writeat("reopened blah blah blah", 10)
+        read_data = testfileReopened.readat(20, 0)
+        
+        testfileReopened.close()
+
+
+    except FileClosedError:
+        log("FileClosedError: File should not have been closed before reopening.")
+    except FileNotFoundError:
+        log("FileNotClosedError: 'testfile' not found after reopening.")
+    except RepyArgumentError:
+        log("RepyArgumentError: Invalid argument used.")
+
+attackcase3()

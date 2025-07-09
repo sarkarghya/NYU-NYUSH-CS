@@ -1,0 +1,11 @@
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+try:
+    myfile = openfile("testfile.txt", False)
+except FileNotFoundError:
+    pass
+else:
+    assert False, "Unexpected behavior! FileNotFoundError was not raised!"

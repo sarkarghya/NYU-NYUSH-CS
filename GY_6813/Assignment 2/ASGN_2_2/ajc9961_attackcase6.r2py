@@ -1,0 +1,24 @@
+# Clean up if the files exist
+if "testfile1.txt" in listfiles():
+    removefile("testfile1.txt")
+if "testfile2.txt" in listfiles():
+    removefile("testfile2.txt")
+
+# Create the default template file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+### Test for race condition read and write to file ###
+try:
+    # Open files
+    racefile1 = openfile("testfile1.txt", True)
+    racefile2 = openfile("testfile2.txt", False)
+    content = racefile2.readat(None, 8)
+    
+finally:
+    # Close the files
+    if "testfile1.txt" in listfiles():
+      racefile1.close()
+    if "testfile2.txt" in listfiles():
+      racefile2.close()

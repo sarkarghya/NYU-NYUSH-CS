@@ -1,0 +1,143 @@
+"""
+Reference Monitor Implementation for File Operations in Repy V2
+Filename: reference_monitor_sc10344.r2py
+"""
+
+# Define constants for the security layer definitions
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+# Internal state variables (module-level, prefixed with an underscore)
+_open_files = set()
+_created_files = set()
+_closed_files = set()
+
+def _delete_closed_files():
+    """
+    Deletes all files that are in both '_created_files' and '_closed_files',
+    but only if they are not currently open.
+    This function is called when 'default' is successfully created,
+    written to, resized, or deleted.
+    """
+    filenames_to_delete = _closed_files.intersection(_created_files)
+    # Make a copy to avoid modifying the set during iteration
+    for filename in list(filenames_to_delete):
+        # Check if the file exists and is not open before attempting to remove it
+        if filename in listfiles() and filename not in _open_files:
+            removefile(filename)
+            # Remove the file from '_created_files' and '_closed_files'
+            _created_files.discard(filename)
+            _closed_files.discard(filename)
+
+class LPFile():
+    def __init__(self, filename, create):
+        self.filename = filename
+        if filename in _open_files:
+            # Raise FileInUseError if the file is already open
+            raise FileInUseError("File '{}' is already open.".format(filename))
+
+        # Check if the file existed before opening
+        file_exists_before = filename in listfiles()
+
+        if not create:
+            if file_exists_before:
+                # File exists, open it
+                self.LPfile = openfile(filename, create)
+            else:
+                # File does not exist, use 'default' as a template
+                try:
+                    default_file = openfile('default', False)
+                except FileNotFoundError:
+                    # Raise FileNotFoundError if 'default' does not exist
+                    raise FileNotFoundError("File 'default' does not exist.")
+                # Copy contents from 'default' to the new file
+                content = default_file.readat(None, 0)
+                default_file.close()
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                self.LPfile.close()
+                self.LPfile = openfile(filename, False)
+                # Add to '_created_files'
+                _created_files.add(filename)
+        else:
+            # Create new file or open existing one
+            self.LPfile = openfile(filename, create)
+            # If the file did not exist before, it's newly created
+            if not file_exists_before:
+                _created_files.add(filename)
+            if filename == 'default':
+                _delete_closed_files()
+
+        # Add filename to '_open_files'
+        _open_files.add(filename)
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+        if self.filename == 'default':
+            _delete_closed_files()
+
+    def close(self):
+        self.LPfile.close()
+        _open_files.discard(self.filename)
+        if self.filename in _created_files:
+            _closed_files.add(self.filename)
+
+    def getsize(self):
+        return self.LPfile.getsize()
+
+    def setsize(self, size):
+        self.LPfile.setsize(size)
+        if self.filename == 'default':
+            _delete_closed_files()
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    try:
+        removefile(filename)
+    except FileInUseError:
+        # Raise FileInUseError if the file is currently open
+        raise FileInUseError("File '{}' is currently open and cannot be removed.".format(filename))
+    if filename == 'default':
+        _delete_closed_files()
+    _created_files.discard(filename)
+    _open_files.discard(filename)
+    _closed_files.discard(filename)
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code securely
+secure_dispatch_module()

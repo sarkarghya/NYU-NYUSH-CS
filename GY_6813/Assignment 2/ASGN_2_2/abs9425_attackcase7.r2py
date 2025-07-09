@@ -1,0 +1,33 @@
+try:
+    # Create a series of files and test deletion chain
+    default = openfile("default", True)
+    default.writeat("Template", 0)
+    default.close()
+    
+    # Create and close some files
+    files = []
+    for i in range(5):
+        f = openfile(str(i), False)
+        f.close()
+        files.append(str(i))
+    
+    # Keep one file open
+    open_file = openfile("keep_open", False)
+    
+    # Modify default and check if closed files are deleted
+    default = openfile("default", True)
+    default.writeat("New", 0)
+    default.close()
+    
+    # Check if closed files were deleted
+    for filename in files:
+        if filename in listfiles():
+            log("Security bug: Closed file =not deleted after default modification\n")
+            
+    # Check if open file remains
+    if "keep_open" not in listfiles():
+        log("Accuracy bug: Open file was incorrectly deleted\n")
+    
+    open_file.close()
+except Exception:
+    pass

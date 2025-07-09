@@ -1,0 +1,13 @@
+testFile = openfile('testfile', True)
+testFile.writeat('test data', 0)
+testFile.close()
+
+defaultFile = openfile('default', True)
+defaultFile.writeat('default content', 0)
+defaultFile.close()
+
+try:
+    reopenedTestFile = openfile('testfile', False)
+except FileNotFoundError:
+    pass
+

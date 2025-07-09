@@ -1,0 +1,53 @@
+# Attack 6: Overwrite or Modify Default File, the goal is to corrupt or delete the default template to cause issues in the security layer.
+
+# Clean up any existing files before starting the test
+if "default" in listfiles():
+    removefile("default")
+if "modify_default_test.txt" in listfiles():
+    removefile("modify_default_test.txt")
+
+# --- Attack Step 1: Create a 'default' file ---
+default_file = openfile("default", True)
+default_file.writeat("Default content for testing.", 0)
+default_file.close()
+
+# --- Attack Step 2: Modify the 'default' file while creating another file ---
+try:
+    # Reopen the 'default' file for modification
+    default_file = openfile("default", True)
+    default_file.writeat("Modified default content.", 0)
+
+    # Simultaneously create another file that relies on the default template
+    test_file = openfile("modify_default_test.txt", False)
+    test_content = test_file.readat(None, 0)
+
+    # Check if the file creation used the modified default content
+    if test_content != "Modified default content.":
+        # Suppress output for expected behavior
+        pass
+
+    default_file.close()
+    test_file.close()
+except FileInUseError:
+    # Suppress expected FileInUseError
+    pass
+
+# --- Attack Step 3: Delete the 'default' file during file creation ---
+try:
+    # Delete the 'default' file after opening it
+    default_file = openfile("default", True)
+    default_file.close()
+    removefile("default")
+
+    # Try creating a new file that relies on the 'default' template
+    test_file = openfile("modify_default_test.txt", False)
+    test_file.close()
+
+except FileInUseError:
+    # Suppress expected FileInUseError
+    pass
+
+# Clean up created files
+if "modify_default_test.txt" in listfiles():
+    removefile("modify_default_test.txt")
+

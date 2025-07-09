@@ -1,0 +1,20 @@
+def test_multiple_open_close():
+    filename = "multiopen"
+    
+    for i in range(5):
+        myfile = openfile(filename, True)
+        text = "Cycle " + str(i)
+        myfile.writeat(text, 0)
+        myfile.close()
+    
+    myfile = openfile(filename, False)
+    content = myfile.readat(None, 0)
+    
+    assert content == "Cycle 4"
+    
+    myfile.close()
+
+    if filename in listfiles():
+        removefile(filename)
+
+test_multiple_open_close()

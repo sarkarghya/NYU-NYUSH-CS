@@ -1,0 +1,25 @@
+# Test if the reference monitor allows modification of a file after it is closed.
+
+filename = "testfile_mod.txt"
+
+try:
+    # Create and open the file
+    f = openfile(filename, True)
+    writefile(f, "Data")
+    closefile(f)
+    
+    # Try to modify the file after closing it
+    try:
+        writefile(f, "Modified data")
+    except FileClosedError:
+        # Expected behavior, file should not be modified after closing
+        pass
+    except Exception as e:
+        # Log unexpected errors
+        log("Unexpected error: " + str(e))
+finally:
+    # Clean up
+    try:
+        removefile(filename)
+    except Exception as e:
+        log("Error removing file: " + str(e))

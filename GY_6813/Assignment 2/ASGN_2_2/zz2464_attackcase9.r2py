@@ -1,0 +1,31 @@
+# Attack 9: Failure on Truncation Attempts
+# Goal: Simulate truncation scenarios and observe how the security layer handles partial writes and truncation to zero bytes.
+
+# Clean up any existing files before starting the test
+if "truncation_test.txt" in listfiles():
+    removefile("truncation_test.txt")
+
+# --- Attack Step 1: Create a file and write initial content ---
+trunc_file = openfile("truncation_test.txt", True)
+trunc_file.writeat("This is the initial content for truncation test.", 0)
+
+# --- Attack Step 2: Overwrite part of the file (simulate truncation attempt) ---
+trunc_file.writeat("Overwritten", 11)  # Overwrite part of the content at offset 11
+
+# --- Attack Step 3: Attempt to truncate the file to zero bytes ---
+trunc_file.writeat("", 0)  # Attempt to overwrite entire content with empty data (truncate)
+
+# Ensure the file is closed before moving to Step 4 to avoid FileInUseError
+trunc_file.close()
+
+# --- Attack Step 4: Attempt to remove the file ---
+try:
+    removefile("truncation_test.txt")
+except FileInUseError:
+    # Suppress expected FileInUseError
+    pass
+
+# Clean up created files (if needed)
+if "truncation_test.txt" in listfiles():
+    removefile("truncation_test.txt")
+

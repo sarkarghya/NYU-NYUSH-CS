@@ -1,0 +1,164 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+mycontext['created_files'] = set()
+mycontext['open_files'] = set()
+mycontext['open_files_lock'] = createlock()
+mycontext['created_files_lock'] = createlock()
+
+def _delete_closed_files():
+    try:
+        mycontext['created_files_lock'].acquire(True)
+        mycontext['open_files_lock'].acquire(True)
+        for filename in list(mycontext['created_files']):
+            if filename != 'default' and filename not in mycontext['open_files']:
+                removefile(filename)
+                mycontext['created_files'].remove(filename)
+    finally:
+        mycontext['open_files_lock'].release()
+        mycontext['created_files_lock'].release()
+
+class LPFile():
+    def __init__(self, filename, create):
+        self.filename = filename
+        self.LPfile = None
+        self.closed = False
+        self.lock = createlock()
+        self.filesize = 0
+
+        try:
+            mycontext['open_files_lock'].acquire(True)
+            mycontext['created_files_lock'].acquire(True)
+
+            if create:
+                self.LPfile = openfile(filename, True)
+                mycontext['created_files'].add(filename)
+            elif filename in mycontext['created_files']:
+                self.LPfile = openfile(filename, False)
+            elif 'default' in mycontext['created_files']:
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)
+                default_file.close()
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                mycontext['created_files'].add(filename)
+            else:
+                raise FileNotFoundError("File not found and 'default' doesn't exist")
+
+            mycontext['open_files'].add(filename)
+            self.filesize = len(self.LPfile.readat(None, 0))
+        finally:
+            mycontext['created_files_lock'].release()
+            mycontext['open_files_lock'].release()
+
+	    if filename == "default":
+		# this is needed because the release() call is async
+		sleep(0.01)
+		_delete_closed_files()
+
+
+
+    def readat(self, sizelimit, offset):
+        self.lock.acquire(True)
+        try:
+            if self.closed:
+                raise FileClosedError("File is closed")
+            if offset < 0:
+                raise RepyArgumentError("Negative read offset specified!")
+            if sizelimit is not None and sizelimit < 0:
+                raise RepyArgumentError("Negative sizelimit specified!")
+            if offset > self.filesize:
+                raise SeekPastEndOfFileError("Seek offset extends past the EOF!")
+
+            return self.LPfile.readat(sizelimit, offset)
+        finally:
+            self.lock.release()
+
+    def writeat(self, data, offset):
+        self.lock.acquire(True)
+        try:
+            if self.closed:
+                raise FileClosedError("File is closed")
+            if offset < 0:
+                raise RepyArgumentError("Negative write offset specified!")
+            if not isinstance(data, str):
+                raise RepyArgumentError("Data must be specified as a string!")
+            if offset > self.filesize:
+                raise SeekPastEndOfFileError("Seek offset extends past the EOF!")
+            
+            self.LPfile.writeat(data, offset)
+            
+            if offset + len(data) > self.filesize:
+                self.filesize = offset + len(data)
+
+            if self.filename == 'default':
+                _delete_closed_files()
+        finally:
+            self.lock.release()
+
+    def close(self):
+        self.lock.acquire(True)
+        try:
+            if not self.closed:
+                self.LPfile.close()
+                self.closed = True
+                try:
+                    mycontext['open_files_lock'].acquire(True)
+                    mycontext['open_files'].remove(self.filename)
+                finally:
+                    mycontext['open_files_lock'].release()
+        finally:
+            self.lock.release()
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    try:
+        if filename == 'default':
+            _delete_closed_files()
+        mycontext['open_files_lock'].acquire(True)
+        mycontext['created_files_lock'].acquire(True)
+        if filename in mycontext['created_files']:
+            mycontext['created_files'].remove(filename)
+        if filename in mycontext['open_files']:
+            raise FileInUseError("Cannot remove file while it's open")
+        removefile(filename)
+    finally:
+        mycontext['created_files_lock'].release()
+        mycontext['open_files_lock'].release()
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

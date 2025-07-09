@@ -1,0 +1,12 @@
+#remove default file and try opening non existent file with False
+
+if "default" in listfiles():
+  removefile("default")
+if "nonexistentfile" in listfiles():
+  removefile("nonexistentfile")
+
+try:
+    testfile = openfile('nonexistentfile', False)
+    log("FileNotFoundError exception not thrown")
+except FileNotFoundError:
+    pass

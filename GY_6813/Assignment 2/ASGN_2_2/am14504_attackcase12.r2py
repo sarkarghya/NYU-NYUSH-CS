@@ -1,0 +1,19 @@
+'''
+    An attack case to check if the reference monitor is efficient
+'''
+
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+# Create a file
+test = openfile('testfile_1.txt', True)
+
+# Write contents to it repeatedly
+content = "Crazy text"
+length = 0
+
+for i in range(20000):
+    test.writeat(content, length)
+    length += 10
+
+test.close()

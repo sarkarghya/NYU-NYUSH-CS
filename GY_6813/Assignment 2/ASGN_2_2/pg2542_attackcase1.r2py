@@ -1,0 +1,14 @@
+# Create multiple files and close them
+file1 = openfile("file1.txt", True)
+file1.writeat("test", 0)
+file1.close()
+
+file2 = openfile("file2.txt", True)
+file2.writeat("test", 0)
+file2.close()
+
+# Now remove "default" and ensure all closed files are deleted
+removefile("default")
+
+assert "file1.txt" not in listfiles(), "File1 was not deleted correctly"
+assert "file2.txt" not in listfiles(), "File2 was not deleted correctly"

@@ -1,0 +1,29 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+default.close()
+
+
+
+## ATTACK CASE WITH STARTING DEFAULT FILE AND NO STARTING testfile.txt ##
+
+#GOAL: Have FileError incorrectly raised after attempting to open the default file
+#      Original specifications allow for default file to be Opened and Read from without interruption
+#TARGET: reference_monitor_erd9800
+
+# Re-open default and incorrectly raise FileError exception
+try:
+    default2 = openfile("default", False)
+except FileError:
+    log("FileError incorrectly raised when opening the default file")
+else:
+    default2.close()
+

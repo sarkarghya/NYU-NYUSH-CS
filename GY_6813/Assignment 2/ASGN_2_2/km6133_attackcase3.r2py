@@ -1,0 +1,2 @@
+test1=openfile("..\pswd.txt",False)
+text1.close()

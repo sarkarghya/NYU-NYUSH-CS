@@ -1,0 +1,7 @@
+{
+  "records": [
+    {
+      "signature": "' UNION SELECT '<script>alert(\"hello\")</script>' -- "
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+try:
+    file_handle = openfile("@$%/\\", True)
+
+except RepyArgumentError as error:
+    # Invalid argument passed, skipping operation
+    pass
+    
+except Exception as error:
+    log("An unexpected error occurred during file access\n")
+    log(error)
+    log("\n")

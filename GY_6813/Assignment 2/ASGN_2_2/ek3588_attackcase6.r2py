@@ -1,0 +1,14 @@
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+default = openfile("default", True)
+
+default.writeat("TEMPLATE", 0)
+
+myfile = openfile("testfile.txt", False)
+
+myfile.close()
+
+default.close()

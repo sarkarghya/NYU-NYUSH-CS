@@ -1,0 +1,6 @@
+# Edge Case: Opening a file with invalid characters in the filename (e.g., containing spaces or special chars)
+try:
+    invalidfile = openfile("invalid file name", True)  # Space is an invalid character in the filename
+    assert False  # Should not reach here
+except RepyArgumentError:
+    assert True

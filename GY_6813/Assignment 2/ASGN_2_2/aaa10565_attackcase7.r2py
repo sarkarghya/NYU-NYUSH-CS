@@ -1,0 +1,38 @@
+try:
+    removefile("@.r2py")
+except RepyArgumentError:
+    pass
+
+try:
+    removefile("")
+except RepyArgumentError:
+    pass
+
+try:
+    removefile(".file.r2py")
+except RepyArgumentError:
+    pass
+
+try:
+    removefile("..invalid")
+except RepyArgumentError:
+    pass
+    
+try:
+    removefile("Abdul.r2py")
+except RepyArgumentError:
+    pass
+    
+try:
+    removefile("nonexistent_file.r2py")
+except FileNotFoundError:
+    pass
+
+fileHandle = openfile("inusefile.r2py", True)
+
+try:
+    removefile("inusefile.r2py")
+except FileInUseError:
+    pass
+
+

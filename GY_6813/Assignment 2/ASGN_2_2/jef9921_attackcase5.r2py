@@ -1,0 +1,26 @@
+# TestCase: All closed files created from default should be deleted when default is altered 
+# AssertionError should be thrown to represent a failed test assuming the closed file still exists
+
+if "file_from_default.txt" in listfiles():
+  removefile("file_from_default.txt")
+if "default" in listfiles():
+  removefile("default")
+
+try:
+  default = openfile("default", True)
+  default.writeat("data",0)
+  default.close()
+
+  file1 = openfile("file_from_default.txt", False)
+  file1.close()
+
+  default = openfile("default", True)
+  default.writeat("new_data", 0)
+  default.close()
+  
+  assert "file_from_default.txt" not in listfiles()
+except AssertionError as e:
+  raise e
+
+
+

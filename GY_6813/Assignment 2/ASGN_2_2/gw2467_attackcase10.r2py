@@ -1,0 +1,13 @@
+import logging
+
+def test_symbolic_link_manipulation():
+    try:
+      
+        createlink("restricted_file.txt", "symlink.txt")
+        file_handle = openfile("symlink.txt", "r")
+        logging.error("Accessed restricted file through symlink, which should be blocked.")
+        assert False, "Accessing restricted file through symlink should be blocked."
+    except Exception as e:
+        logging.error("Error encountered: %s", e)  # Log the exception details
+        assert "Permission denied" in str(e), f"Unexpected error: {e}"
+

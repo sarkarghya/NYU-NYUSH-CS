@@ -1,0 +1,24 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'activefile.txt' in listfiles():
+    removefile('activefile.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('First version.', 0)
+default_file.close()
+
+active_file = openfile('activefile.txt', False)
+
+default_file = openfile('default', False)
+default_file.writeat('Second version.', 0)
+default_file.close()
+
+assert 'activefile.txt' in listfiles()
+
+active_file.close()
+
+default_file = openfile('default', False)
+default_file.writeat('Third version.', 0)
+default_file.close()
+
+assert 'activefile.txt' not in listfiles()

@@ -1,0 +1,10 @@
+if "testfile.r2py" in listfiles():
+  removefile("testfile.r2py")
+
+openfile("testfile.r2py", True)
+
+try:
+    duplicateFileOpen = openfile("testfile.r2py", True)
+except FileInUseError:
+    pass
+

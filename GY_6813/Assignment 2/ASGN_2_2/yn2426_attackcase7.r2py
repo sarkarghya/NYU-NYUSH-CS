@@ -1,0 +1,27 @@
+# ATTACKCASE7: Performance Impact
+
+import time
+
+def measure_operation_time(func, *args, **kwargs):
+    start_time = time.time()
+    func(*args, **kwargs)
+    end_time = time.time()
+    return end_time - start_time
+
+def test_performance_impact():
+    try:
+        # Measure time for creating and writing to a file
+        create_time = measure_operation_time(LPopenfile, 'testfile', True)
+        f = LPopenfile('testfile', True)
+        write_time = measure_operation_time(f.writeat, "Performance test content", 0)
+        read_time = measure_operation_time(f.readat, None, 0)
+        close_time = measure_operation_time(f.close)
+        delete_time = measure_operation_time(LPremovefile, 'testfile')
+
+        log(f"Performance Results:\nCreate: {create_time:.4f} s\nWrite: {write_time:.4f} s\nRead: {read_time:.4f} s\nClose: {close_time:.4f} s\nDelete: {delete_time:.4f} s")
+        
+        log("Attackcase 7: Completed - Performance impact measured.")
+    except Exception as e:
+        log(f"Attackcase 7: Failed - {e}")
+
+test_performance_impact()

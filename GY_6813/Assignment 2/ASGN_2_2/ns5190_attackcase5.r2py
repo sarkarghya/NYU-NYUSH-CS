@@ -1,0 +1,29 @@
+'''
+Verify creation of new empty file:
+Checks if the reference monitor correctly allows the creation of a new empty file
+when the create parameter is set to True. It ensures that the security layer is functioning
+accurately by confirming that a newly created file is indeed empty. This aligns with the
+requirement that the security monitor should incorporate standard file operation methods,
+particularly file creation.
+'''
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "test_empty.txt" in listfiles():
+    removefile("test_empty.txt")
+
+# Create an empty file using openfile with create set to True
+try:
+    myfile = openfile("test_empty.txt", True)
+    assert myfile.readat(None, 0) == ""  # The file should be empty
+except Exception as e:
+    log("Error occurred: " + str(e))
+else:
+    log("Successfully created empty file: test_empty.txt")
+finally:
+    myfile.close()  # Ensure to close the file if it was opened
+
+
+
+

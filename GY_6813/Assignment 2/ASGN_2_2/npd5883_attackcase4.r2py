@@ -1,0 +1,12 @@
+invalid_filenames = [
+    "inv@lid.txt",  
+    "FileWithUppercase.txt",  
+    "too_long" + "a" * 120 + ".txt",  
+    " ",  
+]
+
+for filename in invalid_filenames:
+    try:
+        openfile(filename, True)
+    except Exception:
+        pass  

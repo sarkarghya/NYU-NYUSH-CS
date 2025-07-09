@@ -1,0 +1,168 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+class LPFile():
+    closed_files = set()
+    lock = createlock()
+    open_files = set()
+
+    def __init__(self, filename, create):
+        self.fn = filename
+        self.myLock = createlock()
+
+        # Check if the file is already open
+        if filename in LPFile.open_files:
+            #raise Exception("File '{}' is already open.".format(filename))
+            pass
+        
+        LPFile.open_files.add(filename)  # Mark this file as open
+
+        if create:
+            LPFile.closed_files.discard(self.fn)
+            LPFile.open_files.add(self.fn)
+            
+            if filename == "default":
+                self.file = openfile(self.fn, True)
+                cleanup_closed_files()
+
+            else:
+                self.file = openfile(self.fn, True)
+
+        else:
+            if self.fn == "default":
+                self.file = openfile('default', False)
+                LPFile.closed_files.discard(self.fn)
+                LPFile.open_files.add(self.fn)
+
+            elif 'default' in listfiles():
+                self.myLock.acquire(True)
+                try:
+                    default_file = openfile('default', False)
+                    content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+                    self.file = openfile(self.fn, True)
+                    self.file.writeat(content, 0)
+                    default_file.close()
+                    LPFile.closed_files.discard(self.fn)
+                    LPFile.open_files.add(self.fn)
+                finally:
+                    self.myLock.release()
+
+                
+            else:
+                pass # FileNotFoundError("Default file not found")
+        
+
+    def readat(self, bytes, offset):
+        if not isinstance(offset, int) or (bytes is not None and not isinstance(bytes, int)):
+            # raise Exception("Invalid input parameters")
+            return None
+        string = None
+        self.myLock.acquire(True)
+        try:
+            if(self.fn != "default"):
+                string = self.file.readat(bytes, offset)
+        finally:
+            self.myLock.release()
+
+        return string
+
+    def writeat(self, data, offset):
+        if not isinstance(data, str) or not isinstance(offset, int):
+            # raise Exception("Invalid input parameters")
+            pass
+        else:
+
+            self.myLock.acquire(True)
+            try:
+                
+                
+                self.file.writeat(data, offset)
+                
+                if(self.fn == "default"):
+                    cleanup_closed_files()  # Cleanup closed files after writing
+                
+            finally:
+                self.myLock.release()
+
+    def close(self):
+        
+        self.myLock.acquire(True)
+        try:
+            self.file.close()
+            LPFile.closed_files.add(self.fn)
+            LPFile.open_files.discard(self.fn)
+        finally:
+            self.myLock.release()
+
+    
+            
+def cleanup_closed_files():
+    
+    if(len(LPFile.closed_files) != 0):
+        for closed_file in LPFile.closed_files:  # Access the class variable
+            if(closed_file in listfiles() and closed_file != 'default'):
+                removefile(closed_file)
+                LPFile.closed_files.discard(closed_file) 
+            
+
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    LPFile.lock.acquire(True)
+    try:
+        if not isinstance(filename, str):
+            # raise Exception("Invalid filename type")
+            pass
+        
+        else:
+
+            if filename in listfiles():
+                removefile(filename)
+                
+
+                # Check if the file being deleted is 'default'
+                if filename == 'default':
+
+                    cleanup_closed_files()  # Call cleanup for closed files
+
+            else:
+                raise Exception("File does not exist or permissions missing")
+    finally:
+        LPFile.lock.release()
+
+
+# Type checking and variable hiding setup
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, int), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, type(None)), int), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": None, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

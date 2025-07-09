@@ -1,0 +1,23 @@
+# default file behavior
+
+for filename in ["default", "test_1.txt", "test_2.txt", "testfile.txt"]:
+    if filename in listfiles():
+        removefile(filename)
+    
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test_1 = openfile("test_1.txt", False)
+test_1.close()
+
+test_2 = openfile("test_2.txt", False)
+# Keep this file open
+
+assert "test_1.txt" in listfiles()
+assert "test_2.txt" in listfiles()
+
+removefile("default")
+
+assert "test_1.txt" not in listfiles()
+assert "test_2.txt" in listfiles()

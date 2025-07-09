@@ -1,0 +1,21 @@
+
+
+import logging
+import time
+
+def test_open_file_efficiency():
+    start_time = time.time()
+    
+    try:
+        file_handle = openfile("file.txt", "r")
+        end_time = time.time()
+        
+        duration = end_time - start_time
+        logging.info(f"File opened successfully in {duration:.5f} seconds.")
+        
+        assert duration < 0.01, "File operation took too long."
+    except Exception as e:
+        log(f"Error opening file: {e}")
+        assert False, f"Error opening file: {e}"
+
+

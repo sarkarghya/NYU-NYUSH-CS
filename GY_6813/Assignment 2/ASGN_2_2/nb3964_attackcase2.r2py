@@ -1,0 +1,14 @@
+try:
+    file_handle = openfile("default3", True)
+    file_handle.close()
+    removefile("default3")
+    file_handle.writeat("None", 4)
+
+except FileClosedError as error:
+    # Attempted to write to a closed file, skipping operation
+    pass
+    
+except Exception as error:
+    log("An unexpected error occurred during file operation\n")
+    log(error)
+    log("\n")

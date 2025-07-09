@@ -1,0 +1,12 @@
+# TestCase: file removefile - FileInUseError
+
+if "file_in_use.txt" in listfiles():
+  removefile("file_in_use.txt")
+
+try:
+  file1 = openfile("file_in_use.txt", True)
+  removefile("file_in_use.txt")
+except FileInUseError:
+  pass
+finally:
+  file1.close()

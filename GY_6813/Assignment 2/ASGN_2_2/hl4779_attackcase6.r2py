@@ -1,0 +1,17 @@
+#if "default" in listfiles():
+#  removefile("default")
+#if "fileone" in listfiles():
+#    removefile("fileone")
+
+# create default
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# file creation
+file = openfile("fileone", False)
+file.close()
+
+removefile("default")
+
+assert not("fileone" in listfiles())

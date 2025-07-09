@@ -1,0 +1,17 @@
+
+# This attack case attempts to create and write to multiple "default" files
+
+def attackcase2():
+    try:
+        default1 = openfile("default", True)
+        default2 = openfile("default", True)
+        
+        default1.writeat("default1: testdata", 0)
+        default2.writeat("default2: testdata", 0)
+        
+        default1.close()
+        default2.close()
+    
+    except FileNotFoundError:
+        log("FileNotFoundError: 'default' doesn't exist.")
+attackcase2()

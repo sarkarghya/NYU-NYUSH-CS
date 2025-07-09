@@ -1,0 +1,157 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py
+
+"""
+
+# Define custom errors for file operations
+class FileInUseError(Exception):
+    pass
+
+class FileClosedError(Exception):
+    pass
+
+
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+closed_files = {}
+open_files = {}
+
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        self.filename = filename
+        self.is_open = True
+
+        # Raise FileInUseError if the file is already open
+        if filename in open_files:
+            raise FileInUseError("The file " + filename +  "is already open.")
+
+        open_files[filename] = self
+
+        if create == False:
+            if 'default' in listfiles():
+                # If 'default' exists, use it as a template
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)  # Read content from default
+                self.LPfile = openfile(filename, True)  # Create new file
+                self.LPfile.writeat(content, 0)  # Write default content into the new file
+                default_file.close() # close file after writing default content
+            else:
+                # If 'default' does not exist, raise an error
+                raise FileNotFoundError("The 'default' file does not exist, cannot open file without creating it.")
+        else:
+            # If create == True, create the file normally with given file name
+            # But,  if 'default' is being created, delete all closed files
+            if self.filename == 'default':
+                self.delete_closed_files()
+            self.LPfile = openfile(filename, create)
+
+    def readat(self, num_bytes, offset):
+        if not self.is_open:
+            raise FileClosedError("Cannot read from a closed file: " + filename)
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        if not self.is_open:
+            raise FileClosedError("Cannot read from a closed file: " + filename)
+        self.LPfile.writeat(data, offset)
+
+        if self.filename == 'default':
+            # If 'default' is written to, delete all closed files
+            self.delete_closed_files()
+
+    def close(self):
+        if not self.is_open:
+            # Raise a specific error if trying to close an already closed file
+            raise FileClosedError("The file " + filename + " is already closed.")
+        self.is_open = False  # Mark the file as closed
+        del open_files[self.filename]  # Remove from open files
+        closed_files[self.filename] = True  # Store filename in closed_files dictionary
+        self.LPfile.close()
+
+    def delete_closed_files(self):
+        """Deletes all closed files when 'default' is created, written to or deleted."""
+        for fname in list(closed_files.keys()):
+            if fname in open_files:
+                # Skip files that are still open
+                continue
+            try:
+                removefile(fname)  # Try to remove the file
+                del closed_files[fname]  # Remove it from closed_files
+            except Exception:
+                # Ignore if the file is already deleted
+                pass
+
+def LPopenfile(filename, create):
+    try:
+        new_file = LPFile(filename, create)
+    except FileInUseError:
+        raise FileInUseError("The file " + filename +  "is already open.")
+    return new_file
+    #new_file = LPFile(filename, create)
+    #if not new_file.is_open:
+    #    closed_files[filename] = True  # Track closed files manually
+    #return new_file
+
+def LPremovefile(filename):
+    # Check if the file is open
+    if filename in open_files:
+        raise Exception("Cannot remove file " + filename + " it is currently in use.")
+
+    removefile(filename)  # Remove the file using Repy's function
+
+    if filename == 'default':
+        # If 'default' is removed, delete all closed files
+        for fname in list(closed_files.keys()):
+            if fname in open_files:
+                # Skip files that are still open
+                continue
+            try:
+                removefile(fname)
+                del closed_files[fname]
+            except Exception:
+                pass
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

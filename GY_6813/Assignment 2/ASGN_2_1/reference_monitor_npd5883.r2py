@@ -1,0 +1,120 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        mycontext['defaultFiles'] = {}
+
+        if not create and filename not in listfiles():
+            if 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)  # Read from the file using the sandbox's readat
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                default_file.close()
+                mycontext['defaultFiles'][filename] = 'open'
+            else:
+                raise FileNotFoundError("Error: Can't create new file and no default file to template")
+        else:
+            if filename in listfiles():
+                self.LPfile = openfile(filename, create)
+                if filename in mycontext['defaultFiles']:
+                    mycontext['defaultFiles'][filename] = 'open'
+                    
+            else:
+                if create:
+                    self.LPfile = openfile(filename, True)
+                else:
+                    raise FileNotFoundError("Error: File does not exist.")  
+
+    def readat(self, num_bytes, offset):
+        try:
+            data = self.LPfile.readat(num_bytes, offset)
+            return data
+        except:
+            raise
+    def writeat(self, data, offset):
+        try:
+            self.LPfile.writeat(data, offset)
+        except:
+            raise
+    def close(self):
+        if self.LPfile:
+            if self.LPfile in mycontext['defaultFiles']:
+                mycontext['defaultFiles'][filename] = 'closed'
+            self.LPfile.close()
+        else:
+            raise PermissionError("Error: Unauthorized file close attempt.")   
+         
+
+def LPopenfile(filename, create):
+    if filename in listfiles():
+        return LPFile(filename, create)
+    if create:
+        return LPFile(filename, True)
+    if not create and filename not in listfiles():
+        if 'default' in listfiles():
+            return LPFile(filename, False)
+        else:
+            raise FileNotFoundError("Error: 'default' file not found, can't use as template.")
+    raise PermissionError("Error: Unauthorized attempt to access file")
+
+def LPremovefile(filename):
+    if filename == 'default':
+        for file, status in mycontext['defaultFiles'].items():
+            if status == 'closed':
+                removefile(file)
+        removefile(filename)
+
+    if filename in listfiles():
+        removefile(filename)
+    else:
+        raise PermissionError("Error: Unauthorized file removal attempt.") 
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

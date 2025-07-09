@@ -1,0 +1,17 @@
+# creating default doesn't affect open files
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "thing1.txt" in listfiles():
+    removefile("thing1.txt")
+
+thing1 = openfile("thing1.txt", True)
+thing1.writeat("I'm a file", 0)
+
+default = openfile("default", True)
+default.writeat("I'm default", 0)
+default.close()
+
+assert thing1.readat(None, 0) == "I'm a file"
+thing1.close()

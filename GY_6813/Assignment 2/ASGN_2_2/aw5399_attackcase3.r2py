@@ -1,0 +1,38 @@
+################################################################################
+# Test Case: Check creation of testfile with arg = True
+################################################################################
+
+# Remove existing files if present
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Write initial content to the default file
+default.writeat("TEMPLATE", 0)
+
+# Close the default file
+default.close()
+
+# Remove existing files if present
+
+# Open a new file that doesn't exist
+# This should create the file
+myfile = openfile("testfile.txt", True)
+
+if myfile is not None:
+    assert myfile.readat(100, 0) is not None, "Failed: File should be readable."
+else:
+    pass
+
+    # Clean up
+    if "default" in listfiles():
+        removefile("default")
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Exit the test
+    exitall()

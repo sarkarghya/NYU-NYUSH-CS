@@ -1,0 +1,24 @@
+try:
+	myfile=openfile("testfile.txt",True)  #Create a file
+	def thread1():
+		for i in range(100):
+			myfile.writeat("1", 0)
+	def thread2():
+		for i in range(1,101):
+			myfile.writeat("20421345025023052035025302035025020350250230502530205205025025", 50)
+	def thread3():
+		for i in range(2,102):
+			myfile.writeat("354298729472v 204uvg20f29iuvrb293rb29eu8", 99)
+	createthread(thread1)
+	createthread(thread2)
+	createthread(thread3)
+	sleep(5)
+	data = myfile.readat(None, 0)
+	if(data != "122222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222100000000000000000000000"):
+		log("Attack passed\n\n\n")
+	myfile.close()
+
+
+except Exception as err:
+	log("weird exception\n\n\n\n")
+	

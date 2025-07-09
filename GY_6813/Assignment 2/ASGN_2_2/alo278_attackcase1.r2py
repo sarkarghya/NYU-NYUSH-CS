@@ -1,0 +1,26 @@
+# Attack case to test re-opening a previously opened file
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("DEFAULT TEMP", 0)
+default.close()
+
+# Create a test file that we write to
+testfile = openfile("testfile.txt", True)
+testfile.writeat("Test file!", 0)
+testfile.close()
+
+# Open the test file
+testfile2 = openfile("testfile.txt", False)
+# We would expect the text to remain the same as when we wrote to it
+assert testfile2.readat(None, 0) == "Test file!"
+testfile2.close()
+
+
+

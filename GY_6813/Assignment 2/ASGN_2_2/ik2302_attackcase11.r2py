@@ -1,0 +1,18 @@
+# check if creating a file by default causes a problem if the default file is open
+# if yes, it means that someone can deny the creation of a file by default by keeping the default file open
+
+for filename in ["default", "test_1.txt", "test_2.txt", "testfile.txt"]:
+    if filename in listfiles():
+        removefile(filename)
+
+default = openfile("default", True)
+default.writeat("DEFAULT", 0)
+default.close()
+
+default = openfile("default", True)
+
+file1 = openfile("test_1.txt", False)
+
+default.writeat("AAAAAAA", 0)
+
+assert file1.readat(None, 0) == "DEFAULT", "Test failed: `test_1.txt` content is incorrect"

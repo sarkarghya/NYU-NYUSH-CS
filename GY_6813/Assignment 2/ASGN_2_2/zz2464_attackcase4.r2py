@@ -1,0 +1,50 @@
+# the goal is to exploit weak validation in filenames to bypass security or cause errors. Specifically, we will test filenames that are invalid
+# Clean up any existing files before starting the test
+if "invalid_file.txt" in listfiles():
+    removefile("invalid_file.txt")
+if "long_filename.txt" in listfiles():
+    removefile("long_filename.txt")
+
+# --- Attack Step 1: Filenames with Invalid Characters ---
+try:
+    # Attempt to create a file with invalid characters
+    invalid_file = openfile("invalid@file.txt", True)
+except RepyArgumentError:
+    # Expected error: Invalid character in filename
+    pass
+
+# --- Attack Step 2: Overly Long Filenames ---
+try:
+    # Create a filename with more than 120 characters
+    long_filename = "a" * 121 + ".txt"
+    long_file = openfile(long_filename, True)
+except RepyArgumentError:
+    # Expected error: Filename too long
+    pass
+
+# --- Attack Step 3: Reserved Filenames ---
+try:
+    # Manually set reserved filenames depending on the platform
+    reserved_filename_windows = "CON"
+    reserved_filename_linux = "dev/null"
+    
+    # Try using the reserved Windows filename
+    try:
+        reserved_file = openfile(reserved_filename_windows, True)
+    except RepyArgumentError:
+        # Expected error for reserved Windows filename
+        pass
+
+    # Attempt to create a reserved filename for Linux
+    try:
+        reserved_file = openfile(reserved_filename_linux, True)
+    except RepyArgumentError:
+        # Expected error for reserved Linux filename
+        pass
+
+finally:
+    # Clean up created files (if any were successfully created)
+    if "invalid_file.txt" in listfiles():
+        removefile("invalid_file.txt")
+    if long_filename in listfiles():
+        removefile(long_filename)

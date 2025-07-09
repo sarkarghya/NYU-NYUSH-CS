@@ -1,0 +1,48 @@
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file with even parity data
+default = openfile("default", True)
+
+# Write valid even-parity data to default
+default.writeat("TEMPLATE", 0)
+
+# Close the default file
+default.close()
+
+# Attempt to open "testfile.txt" with creation
+myfile = openfile("testfile.txt", True)
+
+try:
+    myfile.writeat("AA", 0) 
+    try:
+        myfile.writeat("BBB", 2)
+    except RepyParityError:
+        pass
+
+    for i in range(50):  
+        if i % 2 == 0:
+            try:
+                myfile.writeat("CC", 0)
+            except RepyParityError:
+                pass
+        else:
+            try:
+                myfile.writeat("DDD", 0)
+            except RepyParityError:
+                pass
+
+finally:
+    try:
+        myfile.close()
+    except:
+        pass
+
+try:
+    myfile = openfile("testfile.txt", False)
+    read_data = myfile.readat(None, 0)
+    myfile.close()
+except:
+    pass

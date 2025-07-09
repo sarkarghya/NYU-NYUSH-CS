@@ -1,0 +1,18 @@
+def attack():
+    try:
+        if 'default' not in listfiles():
+            default_file = openfile('default', True)
+            default_file.writeat("Default content", 0)
+            default_file.close()
+
+        myfile = openfile("attackfile2.txt", True)  
+        myfile.writeat("Initial content", 0)
+        myfile.close()
+
+        myfile = openfile("attackfile2.txt", False)  
+        content = myfile.readat(15, 0)
+        myfile.close()
+    except Exception as e:
+        pass
+    finally:
+        exitall()

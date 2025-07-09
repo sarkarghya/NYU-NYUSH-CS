@@ -1,0 +1,28 @@
+
+# Testing if the reference monitor allows for the deletion of a file if it's still open
+
+filename = "testfile_open.txt"
+
+try:
+    # Create and open the file
+    openfile(filename, True)
+    
+    # Try deleting the file while it's still open
+    try:
+        removefile(filename)
+    except FileInUseError:
+        # Expected behavior, file cannot be deleted while in use
+        pass
+    except Exception as e:
+        # Log unexpected errors
+        log("Unexpected error: " + str(e))
+finally:
+    Close and remove the file
+    try:
+        closefile(filename)
+    except Exception as e:
+        log("Error closing file: " + str(e))
+    try:
+        removefile(filename)
+    except Exception as e:
+        log("Error removing file: " + str(e))

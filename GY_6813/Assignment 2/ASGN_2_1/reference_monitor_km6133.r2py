@@ -1,0 +1,122 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+if "cf" not in mycontext:
+    mycontext["cf"] = {}
+
+
+class LPFile():
+    def __init__(self, filename, create):
+
+        self.filename=filename
+        self.closed=False
+        
+        if create:
+            self.LPfile = openfile(filename, create)
+            if filename not in mycontext["cf"]:
+                mycontext["cf"][filename] = "open"
+        else:
+            if filename in listfiles():
+                self.LPfile = openfile(filename, create)
+            else:
+                if "default" in listfiles():
+                    df = openfile("default", False)
+                    content = df.readat(None, 0)
+                    df.close()
+                    self.LPfile = openfile(filename, True)
+                    self.LPfile.writeat(content, 0)
+                    mycontext["cf"][filename] = "open"
+                else:
+                    raise FileNotFoundError("Default file missing.")
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        if self.filename == "default":
+            self._handle_default_modified()
+        
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+        self.closed = True
+        if self.filename in mycontext["cf"]:
+            mycontext["cf"][self.filename] = "closed"
+
+    def _handle_default_modified(self):
+        fd = []
+        for fname, status in mycontext["cf"].items():
+            if status == "closed" and fname != "default":
+                fd.append(fname)
+        for fname in fd:
+            removefile(fname)
+            del mycontext["cf"][fname]
+        
+        
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename == "default":
+        fd = []
+        for fname, status in mycontext["cf"].items():
+            if status == "closed" and fname != "default":
+                fd.append(fname)
+        for fname in fd:
+            removefile(fname)
+            del mycontext["cf"][fname]
+    removefile(filename)
+    mycontext["cf"].pop(filename, None)
+
+# Security definitions for LPFile methods
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {
+        "type": "func",
+        "args": (str, int),
+        "exceptions": Exception,
+        "return": (int, type(None)),
+        "target": LPFile.writeat
+    },
+    "readat": {
+        "type": "func",
+        "args": ((int, type(None)), int),
+        "exceptions": Exception,
+        "return": str,
+        "target": LPFile.readat
+    },
+    "close": {
+        "type": "func",
+        "args": None,
+        "exceptions": Exception,
+        "return": type(None),
+        "target": LPFile.close
+    }
+}
+
+# Security definitions for openfile and removefile
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code in the secure environment
+secure_dispatch_module()

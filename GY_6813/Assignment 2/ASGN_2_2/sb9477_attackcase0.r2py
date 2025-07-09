@@ -1,0 +1,19 @@
+# Test edge cases in writing
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+default.writeat("", 0)
+default.close()
+
+test = openfile("test.txt", False)
+
+try:
+    test.writeat("This is negative offset", -10)
+except RepyArgumentError:
+    pass
+
+test.close()

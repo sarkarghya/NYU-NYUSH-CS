@@ -1,0 +1,7 @@
+# Attempt to open a file that shouldn't exist and without creating it.
+try:
+    lpfile = openfile("000ppp", False)
+except FileNotFoundError:
+    pass  # passed test case
+except Exception:
+    log("attacked")

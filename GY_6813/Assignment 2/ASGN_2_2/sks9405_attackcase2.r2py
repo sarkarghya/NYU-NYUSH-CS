@@ -1,0 +1,18 @@
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+myfile=openfile("testfile.txt",True)
+myfile.writeat("validstring",0)
+myfile.close()
+
+myfile=openfile("testfile.txt",True)
+myfile.writeat("string2",11)
+myfile.close()
+
+myfile=openfile("testfile.txt",True)
+
+
+assert('validstringstring2' == myfile.readat(None,0))
+myfile.close()
+

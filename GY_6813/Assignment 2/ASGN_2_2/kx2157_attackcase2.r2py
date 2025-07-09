@@ -1,0 +1,49 @@
+def safe_remove_file(filename):
+    if filename in listfiles():
+        try:
+            removefile(filename)
+        except Exception as e:
+            pass
+
+def clean_up_test_files():
+    test_filenames = [
+        "../etc/passwd",
+        "a" * 300 + ".txt",
+        "invalid\x00file.txt",
+        "invalid/filename.txt"
+    ]
+    for filename in test_filenames:
+        safe_remove_file(filename)
+
+def test_directory_traversal():
+    try:
+        openfile("../etc/passwd", True)  # Directory traversal attempt
+    except ValueError as e:
+        pass
+
+def test_filename_length():
+    try:
+        openfile("a" * 300 + ".txt", True)  # Exceed length
+    except ValueError as e:
+        pass
+
+def test_null_byte_in_filename():
+    try:
+        openfile("invalid\x00file.txt", True)
+    except ValueError as e:
+        pass
+
+def test_special_characters_in_filename():
+    try:
+        openfile("invalid/filename.txt", True)  # '/' is not allowed
+    except ValueError as e:
+        pass
+
+def test_input_validation():
+    clean_up_test_files()
+    test_directory_traversal()
+    test_filename_length()
+    test_null_byte_in_filename()
+    test_special_characters_in_filename()
+
+test_input_validation()

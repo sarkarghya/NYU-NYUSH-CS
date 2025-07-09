@@ -1,0 +1,21 @@
+def test_access_after_close():
+    myfile = openfile("testfile", True)
+    myfile.writeat("Hello, world!", 0)
+    myfile.close()
+    
+    try:
+        myfile.readat(5, 0)
+        assert False
+    except:
+        pass
+    
+    try:
+        myfile.writeat("Oops", 0)
+        assert False
+    except:
+        pass
+
+    if "testfile" in listfiles():
+        removefile("testfile")
+
+test_access_after_close()

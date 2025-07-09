@@ -1,0 +1,42 @@
+### asserting file name conventions
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+default.close()
+
+#open a new file
+try:
+    myfile = openfile("..txt", True)
+except (RepyArgumentError, ValueError):
+    pass
+
+try:
+    myfile = openfile("...txt", True)
+except (RepyArgumentError, ValueError):
+    pass
+
+try:
+    myfile = openfile("", True)
+except (RepyArgumentError, ValueError):
+    pass
+
+try:
+    myfile = openfile(".testfile.txt", True)
+except (RepyArgumentError, ValueError):
+    pass
+
+try:
+    myfile = openfile("3Ra1kn3y98txnvHpA1KZCvFxN9mPgXfjUJBufzTpBPxkunPYkhw3QutNzkHrpidqAEt0YCRyH12ay1yPmuq3fgVjWiZft8MPN4YqHEvDVSW25AYq7yCQ10i8E.txt", True)
+except (RepyArgumentError, ValueError):
+    pass

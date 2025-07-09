@@ -1,0 +1,298 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+# keeps track of how many files
+# are open
+mycontext['opencount'] = 0
+
+# stores whether files are open or closed
+# in a dictionary
+mycontext['files'] = {}
+
+class LPFile():
+    name = ""
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        if mycontext['opencount'] == 0:
+            for file in listfiles():
+                mycontext['files'][file] = False
+
+        allowed = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z','0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', '_']
+
+
+
+        if not isinstance(create, bool):
+            raise Exception("RepyArgumentError")
+        if not isinstance(filename, str):
+            raise Exception("RepyArgumentError")
+        if filename == "." or filename == ".." or filename == "":
+            raise Exception("RepyArgumentError")
+        if filename[0] == ".":
+            raise Exception("RepyArgumentError")
+        if len(filename) > 120:
+            raise Exception("RepyArgumentError")
+
+        for i in filename:
+            if i not in allowed:
+                raise Exception("RepyArgumentError")
+
+        # linux Ubuntu is limited to 1024 active file handles
+        if mycontext['opencount'] == 1024:
+            raise Exception("ResourceExhaustedError")
+
+        if filename in mycontext['files']:
+            if mycontext['files'][filename] == True:
+                raise Exception("FileInUseError")
+
+        # deletes all closed files if default is created
+        if filename == "default":
+            files = listfiles()
+            for f in files:
+                if filename in mycontext['files']:
+                    if mycontext['files'][f] == False and filename != "default":
+                        del mycontext['files'][f]
+                    if filename != "default":
+                        removefile(f)
+            mycontext['opencount'] += 1
+            self.name = filename
+            # used to track what files are open or closed
+            mycontext['files'][filename] = True
+            self.LPfile = openfile(filename, True)
+        elif create == False:
+            if 'default' not in listfiles():
+                raise Exception("FileNotFoundError")
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+
+            mycontext['opencount'] += 1
+            self.LPfile = openfile(filename, True)
+
+            self.name = filename
+
+            # used to track what files are open or closed
+            mycontext['files'][filename] = True
+
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+        else:
+            self.LPfile = openfile(filename, create)
+
+            self.name = filename
+            mycontext['opencount'] += 1
+            
+            # used to track what files are open or closed
+            mycontext['files'][filename] = True
+            
+    def readat(self, num_bytes, offset):
+
+        if mycontext['opencount'] == 0:
+            for file in listfiles():
+                mycontext['files'][file] = False
+
+        if num_bytes is not None:
+            if offset < 0 or num_bytes < 0:
+                raise Exception("RepyArgumentError")
+
+            
+        if self.name in mycontext['files']:
+            if mycontext['files'][self.name] == False:
+                raise Exception("FileClosedError")
+
+        content = self.LPfile.readat(num_bytes, offset)
+
+        # an ascii character is one byte so
+        # if there are less characters
+        # then num_bytes then that means that the
+        # end of the file was reached
+        if num_bytes is not None:
+            if len(content) < num_bytes:
+                raise Exception("SeekPastEndOfFileError")
+        
+        return content
+
+    def writeat(self, data, offset):
+
+        if mycontext['opencount'] == 0:
+            for file in listfiles():
+                mycontext['files'][file] = False
+
+        if offset < 0 or not isinstance(data, str):
+            raise Exception("RepyArgumentError")
+
+        if mycontext['files'][self.name] == False:
+            raise Exception("FileClosedError")
+
+        # if reading that many bytes of data at that offset raises a
+        # SeekEndOfFileError exception that means that writing that
+        # much data at that offset would have also resulted in the
+        # same exception
+	if offset != 0:
+		test = self.readat(len(data), offset)
+        
+        # deletes all closed files if default is written to
+        if self.name == "default":
+            files = listfiles()
+            for f in files:
+                if f in mycontext['files']:
+                    if mycontext['files'][f] == False and self.name != "default":
+                        del mycontext['files'][f]
+                    if self.name != "default":
+                        removefile(f)
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+
+        if mycontext['opencount'] == 0:
+            for file in listfiles():
+                mycontext['files'][file] = False
+
+        if self.name in mycontext['files']:
+            if mycontext['files'][self.name] == False:
+                raise Exception("FileClosedError")
+
+        mycontext['opencount'] -= 1
+        mycontext['files'][self.name] = False
+        
+        self.LPfile.close()
+        
+def LPopenfile(filename, create):
+
+    if mycontext['opencount'] == 0:
+            for file in listfiles():
+                mycontext['files'][file] = False
+
+    allowed = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z','0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', '_']
+
+    # exception statments are also in the LPFile initialization
+    # itself in case someone tries to call that directly
+    # and skip this
+    
+    if not isinstance(create, bool):
+            raise Exception("RepyArgumentError")
+    if not isinstance(filename, str):
+        raise Exception("RepyArgumentError")
+    if filename == "." or filename == ".." or filename == "":
+        raise Exception("RepyArgumentError")
+    if filename[0] == ".":
+        raise Exception("RepyArgumentError")
+    if len(filename) > 120:
+        raise Exception("RepyArgumentError")
+
+    for i in filename:
+        if i not in allowed:
+            raise Exception("RepyArgumentError")
+
+    # linux Ubuntu is limited to 1024 active file handles
+    if mycontext['opencount'] == 1024:
+        raise Exception("ResourceExhaustedError")
+
+    # instructions say to raise this error if the filename
+    # is not found and create is false
+    if create == False and filename not in listfiles():
+        raise Exception("FileNotFoundError")
+
+    if filename in mycontext['files']:
+        if mycontext['files'][filename] == True:
+            raise Exception("FileInUseError")
+
+    if create == False:
+        if 'default' not in listfiles():
+            raise Exception("FileNotFoundError")
+    
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+
+    if mycontext['opencount'] == 0:
+            for file in listfiles():
+                mycontext['files'][file] = False
+
+    allowed = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z','0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', '_']
+
+
+
+    if not isinstance(filename, str):
+            raise Exception("RepyArgumentError")
+    if filename == "." or filename == ".." or filename == "":
+        raise Exception("RepyArgumentError")
+    if filename[0] == ".":
+        raise Exception("RepyArgumentError")
+    if len(filename) > 120:
+        raise Exception("RepyArgumentError")
+
+    for i in filename:
+        if i not in allowed:
+            raise Exception("RepyArgumentError")
+
+    if filename not in listfiles():
+        raise Exception("FileNotFoundError")
+
+    if filename in mycontext['files']:
+        if mycontext['files'][filename] == True:
+            raise Exception("FileInUseError")
+    
+    # deletes all closed files if default is removed
+        if filename == "default":
+            files = listfiles()
+            for f in files:
+                if f in mycontext['files']:
+                    if mycontext['files'][f] == False and filename != "default":
+                        del mycontext['files'][f]
+                if filename != "default":
+                    removefile(f)
+
+    if mycontext['files'][filename] == True:
+        mycontext['opencount'] -= 1
+    
+    del mycontext['files'][filename]
+    
+    removefile(filename) 
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()
+
+
+

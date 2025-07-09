@@ -1,0 +1,21 @@
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+
+myfile = openfile("testfile.txt", True)
+
+
+for i in range(6):
+    try:
+        myfile.writeat("data", 0) 
+    except Exception:
+        pass  
+
+myfile.close()

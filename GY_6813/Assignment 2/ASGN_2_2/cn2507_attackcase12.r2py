@@ -1,0 +1,17 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'emptydoc.txt' in listfiles():
+    removefile('emptydoc.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('Some sample content.', 0)
+default_file.close()
+
+empty_file = openfile('emptydoc.txt', True)
+empty_file.close()
+
+default_file = openfile('default', False)
+default_file.writeat('Updated sample content.', 0)
+default_file.close()
+
+assert 'emptydoc.txt' not in listfiles()

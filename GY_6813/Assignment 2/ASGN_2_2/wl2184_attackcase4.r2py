@@ -1,0 +1,50 @@
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "file1" in listfiles():
+    removefile("file1")
+if "file2" in listfiles():
+    removefile("file2")
+if "file3" in listfiles():
+    removefile("file3")
+
+# Create two files
+try:
+    file1 = openfile("file1", True)
+    file2 = openfile("file2", True)
+
+    # Create one more file
+    file3 = openfile("file3", True)
+
+    # Close two files
+    file1.close()
+    file2.close()
+
+    default = openfile("default", True)
+
+    if "file1" in listfiles():
+        removefile("file1")
+    if "file2" in listfiles():
+        removefile("file2")
+    if "file3" not in listfiles():
+        removefile("file3")
+
+    default.writeat("TEMPLATE", 0)
+    default.close()
+
+except:
+    pass  
+
+# Attempt to open 'testfile.txt' that does not exist
+try:
+    myfile = openfile("testfile.txt", False)
+    read_data = myfile.readat(None, 0)
+    myfile.close()
+except:
+    pass 
+
+try:
+    file3.close()
+except:
+    pass 

@@ -1,0 +1,25 @@
+# Test for file creation using 'default'
+def test_file_creation():
+    try:
+        # Create 'default' file
+        fobj = openfile('default', True)
+        fobj.writeat('Default content', 0)
+        fobj.close()
+
+        # Now create a new file which should use 'default' content
+        testfile = openfile('testfile.txt', False)
+        content = testfile.readat(100, 0)
+
+        # Check the content without logging
+        if content != 'Default content':
+            pass  # Expected behavior if the content is incorrect
+        else:
+            pass  # Expected behavior if the content is correct
+
+        testfile.close()
+        removefile('testfile.txt')
+
+    except Exception:
+        pass  # Catch any error and pass
+
+test_file_creation()

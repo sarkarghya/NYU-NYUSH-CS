@@ -1,0 +1,32 @@
+def thread_write(filename, content):
+    file = openfile(filename, True)
+    file.writeat(content, 0)
+    file.close()
+
+def thread1():
+    thread_write("test_file1", "Hello from thread 1")
+
+def thread2():
+    thread_write("test_file2", "Hello from thread 2")
+    
+def test_concurrent_writes():
+    createthread(thread1)
+    createthread(thread2)
+    
+    sleep(0.1)
+    
+    file1 = openfile("test_file1", False)
+    content1 = file1.readat(None, 0)
+    file1.close()
+    
+    file2 = openfile("test_file2", False)
+    content2 = file2.readat(None, 0)
+    file2.close()
+    
+    assert content1 == "Hello from thread 1"
+    assert content2 == "Hello from thread 2"
+    
+    removefile("test_file1")
+    removefile("test_file2")
+
+test_concurrent_writes()

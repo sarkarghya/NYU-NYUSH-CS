@@ -1,0 +1,13 @@
+try:
+    d = openfile("default3", True)
+    d.writeat("None", 0)
+    d.writeat("None", 3)
+    d.close()
+    d = openfile("default3", True)
+    d.close()
+except FileClosedError as e:
+    log(e)
+    log("\n")
+except Exception as e:
+    log(e)
+    log("\n")

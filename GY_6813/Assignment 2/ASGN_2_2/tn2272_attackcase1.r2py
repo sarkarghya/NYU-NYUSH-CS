@@ -1,0 +1,23 @@
+# tn2272_attackcase1.r2py
+try:
+    f = openfile('importantfile.txt', True)  
+    f.writeat('This is a test file.', 0)
+    f.close()
+except:
+    pass  
+
+try:
+    removefile('importantfile.txt')
+except:
+    pass  
+
+try:
+    
+    openfile('importantfile.txt', False)  
+except:
+    pass  
+
+try:
+    renamefile('importantfile.txt', 'newname.txt')
+except:
+    pass  

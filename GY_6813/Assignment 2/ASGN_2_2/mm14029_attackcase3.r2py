@@ -1,0 +1,20 @@
+### Asserting creation of default
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+#open a new file
+myfile = openfile("testfile.txt", True)
+
+myfile.close()
+
+# Create a default file
+default = openfile("default", True)
+
+default.close()
+
+#assert "testfile.txt" not in listfiles()

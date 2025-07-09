@@ -1,0 +1,48 @@
+# Check that when we write to default, all closed files are deleted
+
+if "default" in listfiles():
+    removefile("default")
+if "testfile1.txt" in listfiles():
+    removefile("testfile1.txt")
+if "testfile2.txt" in listfiles():
+    removefile("testfile2.txt")
+if "testfile3.txt" in listfiles():
+    removefile("testfile3.txt")
+if "testfile4.txt" in listfiles():
+    removefile("testfile4.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("DEFAULT TEMP", 0)
+default.close()
+
+# Create test files that we don't write to
+testfile1 = openfile("testfile1.txt", False)
+testfile2 = openfile("testfile2.txt", False)
+
+# Create test files that we do write to
+testfile3 = openfile("testfile3.txt", True)
+testfile3.writeat("Test file 3!", 0)
+testfile4 = openfile("testfile4.txt", True)
+testfile4.writeat("Test file 4!", 0)
+
+# Close test files 1 and 3
+testfile1.close()
+testfile3.close()
+
+# Write to default file
+default = openfile("default", True)
+default.writeat("OVERWRITING DEFAULT", 0)
+
+# Check that closed files (1 and 3) have been deleted
+assert "testfile1.txt" not in listfiles()
+assert "testfile3.txt" not in listfiles()
+
+# Check that open files (2 and 4) have remained unchanged
+assert testfile2.readat(None, 0) == "DEFAULT TEMP"
+assert testfile4.readat(None, 0) == "Test file 4!"
+
+default.close()
+testfile2.close()
+testfile4.close()
+

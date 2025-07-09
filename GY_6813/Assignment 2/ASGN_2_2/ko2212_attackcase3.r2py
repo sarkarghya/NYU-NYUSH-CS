@@ -1,0 +1,6 @@
+try:
+    lp_file = openfile(".invalid_filename.txt", True)
+except RepyArgumentError:
+    pass
+else:
+    log("Test failed: Invalid filename accepted. Reference monitor did not reject it as expected.")

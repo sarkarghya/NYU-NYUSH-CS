@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: proxy-service
+spec:
+  selector:
+    pod: proxy
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: NodePort

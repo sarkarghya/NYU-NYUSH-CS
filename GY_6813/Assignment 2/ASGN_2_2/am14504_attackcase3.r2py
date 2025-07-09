@@ -1,0 +1,20 @@
+'''
+    An attackcase to check if 'default' is being used properly when it exists and another file is being created with False option passed
+'''
+
+if 'default' in listfiles():
+    removefile('default')
+if 'testfile_1.txt' in listfiles():
+    removefile('testfile_1.txt')
+
+default = openfile('default', True)
+
+default.writeat("SAMPLE NEW", 0)
+
+default.close()
+
+myfile = openfile('testfile_1.txt', False)
+
+assert myfile.readat(None, 0) == "SAMPLE NEW"
+
+myfile.close()

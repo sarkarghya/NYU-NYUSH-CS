@@ -1,0 +1,25 @@
+# # case 1: just open a file and then close it
+
+def close_after(t):
+  def sleep_for():
+    # Terminated the program after sleeping t sec
+    sleep(t)
+    log("ATTACK 1 | Unsuccessful Operation as Program Triggered Race Condition / Infinite Loop\n")
+    exitall()
+  return sleep_for
+terminate_program = close_after(10)
+createthread(terminate_program)
+
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+
+try:
+    myfile=openfile("testfile.txt",True)
+
+    myfile.close()
+except:
+    log("ATTACK 1 | ERROR | New File open/close Operation is not handled properly!\n")
+
+finally:
+    #Exit operation
+    exitall()

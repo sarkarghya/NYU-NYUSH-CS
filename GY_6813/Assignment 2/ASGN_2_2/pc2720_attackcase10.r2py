@@ -1,0 +1,14 @@
+# Read From Closed File
+# Should raise error
+
+try:
+    file = openfile("test.txt", True)
+    file.writeat("HELLO", 0)
+    file.close()
+    data = file.readat(10, 0)
+except FileClosedError:
+    pass
+
+
+
+

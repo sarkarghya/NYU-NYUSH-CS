@@ -1,0 +1,8 @@
+try:
+    file_handles = []
+    while True:
+        file_handles.append(openfile("testfile_" + str(len(file_handles)) + ".txt", True))
+except ResourceExhaustedError:
+    pass
+else:
+    log("Test failed: Resource limit not enforced. Opened more files than allowed.")

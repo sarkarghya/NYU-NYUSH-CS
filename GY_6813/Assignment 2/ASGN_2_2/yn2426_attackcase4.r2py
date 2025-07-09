@@ -1,0 +1,30 @@
+# ATTACKCASE4: TEST WHETHER WRITEAT VALUE STORES AFTER CLOSING THE FILE
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+myfile = openfile("testfile.txt", True)
+
+myfile.writeat("12345678", 0)
+
+myfile.close()
+
+myfile = openfile("testfile.txt", True)
+
+
+try:
+    assert "12345678" == myfile.readat(None, 0)
+
+except Exception:
+
+    log("Attackcase4 SUCCESS : CLOSE OPERATION NOT WORKING \n")
+
+except RepyArgumentError:
+
+    log("Attackcase4 SUCCESS : CLOSE OPERATION NOT WORKING \n")
+    pass
+
+finally:
+    myfile.close()
+    pass
+

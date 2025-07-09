@@ -1,0 +1,39 @@
+import time
+from threading import Thread
+
+# Function to attack thread, exploits LPFile class logic
+def attack_thread():
+    try:
+        attack_file = LPopenfile("attackfile.txt", True)
+        time.sleep(0.5)  # Slight delay
+        try:
+            content_read = attack_file.readat(None, 0)
+        except Exception:
+            pass  # Suppress any expected errors
+        # Close file after reading
+        attack_file.close()
+    except Exception:
+        pass  # Suppress any unexpected errors
+
+# Clean up if any existing attack files are present
+if "attackfile.txt" in listfiles():
+    LPremovefile("attackfile.txt")
+
+# Create a default file
+default_file = LPopenfile("default", True)
+exploit = "EXPLOITED_CONTENT"
+default_file.writeat(exploit, 0)
+default_file.close()
+
+# Initialize a list to keep track of thread objects
+threads = []
+
+# Create and start multiple threads to execute the attack concurrently
+for _ in range(5):
+    thread = Thread(target=attack_thread)
+    threads.append(thread)
+    thread.start()
+
+# Ensure all threads have completed execution
+for thread in threads:
+    thread.join()

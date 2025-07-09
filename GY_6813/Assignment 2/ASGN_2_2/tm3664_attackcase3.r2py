@@ -1,0 +1,11 @@
+def test_unauthorized_default_access():
+    try:
+        if "default" not in listfiles():
+            f = openfile("testfile.txt", create=True)
+            content = f.readat(None, 0)
+            f.close()
+            log("Content of new file copied from non-existing 'default': " + content)
+    except Exception as e:
+        log("Failed to create 'testfile.txt': " + str(e))
+
+test_unauthorized_default_access()

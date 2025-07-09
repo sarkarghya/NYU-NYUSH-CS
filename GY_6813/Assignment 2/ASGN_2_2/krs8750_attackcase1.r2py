@@ -1,0 +1,28 @@
+#Test for closed files being removed when default is overwritten
+
+# Create new default file
+if "default" in listfiles():
+  removefile("default")
+
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+if "test.txt" in listfiles():
+  removefile("test.txt")
+#Create a file using default
+myfile = openfile("test.txt", False)
+myfile.close()
+
+default = openfile("default", True)
+default.writeat("TEMPLATE_NEW", 0)
+default.close()
+
+myfile = openfile("test.txt", False)
+assert myfile.readat(None, 0) == "TEMPLATE_NEW"
+myfile.close()
+removefile("test.txt")

@@ -1,0 +1,10 @@
+try:
+    f1 = openfile('file1', True)
+    f1.close()
+    f2 = openfile('file2', True)
+    f2.close()
+    default = openfile('default', True)
+    default.write('modify default')
+    default.close()
+except:
+    pass

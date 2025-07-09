@@ -1,0 +1,4 @@
+file_obj = openfile('foo', False)
+data="This is negative offset"
+file_obj.writeat(data, -19)
+file_obj.close()

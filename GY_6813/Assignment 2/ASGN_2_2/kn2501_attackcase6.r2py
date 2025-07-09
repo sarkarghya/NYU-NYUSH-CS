@@ -1,0 +1,5 @@
+# Test attempting to create a file with invalid characters in the filename
+try:
+    lpfile = openfile("hid#denfile", True)
+except RepyArgumentError:
+    pass  # Expected: filename contains invalid characters, should raise ValueError

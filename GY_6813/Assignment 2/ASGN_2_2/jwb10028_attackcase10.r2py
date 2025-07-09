@@ -1,0 +1,18 @@
+# attack by bypassing default missing error
+
+def bypass_default_missing():
+    try:
+        if "default" in listfiles():
+            removefile("default")  
+
+        try:
+            file = openfile("foo.txt", False) 
+            raise Exception("File was created even though 'default' is missing.")
+        except FileNotFoundError:
+            pass  
+
+    except Exception:
+        pass  
+
+# Execute the attack
+bypass_default_missing()

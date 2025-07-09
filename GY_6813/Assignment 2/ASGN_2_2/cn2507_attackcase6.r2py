@@ -1,0 +1,19 @@
+for fname in ['default', 'filealpha.txt', 'filebeta.txt']:
+    if fname in listfiles():
+        removefile(fname)
+
+default_file = openfile('default', True)
+default_file.writeat('Template data.', 0)
+default_file.close()
+
+file_alpha = openfile('filealpha.txt', False)
+file_alpha.close()
+file_beta = openfile('filebeta.txt', False)
+file_beta.close()
+
+default_file = openfile('default', False)
+default_file.writeat('Updated template data.', 0)
+default_file.close()
+
+assert 'filealpha.txt' not in listfiles()
+assert 'filebeta.txt' not in listfiles()

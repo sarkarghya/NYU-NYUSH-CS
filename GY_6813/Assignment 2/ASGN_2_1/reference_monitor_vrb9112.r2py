@@ -1,0 +1,106 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+file_lock = createlock()  
+
+class LPFile():
+    open_files = []  
+    closed_files = []  
+
+    def __init__(self, filename, create):
+        mycontext['debug'] = False
+        self.filename = filename
+
+        file_lock.acquire()
+        try:
+            if create:
+                self.LPfile = openfile(filename, True)
+            elif 'default' in listfiles():
+                default_file = openfile('default', False)
+                content = default_file.readat(None, 0)
+                self.LPfile = openfile(filename, True)
+                self.LPfile.writeat(content, 0)
+                default_file.close()
+            else:
+                raise FileNotFoundError("'default' file not found")
+            
+            LPFile.open_files.append(self.filename)
+        finally:
+            file_lock.release()
+
+    def readat(self, num_bytes, offset):
+        file_lock.acquire()
+        try:
+            return self.LPfile.readat(num_bytes, offset)
+        finally:
+            file_lock.release()
+
+    def writeat(self, data, offset):
+        file_lock.acquire()
+        try:
+            self.LPfile.writeat(data, offset)
+        finally:
+            file_lock.release()
+
+    def close(self):
+        file_lock.acquire()
+        try:
+            self.LPfile.close()
+            if self.filename in LPFile.open_files:
+                LPFile.open_files.remove(self.filename)
+            LPFile.closed_files.append(self.filename)
+        finally:
+            file_lock.release()
+
+def LPopenfile(filename, create):
+    file_lock.acquire()
+    try:
+        if filename == 'default':
+            raise ValueError("Modifying 'default' file directly is not allowed.")
+        return LPFile(filename, create)
+    finally:
+        file_lock.release()
+
+def LPremovefile(filename):
+    file_lock.acquire()
+    try:
+        if filename == 'default':
+            for file in LPFile.closed_files:
+                removefile(file)
+            LPFile.closed_files.clear()
+        else:
+            removefile(filename)
+    finally:
+        file_lock.release()
+
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+secure_dispatch_module()
+

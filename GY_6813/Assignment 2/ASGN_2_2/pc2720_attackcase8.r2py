@@ -1,0 +1,11 @@
+# Removing a Non-existant File
+# Should raise error
+
+try:
+    removefile("test.txt")
+except FileNotFoundError:
+    pass
+
+
+
+

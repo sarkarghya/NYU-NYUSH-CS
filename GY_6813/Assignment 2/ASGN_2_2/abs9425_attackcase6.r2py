@@ -1,0 +1,12 @@
+try:
+    file = openfile("testfile.txt", True)
+    
+    # Try to remove the file while it's open
+    removefile("testfile.txt")
+    
+    file.close()
+    log("Security bug: Allowed removal of open file\n")
+except FileInUseError:
+    pass
+except Exception as e:
+    pass

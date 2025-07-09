@@ -1,0 +1,24 @@
+# reference_monitor_aaa10565.r2py
+# reference_monitor_am13801.r2py
+# reference_monitor_ed2336.r2py
+# reference_monitor_ko2212.r2py
+# reference_monitor_nts7434.r2py
+# reference_monitor_rj2387.r2py
+# reference_monitor_ssd410.r2py
+# reference_monitor_wl2184.r2py
+
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+
+default.writeat("TEMPLATE", 0)
+
+default.close()
+
+myfile = openfile("test.txt", False)
+
+myfile.close()

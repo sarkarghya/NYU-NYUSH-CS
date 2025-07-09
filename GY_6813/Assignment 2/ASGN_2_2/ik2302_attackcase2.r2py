@@ -1,0 +1,12 @@
+# Creating default with `create=False`
+
+if "default" in listfiles():
+    removefile("default")
+
+try:
+    # Create a default file
+    default = openfile("default", False)
+except FileNotFoundError as e:
+    pass
+else:
+    log("Test failed: `FileNotFoundError` not raised when creating default with `create=False`")

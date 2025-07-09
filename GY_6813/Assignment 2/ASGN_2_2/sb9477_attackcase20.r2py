@@ -1,0 +1,46 @@
+# Test cases for error chaining and recovery
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+file1 = openfile("test1.txt", True)
+file1.writeat("data", 0)
+file1.close()
+
+file1_reopen = openfile("test1.txt", False)
+try:
+    file1.writeat("new", 0) 
+except FileClosedError:
+    pass 
+
+default = openfile("default", True)
+default.writeat("content", 0)
+
+try:
+    default.writeat("data", -1)
+except RepyArgumentError:
+    pass
+
+default.writeat("valid", 0) 
+
+test_file = openfile("test2.txt", True)
+try:
+    test_file.readat(-1, 0) 
+except RepyArgumentError:
+    pass
+
+try:
+    test_file.writeat(None, 0) 
+except RepyArgumentError:
+    pass
+
+test_file.writeat("good", 0)
+assert test_file.readat(None, 0) == "good"
+
+test_file.close()
+
+for fname in ["test1.txt", "test2.txt", "default"]:
+    if fname in listfiles():
+        removefile(fname)

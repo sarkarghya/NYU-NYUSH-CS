@@ -1,0 +1,103 @@
+"""
+This security layer inadequately handles the default functionality
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py
+
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+mycontext['openfiles'] = {}
+
+def valid_name(filename):
+    if len(filename) > 120 or not isinstance(filename, str) or not filename or filename[0] == '.' or '..' in filename or not all(c in '0123456789abcdefghijklmnopqrstuvwxyz-_.' for c in filename):
+        return False
+    return True
+
+def default_modified():
+    for file in listfiles():
+        if file not in mycontext['openfiles']:
+            removefile(file)
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+
+        self.filename = filename;
+
+        if not valid_name(filename):
+            raise RepyArgumentError("File name is invalid.")
+
+        if filename == 'default':
+            default_modified()
+
+        if create == False and 'default' in listfiles():
+            default_file = openfile('default', False)
+            content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+            self.LPfile = openfile(filename, True)
+            self.LPfile.writeat(content, 0)
+            default_file.close()
+        elif create == False and 'default' not in listfiles():
+            raise FileNotFoundError("Default file does not exist.")
+        else:
+            self.LPfile = openfile(filename, create)
+            mycontext['openfiles'][filename] = self.LPfile
+
+    def readat(self, num_bytes, offset):
+        return self.LPfile.readat(num_bytes, offset)
+
+    def writeat(self, data, offset):
+        self.LPfile.writeat(data, offset)
+        if self.filename == 'default':
+            default_modified()
+
+    def close(self):
+        self.LPfile.close()
+        del mycontext['openfiles'][self.filename]
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    if filename == 'default':
+        default_modified()
+    removefile(filename)
+
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

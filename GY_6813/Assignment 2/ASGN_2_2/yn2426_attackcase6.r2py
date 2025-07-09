@@ -1,0 +1,39 @@
+# ATTACKCASE6 : Tamper with Default File
+def test_tamper_with_default_file():
+    try:
+        d = LPopenfile('default', True)
+        d.writeat("Default content", 0)
+        d.close()
+
+        f1 = LPopenfile('file1', False)
+        f2 = LPopenfile('file2', False)
+        f1.close()
+        f2.close()
+
+        d = LPopenfile('default', True)
+        d.writeat("Modified content", 0)
+        d.close()
+
+        if 'file1' not in listfiles() and 'file2' not in listfiles():
+            log("Attackcase 6: Passed - Closed files deleted after modifying default.")
+        else:
+            log("Attackcase 6: Failed - Closed files not deleted after modifying default.")
+
+
+        f3 = LPopenfile('file3', False)
+        f3.writeat("Some content", 0)
+
+        d = LPopenfile('default', True)
+        d.writeat("Another modification", 0)
+        d.close()
+
+        if 'file3' in listfiles():
+            log("Attackcase 6: Passed - Open files remain unchanged.")
+        else:
+            log("Attackcase 6: Failed - Open files affected by default modification.")
+
+        f3.close()
+    except Exception as e:
+        log("Attackcase 6: Failed - %s" % str(e))
+
+test_tamper_with_default_file()

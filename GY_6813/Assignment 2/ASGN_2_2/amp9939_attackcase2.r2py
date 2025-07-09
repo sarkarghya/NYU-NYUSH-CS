@@ -1,0 +1,16 @@
+#Attack Case 2: Opening, Reading, Writing, Closing to a file
+
+# Clean up if the files exist
+if "default" in listfiles():
+ removefile("default")
+if "exist.txt" in listfiles():
+   removefile("exist.txt")
+
+#open, write, and read a file that exist
+nextfile = openfile("exist.txt", True)
+nextfile.writeat("hello", 0)
+nextfile.readat(None, 0)
+
+
+nextfile.close()
+

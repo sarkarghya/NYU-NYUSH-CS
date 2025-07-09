@@ -1,0 +1,38 @@
+# Attack case to ensure closed files created from 'default' are deleted when 'default' is deleted
+def attack_delete_default_and_check_closed_files():
+    # Clean up 'default' and 'file_from_default' to ensure a fresh start
+    try:
+        removefile("default")
+    except Exception:
+        pass  # Ignore errors if 'default' does not exist
+
+    try:
+        removefile("file_from_default")
+    except Exception:
+        pass  # Ignore errors if 'file_from_default' does not exist
+
+    try:
+        # Step 1: Create 'default' file with initial content
+        default_file = openfile("default", True)
+        default_file.writeat("Template content", 0)
+        default_file.close()
+
+        # Step 2: Create and close 'file_from_default' using 'default' as a template
+        file_from_default = openfile("file_from_default", False)
+        file_from_default.close()
+
+        # Step 3: Delete 'default', which should trigger deletion of closed files
+        removefile("default")
+
+        # Step 4: Try to reopen 'file_from_default', expecting a FileNotFoundError
+        try:
+            file_from_default = openfile("file_from_default", False)
+            raise AssertionError("'file_from_default' was not deleted after 'default' was deleted")
+        except FileNotFoundError:
+            pass  # Expected behavior, suppress the error
+
+    except Exception as e:
+        raise e  # Allow unexpected errors to signal a failure
+
+# Execute the attack case
+attack_delete_default_and_check_closed_files()

@@ -1,0 +1,13 @@
+
+
+
+
+
+def test_protected_file_deletion():
+    try:
+     
+        removefile("protected_file.txt")
+        assert False, "Protected file should not be deletable."
+    except Exception as e:
+        log.error(f"Error opening file: {e}")
+        assert "Permission denied" in str(e), f"Unexpected error: {e}"

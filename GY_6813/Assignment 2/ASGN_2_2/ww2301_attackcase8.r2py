@@ -1,0 +1,62 @@
+# reference_monitor_aa11164.r2py
+# reference_monitor_aa9929.r2py
+# reference_monitor_ag9979.r2py
+# reference_monitor_ajc9961.r2py
+# reference_monitor_amp9939.r2py
+# reference_monitor_aw5399.r2py
+# reference_monitor_caw9180.r2py
+# reference_monitor_erd9800.r2py
+# reference_monitor_gm3163.r2py
+# reference_monitor_hb2987.r2py
+# reference_monitor_hx2222.r2py
+# reference_monitor_ik2302.r2py
+# reference_monitor_jwb10028.r2py
+# reference_monitor_km6296.r2py
+# reference_monitor_mm14029.r2py
+# reference_monitor_om2145.r2py
+# reference_monitor_oo2032.r2py
+# reference_monitor_pg2542.r2py
+# reference_monitor_pg2592.r2py
+# reference_monitor_rwm9998.r2py
+# reference_monitor_sb9477.r2py
+# reference_monitor_sd5913.r2py
+# reference_monitor_sg7569.r2py
+# reference_monitor_sp8097.r2py
+# reference_monitor_to2226.r2py
+# reference_monitor_vvn7114.r2py
+# reference_monitor_xh2774.r2py
+# reference_monitor_xw3508.r2py
+# reference_monitor_yc6104.r2py
+# reference_monitor_zz2464.r2py
+
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+if "test2.txt" in listfiles():
+    removefile("test2.txt")
+if "test3.txt" in listfiles():
+    removefile("test3.txt")
+
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+test = openfile("test.txt", False)
+test.writeat("TEST FILE", 0)
+
+test2 = openfile("test2.txt", True)
+test2.close()
+
+test3 = openfile("test3.txt", False)
+
+removefile("default")
+
+test.close()
+test3.close()
+
+if "test2.txt" in listfiles():
+    raise Exception("test2.txt should be deleted along with default because it is closed already")
+

@@ -1,0 +1,13 @@
+if 'default' in listfiles():
+    removefile('default')
+if 'samplefile.txt' in listfiles():
+    removefile('samplefile.txt')
+
+default_file = openfile('default', True)
+default_file.writeat('This is default content.', 0)
+default_file.close()
+
+sample_file = openfile('samplefile.txt', False)
+file_content = sample_file.readat(None, 0)
+assert file_content == 'This is default content.'
+sample_file.close()

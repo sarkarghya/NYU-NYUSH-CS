@@ -1,0 +1,32 @@
+# Attack case to create a new file from 'default' as a template
+def attack_create_from_default():
+    # Clean up 'default' and 'newfile' to ensure a fresh start
+    try:
+        removefile("default")
+    except Exception:
+        pass  # Ignore errors if 'default' does not exist
+
+    try:
+        removefile("newfile")
+    except Exception:
+        pass  # Ignore errors if 'newfile' does not exist
+    try:
+        # Create 'default' file with initial content
+        default_file = openfile("default", True)
+        default_file.writeat("Template content", 0)
+        default_file.close()
+
+        # Create 'newfile' using 'default' as the template
+        newfile = openfile("newfile", False)
+        content = newfile.readat(None, 0)
+        newfile.close()
+
+        # Check if content matches 'default'
+        if content != "Template content":
+            raise AssertionError("Content mismatch")  # This error indicates a failure
+
+    except FileNotFoundError:
+        pass  # Expected error, suppress it
+
+# Execute the attack case
+attack_create_from_default()

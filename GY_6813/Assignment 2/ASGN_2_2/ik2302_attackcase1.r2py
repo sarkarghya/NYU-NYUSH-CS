@@ -1,0 +1,12 @@
+# Check if double open of default might cause a problem
+
+if "default" in listfiles():
+  removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+default = openfile("default", True)
+assert default.readat(None, 0) == "TEMPLATE"
+default.close()

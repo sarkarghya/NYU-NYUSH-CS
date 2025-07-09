@@ -1,0 +1,12 @@
+filename = "testfile.txt"
+file = openfile(filename, True)
+
+# Try to read the content of the file
+try:
+    content = file.readat(None, 0)
+    log("Content of the file after attack:", content)
+except Exception as e:
+    log("Caught exception while reading the file: " + str(e))
+
+# Close the file
+file.close()

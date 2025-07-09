@@ -1,0 +1,36 @@
+# Attempt to create race conditions with threads 2
+
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "testfile2.txt" in listfiles():
+    removefile("testfile2.txt")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+def thread1():
+    default = openfile("default", False)
+    default.writeat("NEW", 0)
+    sleep(0.1) 
+    default.close()
+
+def thread2():
+    testfile = openfile("testfile.txt", False)
+    testfile.close()
+
+    testfile2 = openfile("testfile2.txt", False)
+    testfile2.close()
+
+createthread(thread1)
+createthread(thread2)
+sleep(0.5) 
+
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "testfile2.txt" in listfiles():
+    removefile("testfile2.txt")

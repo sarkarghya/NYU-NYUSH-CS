@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: assignment3-django-service
+spec:
+  selector:
+    #app: assignment3-django-deploy
+    pod: assignment3-django-deploy
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: NodePort

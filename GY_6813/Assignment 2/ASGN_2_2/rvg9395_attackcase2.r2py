@@ -1,0 +1,22 @@
+
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+
+myfile = openfile("testfile.txt", True)
+
+
+for i in range(6):
+    try:
+        myfile.writeat("DATA", i * 4)
+    except Exception:
+        pass  
+
+
+myfile.close()
+
+
+try:
+    assert "testfile.txt" in listfiles()
+except AssertionError:
+    pass 

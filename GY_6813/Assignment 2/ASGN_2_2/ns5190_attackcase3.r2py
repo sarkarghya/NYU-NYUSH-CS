@@ -1,0 +1,45 @@
+# This test checks if files created using default are properly deleted when default is modified,
+# while ensuring open files are unaffected
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "testfile_open.txt" in listfiles():
+    removefile("testfile_open.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Open a file using default template and close it
+testfile = openfile("testfile.txt", False)
+assert testfile.readat(None, 0) == "TEMPLATE"
+testfile.close()
+
+# Open another file but leave it open
+testfile_open = openfile("testfile_open.txt", False)
+assert testfile_open.readat(None, 0) == "TEMPLATE"
+
+# Modify default file
+default = openfile("default", False)
+default.writeat("MODIFIED TEMPLATE", 0)
+default.close()
+
+# Verify that closed files are deleted
+try:
+    assert "testfile.txt" not in listfiles()
+    log("testfile.txt was deleted as expected.")
+except Exception as e:
+    log(f"Error: testfile.txt was not deleted. {str(e)}")
+
+# Verify that the open file is not deleted and remains accessible
+try:
+    assert testfile_open.readat(None, 0) == "TEMPLATE"
+    log("testfile_open.txt remains unaffected as expected.")
+finally:
+    testfile_open.close()
+
+

@@ -1,0 +1,12 @@
+def test_improper_file_closure_handling():
+    try:
+        f = openfile("improper_close.txt", create=True)
+        raise Exception("Simulated error during file closure")
+    except:
+        try:
+            f.close()
+        except:
+            log("Passed: Proper handling of file closure with exceptions.")
+        removefile("improper_close.txt")
+
+test_improper_file_closure_handling()

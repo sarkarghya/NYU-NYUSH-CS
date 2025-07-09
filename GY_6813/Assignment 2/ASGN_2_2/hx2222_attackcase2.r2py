@@ -1,0 +1,16 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+###
+# Test for opening and creating a file
+# should not output anything
+###
+
+
+# Open a file that doesn't exist
+myfile = openfile("testfile.txt", True)
+
+# Close the file
+myfile.close()

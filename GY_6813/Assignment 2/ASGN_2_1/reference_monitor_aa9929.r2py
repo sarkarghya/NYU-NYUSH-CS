@@ -1,0 +1,154 @@
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"
+OBJC = "objc"
+
+#tracks open files and closed files
+created_files = []
+open_files = []
+closed_files = []
+
+class LPFile():
+    def __init__(self, filename, create):
+        mycontext['debug'] = False
+        #lets functions outside the class can access the filename
+        self.filename = filename
+   
+        #checks the value of create and if the file exists already
+        if(create == False and filename not in listfiles()):
+            if('default' in listfiles()):
+
+                #if default is already open we don't want to close it or open it twice.
+                if('default' in [f.filename for f in open_files]):
+                    for file in open_files:
+                        if(file.filename == "default"):
+                            default_file = file.LPfile
+                            content = default_file.readat(None, 0)
+                            self.LPfile = openfile(filename, True)
+                            self.LPfile.writeat(content, 0)
+                #if default isn't already open, it is opened temporarily and then closed
+                else:
+                    default_file = openfile('default', False)
+                    content = default_file.readat(None, 0)
+                    self.LPfile = openfile(filename, True)
+                    self.LPfile.writeat(content, 0)
+                    default_file.close()
+                open_files.append(self)
+                created_files.append(self.filename)
+            #if default doesn't exist, create is false, and the file doesn't exist, an error has to be thrown
+            else:
+                raise FileNotFoundError("FileNotFoundError")
+        else:
+
+            #LPopenfile already checks if the file is currently opened. This checks if a file is being just opened or created and opened
+            if(filename in listfiles()):
+                self.LPfile = openfile(filename, create)
+                open_files.append(self)
+            else:
+                self.LPfile = openfile(filename, create)
+                open_files.append(self)
+                created_files.append(self.filename)
+                #removes all closed files that were created and closed if default is being created
+                if(self.filename == "default"):
+                    for closed_file in closed_files[:]:
+                        if(closed_file in created_files):
+                            if closed_file in listfiles():
+                                removefile(closed_file)
+                            else:
+                                #if somehow there is a closed file that does not exist, this throws an error
+                                raise ValueError("FileNotFoundError")
+                        #remove the closed file from the list keeping track of closed files and created files
+                        closed_files.remove(closed_file)
+                        created_files.remove(closed_file)
+
+    def readat(self, num_bytes, offset):
+        try:
+            #if the file doesn't exist, an error should be thrown
+            if(self.filename not in listfiles()):
+                raise ValueError("FileNotFoundError")
+            #if the file isn't already open, an error should be thrown
+            if(self not in open_files):
+                raise ValueError("FileClosedError")
+            
+            return self.LPfile.readat(num_bytes, offset)
+        except Exception as theError:
+            return self.LPfile.readat(num_bytes, offset)
+
+
+    def writeat(self, data, offset):
+
+        # if writing to default, all previously closed files should be deleted
+        if(self.filename == "default"):
+            for closed_file in closed_files[:]:
+                if(closed_file in created_files):
+                    if closed_file in listfiles():
+                        removefile(closed_file)
+                    else:
+                        #if somehow there is a closed file that does not exist, this throws an error
+                        raise ValueError("FileNotFoundError")
+                #remove the closed file from the list keeping track of closed files and created files
+                closed_files.remove(closed_file)
+                created_files.remove(closed_file)
+
+        self.LPfile.writeat(data, offset)
+
+    def close(self):
+        self.LPfile.close()
+        open_files.remove(self)
+        closed_files.append(self.filename)
+
+def LPopenfile(filename, create):
+    if(filename in closed_files):
+        closed_files.remove(filename)
+    return LPFile(filename, create)
+
+def LPremovefile(filename):
+    removefile(filename)
+    if(filename in closed_files):
+        closed_files.remove(closed_file)
+    if(filename in created_files):
+        created_files.remove(filename)
+    # If removing 'default', delete all previously closed files
+    if(filename == "default"):
+        for closed_file in closed_files[:]:
+            if(closed_file in created_files):
+                if closed_file in listfiles():
+                    removefile(closed_file)
+                else:
+                    #if somehow there is a closed file that does not exist, this throws an error
+                    raise ValueError("FileNotFoundError")
+            #remove the closed file from the list keeping track of closed files and created files
+            closed_files.remove(closed_file)
+            created_files.remove(closed_file)
+
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()

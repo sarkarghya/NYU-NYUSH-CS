@@ -1,0 +1,9 @@
+if 'default' in listfiles():
+    removefile('default')
+
+try:
+    new_file = openfile('anotherfile.txt', False)
+except Exception:
+    pass
+else:
+    assert False

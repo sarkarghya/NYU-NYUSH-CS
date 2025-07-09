@@ -1,0 +1,27 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create and write to default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Open a file using default
+myfile = openfile("testfile.txt", False)
+
+# Delete default while the file is still open
+removefile("default")
+
+# Read and write to the open file
+assert myfile.readat(None, 0) == "TEMPLATE"
+myfile.writeat("MODIFIED", 9)
+
+# Close the file
+myfile.close()
+
+# Ensure the file still exists after the default file is deleted
+assert "testfile.txt" in listfiles()
+

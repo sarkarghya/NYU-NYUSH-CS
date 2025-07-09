@@ -1,0 +1,16 @@
+# Creating default with `create=False`
+
+if "testfile.txt" in listfiles():
+  removefile("testfile.txt")
+if "default" in listfiles():
+  removefile("default")
+
+existing = openfile("testfile.txt", True)
+existing.writeat("BLABLA", 0)
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+assert existing.readat(None, 0) == "BLABLA"
+existing.close()

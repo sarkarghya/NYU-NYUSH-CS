@@ -1,0 +1,56 @@
+#Checks if files are properly deleted when default is removed
+
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if("apple" in listfiles()):
+   removefile("apple")
+if("grape" in listfiles()):
+   removefile("grape")
+if("orange" in listfiles()):
+  removefile("orange")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+#________________________________________________________________________________________________________________
+# Create two file
+apple = openfile("apple", True)
+grape = openfile("grape", True)
+
+# Create one more file
+orange = openfile("orange", True)
+
+# Closes two files
+apple.close()
+grape.close()
+
+#We shall see if only the closed files are deleted when default is removed
+
+# Remove default
+removefile("default")
+   
+if("apple" in listfiles()):
+   log("apple was not removed (ac4) \n")
+
+elif("grape" in listfiles()):
+   log("grape was not removed (ac4) \n")
+   
+elif("orange" not in listfiles()):
+   log("orange was removed when it should not have (ac4) \n")
+
+#________________________________________________________________________________________________________________
+
+# Close the file
+try:
+  orange.close()
+except Exception as e:
+  pass

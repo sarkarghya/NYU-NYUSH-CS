@@ -1,0 +1,30 @@
+
+try:
+    # Create default with initial content
+    default = openfile("default", True)
+    default.writeat("Initial", 0)
+    default.close()
+    
+    # Create files from default template
+    file1 = openfile("test1", False)
+    
+    # Modify default without closing file1
+    default = openfile("default", True)
+    default.writeat("Modified", 0)
+    default.close()
+    
+    # Create another file and compare contents
+    file2 = openfile("test2", False)
+    
+    content1 = file1.readat(None, 0)
+    content2 = file2.readat(None, 0)
+    
+    if content1 != content2:
+        pass
+    else:
+        log("Accuracy bug: Some error in default logic\n")
+        
+    file1.close()
+    file2.close()
+except Exception:
+    log("Accuracy bug: Some error in default file creation or open close logic\n")

@@ -1,0 +1,30 @@
+### Race condition, read and write from same file at the same time ###
+
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+# Create the default template file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Create testfile
+myfile = openfile("testfile.txt", False)
+myfile.close()
+
+# Read and write to the file at the same time
+def read_from_file():
+    racefile = openfile("testfile.txt", False)
+    content = racefile.readat(None, 8)
+    racefile.close()
+def write_to_file():
+    racefile = openfile("testfile.txt", True)
+    racefile.writeat("OVERWRITE", 0)
+    racefile.close()
+
+# Create threads
+t1 = createthread(read_from_file)
+t2 = createthread(write_to_file)

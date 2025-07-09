@@ -1,0 +1,14 @@
+# test case 5: open file multiple times without closing
+
+if "default" in listfiles():
+    removefile("default")
+
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+
+try:
+    duplicate = openfile("default", False)
+except FileInUseError:
+    pass
+
+default.close()

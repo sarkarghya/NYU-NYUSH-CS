@@ -1,0 +1,37 @@
+# Clean up if the files exist
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "anotherfile.txt" in listfiles():
+    removefile("anotherfile.txt")
+
+# Create a default file and write to it
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+# Test: Open a file that doesn't exist, test if it copies the default file
+myfile = openfile("testfile.txt", False)
+assert myfile.readat(None, 0) == "TEMPLATE"
+myfile.close()
+
+# Writing to the file
+myfile = openfile("testfile.txt", False)
+myfile.writeat("NEW_CONTENT", 0)
+myfile.close()
+
+# creating a new file
+newfile = openfile("anotherfile.txt", True)
+newfile.writeat("ANOTHER_FILE", 0)
+newfile.close()
+
+# Close the file and then delete it
+myfile = openfile("testfile.txt", False)
+myfile.close()
+removefile("testfile.txt")
+
+# Reopen the default file
+default = openfile("default", False)
+default.writeat("UPDATED_TEMPLATE", 0)
+default.close()

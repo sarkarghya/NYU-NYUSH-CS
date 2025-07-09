@@ -1,0 +1,22 @@
+################################################################################
+# Test Case: When default doesnt exist
+# openfile("testfile.txt", False)
+# Done
+################################################################################
+
+# Remove existing files if present
+if "default" in listfiles():
+    removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+
+try:
+    myfile = openfile("testfile.txt", False)
+except FileNotFoundError:
+    pass  # Expected error
+finally:
+    if "testfile.txt" in listfiles():
+        removefile("testfile.txt")
+
+    # Exit the test
+    exitall()

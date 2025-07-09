@@ -1,0 +1,15 @@
+# testing if double close works
+if "default" in listfiles():
+    removefile("default")
+if "testfile" in listfiles():
+    removefile("testfile")
+
+testfile = openfile('testfile', True)
+testfile.close()
+
+try:
+    testfile.close()
+except FileClosedError:
+    pass
+else:
+    log("**********************************************Failed Test 1*******************************************************\n")

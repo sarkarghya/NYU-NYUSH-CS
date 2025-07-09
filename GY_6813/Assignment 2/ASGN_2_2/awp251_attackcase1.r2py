@@ -1,0 +1,49 @@
+# Clean up if the files exist
+if "default" in listfiles():
+  removefile("default")
+if "testfile.txt" in listfiles():
+    removefile("testfile.txt")
+if "testfile2.txt" in listfiles():
+    removefile("testfile2.txt")
+
+# Create a default file
+default = openfile("default", True)
+
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+
+# Close default
+default.close()
+
+
+## ATTACK CASE WITH DEFAULT FILE STARTS AND NO testfile.txt STARTS BELOW ##
+
+
+#GOAL: to not have the test_file2 created at all and no expected FileInUseError exception raised
+
+
+#attempt to copy default template by opening testfile.txt - Thread 1
+def open_testfile1():
+    test_file1 = openfile("testfile.txt", False)
+    sleep(3)
+    test_file1.close()
+
+
+createthread(open_testfile1)
+
+try:
+    test_file2 = openfile("testfile2.txt", False)
+except FileInUseError:
+    pass
+else:
+    test_file2.close()
+
+
+
+# Read from the file. 
+# Passing None as first argument indicates that we want to read the whole file from offset 0.
+# if the assert condition is not true, the attack case program will raise the AssertionError to indicate the reference monitor behaved unexpectedly
+# the autograder will then consider this as a successful attack case
+assert 'testfile2.txt' not in listfiles()
+
+

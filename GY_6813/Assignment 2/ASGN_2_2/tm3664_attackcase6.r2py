@@ -1,0 +1,12 @@
+def test_recovery_from_failure():
+    try:
+        f = openfile("will_fail.txt", create=False)  # Opening a non-existent file without creation
+    except Exception:
+        log("Passed: Properly handled attempt to open a non-existent file.")
+        try:
+            f.writeat("Should not work", 0)
+            log("Security Flaw: Wrote to an uninitialized file handle.")
+        except Exception as e:
+            log("Passed: Correctly prevented operations on an invalid file handle. Error: " + str(e))
+
+test_recovery_from_failure()

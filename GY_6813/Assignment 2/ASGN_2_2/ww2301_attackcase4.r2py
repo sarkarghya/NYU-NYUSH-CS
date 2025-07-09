@@ -1,0 +1,27 @@
+# reference_monitor_gz2133.r2py
+# reference_monitor_jef9921.r2py
+# reference_monitor_nmt8347.r2py
+# reference_monitor_sks9405.r2py
+
+
+if "default" in listfiles():
+    removefile("default")
+if "test.txt" in listfiles():
+    removefile("test.txt")
+
+default = openfile("default", True)
+
+default.writeat("TEMPLATE", 0)
+
+default.close()
+
+try: 
+    default.readat(None, 0)
+except FileClosedError:
+    pass
+except ValueError:
+    pass
+except Exception as e:
+    pass
+else:
+    raise Exception("Default should be closed and inaccessible using readat() \n")

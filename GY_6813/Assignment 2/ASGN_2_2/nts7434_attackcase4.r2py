@@ -1,0 +1,23 @@
+# Create the unsafe content
+bad_content = "This is unsafe content that could harm the system."
+
+# Create and write unsafe content to the default file
+default_filename = "default"
+default_file = openfile(default_filename, True)
+default_file.writeat(bad_content, 0)
+default_file.close()
+
+new_filename = "new_file.txt"
+new_file = openfile(new_filename, False) 
+
+# Try to read from the new file
+try:
+    content = new_file.readat(None, 0)
+    # If the reading is allowed, print the content
+    log("Content of the new file:", content)
+except Exception as e:
+    # Log caught exceptions
+    log("Caught exception: " + str(e))
+finally:
+    new_file.close()
+    removefile(default_filename)

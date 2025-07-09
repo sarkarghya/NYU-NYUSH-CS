@@ -1,0 +1,12 @@
+# Try to Access File We Shouldn't Be Able To
+# Should raise error
+
+try:
+    file = openfile("wrapper.r2py", False)
+    file.close()
+except FileNotFoundError:
+    pass
+
+
+
+

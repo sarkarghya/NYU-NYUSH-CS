@@ -1,0 +1,13 @@
+### Check file not found error for default not found ### 
+if "default" in listfiles():
+  removefile("default")
+
+try:
+  myfile = openfile("testfile.txt", False)
+except FileNotFoundError:
+  pass
+else:
+  assert False
+finally:
+    if 'testfile' in listfiles():
+      myfile.close()

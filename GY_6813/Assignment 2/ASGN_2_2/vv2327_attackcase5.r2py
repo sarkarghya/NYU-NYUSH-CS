@@ -1,0 +1,5 @@
+# type: ignore
+if "repy.py" in listfiles(): 
+    removefile("repy.py") 
+if "wrapper.r2py" in listfiles(): 
+    removefile("wrapper.r2py") 

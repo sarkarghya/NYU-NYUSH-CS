@@ -1,0 +1,12 @@
+try:
+    valid_file = LPFile("another_valid_file", create=True)
+    valid_file.writeat("Hello", 0)
+    
+    try:
+        valid_file.writeat("World", 10)
+    except SeekPastEndOfFileError as e:
+        pass  
+    else:
+        print("Attack failed: Writing past the end of file was allowed.")
+except Exception as e:
+    print(f"Unexpected error: {e}")

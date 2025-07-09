@@ -1,0 +1,18 @@
+# testing openfile("xxx",False) 
+# Expected: create new file identical to template
+
+#if "default" in listfiles():
+#  removefile("default")
+#if "fileone.txt" in listfiles():
+#  removefile("testfile.txt")
+
+# Create a default file
+default = openfile("default", True)
+default.writeat("TEMPLATE", 0)
+default.close()
+
+myfile1 = openfile("fileone", False)  
+myfile1.close() 
+
+
+

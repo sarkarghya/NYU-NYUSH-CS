@@ -1,0 +1,35 @@
+invalid_filenames = [
+    '.hidden',
+    'InvalidFileName.txt',
+    'file with spaces.txt',
+    'file@name.txt',
+    '',
+    'a' * 121,
+    '.',
+    '..',
+    ' leading_space.txt',
+    'name_with_newline\n.txt'
+]
+
+for fname in invalid_filenames:
+    try:
+        openfile(fname, True)
+    except Exception:
+        pass  # Expected behavior
+    else:
+        assert False
+
+# Test valid filenames to ensure they are accepted
+valid_filenames = [
+    "file-name.txt",
+    "filename123.txt",
+    "_filename.txt",
+    "-filename.txt"
+]
+
+for fname in valid_filenames:
+    try:
+        f = openfile(fname, True)
+        f.close()
+    except Exception as e:
+        assert False

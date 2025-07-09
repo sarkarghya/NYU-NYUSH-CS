@@ -1,0 +1,27 @@
+# Clean up if the files exist
+if "default" in listfiles():
+	removefile("default")
+for i in range(100):
+	if "test" + str(i) in listfiles():
+		removefile("test" + str(i))
+
+
+# Create a default file
+default = openfile("default", True)
+# Initial write to default
+default.writeat("TEMPLATE", 0)
+# Close default
+default.close()
+
+
+# create 100 file based on default
+def openNewFile(filename):
+	def configured_function():
+		newfile = openfile("test" + filename, False)
+		newfile.close()
+	return configured_function
+	
+
+for i in range(100):
+	closure = openNewFile(str(i))
+	createthread(closure)
